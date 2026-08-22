@@ -1,0 +1,22 @@
+.header {
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--espacio-4);
+  padding-bottom: var(--espacio-4);
+}
+
+.marca {
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.enlaces {
+  display: flex;
+  gap: var(--espacio-6);
+  font-size: 0.875rem;
+}

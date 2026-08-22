@@ -1,0 +1,10 @@
+.container {
+  width: 100%;
+  max-width: var(--ancho-maximo);
+  margin: 0 auto;
+  padding: var(--espacio-4);
+}
+
+.angosto {
+  max-width: 28rem;
+}

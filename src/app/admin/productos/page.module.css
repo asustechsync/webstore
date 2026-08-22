@@ -1,0 +1,26 @@
+.encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.botonNuevo {
+  background: var(--color-primario);
+  color: var(--color-primario-texto);
+  border-radius: var(--radio-borde);
+  padding: var(--espacio-2) var(--espacio-4);
+}
+
+.tabla {
+  width: 100%;
+  margin-top: var(--espacio-6);
+  text-align: left;
+  font-size: 0.875rem;
+  border-collapse: collapse;
+}
+
+.tabla th,
+.tabla td {
+  padding: var(--espacio-2) 0;
+  border-bottom: 1px solid var(--color-borde);
+}

@@ -1,0 +1,40 @@
+:root {
+  /* Colores — placeholders neutros hasta definir la paleta de marca */
+  --color-bg: #ffffff;
+  --color-bg-suave: #f6f6f7;
+  --color-texto: #171717;
+  --color-texto-suave: #6b6b70;
+  --color-borde: #e3e3e6;
+  --color-primario: #171717;
+  --color-primario-texto: #ffffff;
+  --color-error: #d92d20;
+  --color-exito: #17803d;
+
+  /* Tipografía */
+  --fuente-base: var(--font-geist-sans), system-ui, sans-serif;
+  --fuente-mono: var(--font-geist-mono), monospace;
+
+  /* Espaciados */
+  --espacio-1: 0.25rem;
+  --espacio-2: 0.5rem;
+  --espacio-3: 0.75rem;
+  --espacio-4: 1rem;
+  --espacio-6: 1.5rem;
+  --espacio-8: 2rem;
+  --espacio-12: 3rem;
+  --espacio-16: 4rem;
+
+  /* Radios de borde */
+  --radio-sm: 0.25rem;
+  --radio-borde: 0.5rem;
+  --radio-lg: 0.75rem;
+  --radio-full: 9999px;
+
+  /* Sombras */
+  --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.08);
+  --sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
+
+  /* Layout */
+  --ancho-maximo: 72rem;
+}

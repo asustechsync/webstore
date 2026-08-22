@@ -1,0 +1,27 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: var(--radio-borde);
+  padding: var(--espacio-2) var(--espacio-4);
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.primario {
+  background: var(--color-primario);
+  color: var(--color-primario-texto);
+}
+
+.secundario {
+  background: var(--color-bg-suave);
+  color: var(--color-texto);
+  border: 1px solid var(--color-borde);
+}

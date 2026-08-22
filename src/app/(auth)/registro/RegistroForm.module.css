@@ -1,0 +1,25 @@
+.form {
+  margin-top: var(--espacio-6);
+}
+
+.mensajeError {
+  color: var(--color-error);
+  font-size: 0.875rem;
+  margin-bottom: var(--espacio-4);
+}
+
+.mensajeExito {
+  color: var(--color-exito);
+  font-size: 0.875rem;
+  margin-bottom: var(--espacio-4);
+}
+
+.enlace {
+  margin-top: var(--espacio-4);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+.enlace a {
+  text-decoration: underline;
+}

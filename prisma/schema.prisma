@@ -1,0 +1,213 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ── Usuarios, roles y permisos ─────────────────────────────
+
+model Usuario {
+  id            String   @id @default(uuid())
+  authId        String   @unique // id del usuario en Supabase Auth
+  email         String   @unique
+  nombre        String
+  apellidos     String?
+  telefono      String?
+  rolId         String
+  rol           Rol      @relation(fields: [rolId], references: [id])
+  direcciones   Direccion[]
+  pedidos       Pedido[]
+  carrito       Carrito?
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @updatedAt
+
+  @@map("usuarios")
+}
+
+model Rol {
+  id       String       @id @default(uuid())
+  nombre   String       @unique // ADMIN, CLIENTE, ALMACEN, VENTAS, DESPACHO...
+  permisos RolPermiso[]
+  usuarios Usuario[]
+
+  @@map("roles")
+}
+
+model Permiso {
+  id     String       @id @default(uuid())
+  clave  String       @unique // "productos.crear", "stock.editar", "pedidos.despachar"...
+  roles  RolPermiso[]
+
+  @@map("permisos")
+}
+
+model RolPermiso {
+  rolId     String
+  permisoId String
+  rol       Rol     @relation(fields: [rolId], references: [id], onDelete: Cascade)
+  permiso   Permiso @relation(fields: [permisoId], references: [id], onDelete: Cascade)
+
+  @@id([rolId, permisoId])
+  @@map("roles_permisos")
+}
+
+model Direccion {
+  id            String   @id @default(uuid())
+  usuarioId     String
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  destinatario  String
+  telefono      String
+  departamento  String
+  provincia     String
+  distrito      String
+  direccion     String
+  referencia    String?
+  predeterminada Boolean @default(false)
+  creadoEn      DateTime @default(now())
+
+  @@map("direcciones")
+}
+
+// ── Catálogo: marcas, categorías, productos ────────────────
+
+model Marca {
+  id        String     @id @default(uuid())
+  nombre    String     @unique
+  slug      String     @unique
+  logoUrl   String?    // URL de Cloudinary
+  activo    Boolean    @default(true)
+  productos Producto[]
+  creadoEn  DateTime   @default(now())
+
+  @@map("marcas")
+}
+
+model Categoria {
+  id            String      @id @default(uuid())
+  nombre        String
+  slug          String      @unique
+  descripcion   String?
+  imagenUrl     String?     // URL de Cloudinary
+  padreId       String?
+  padre         Categoria?  @relation("SubCategorias", fields: [padreId], references: [id])
+  subcategorias Categoria[] @relation("SubCategorias")
+  productos     Producto[]
+  activo        Boolean     @default(true)
+  creadoEn      DateTime    @default(now())
+
+  @@map("categorias")
+}
+
+model Producto {
+  id            String            @id @default(uuid())
+  nombre        String
+  slug          String            @unique
+  descripcion   String
+  precio        Decimal           @db.Decimal(10, 2)
+  precioOferta  Decimal?          @db.Decimal(10, 2)
+  sku           String            @unique
+  categoriaId   String
+  categoria     Categoria         @relation(fields: [categoriaId], references: [id])
+  marcaId       String?
+  marca         Marca?            @relation(fields: [marcaId], references: [id])
+  imagenes      ImagenProducto[]
+  stock         Stock?
+  itemsPedido   ItemPedido[]
+  itemsCarrito  ItemCarrito[]
+  activo        Boolean           @default(true)
+  destacado     Boolean           @default(false)
+  creadoEn      DateTime          @default(now())
+  actualizadoEn DateTime          @updatedAt
+
+  @@index([categoriaId])
+  @@index([marcaId])
+  @@map("productos")
+}
+
+model ImagenProducto {
+  id         String   @id @default(uuid())
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  url        String   // URL de Cloudinary
+  publicId   String   // public_id de Cloudinary, para poder borrarla
+  orden      Int      @default(0)
+
+  @@map("imagenes_producto")
+}
+
+// ── Stock (fase 2, modelo base ya incluido) ────────────────
+
+model Stock {
+  id            String   @id @default(uuid())
+  productoId    String   @unique
+  producto      Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  cantidad      Int      @default(0)
+  stockMinimo   Int      @default(0)
+  actualizadoEn DateTime @updatedAt
+
+  @@map("stock")
+}
+
+// ── Carrito persistido (para usuarios logueados) ───────────
+// El carrito de invitados vive solo en localStorage (Zustand); este se
+// sincroniza al iniciar sesión para no perder el carrito entre dispositivos.
+
+model Carrito {
+  id            String        @id @default(uuid())
+  usuarioId     String        @unique
+  usuario       Usuario       @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  items         ItemCarrito[]
+  actualizadoEn DateTime      @updatedAt
+
+  @@map("carritos")
+}
+
+model ItemCarrito {
+  id         String   @id @default(uuid())
+  carritoId  String
+  carrito    Carrito  @relation(fields: [carritoId], references: [id], onDelete: Cascade)
+  productoId String
+  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  cantidad   Int      @default(1)
+
+  @@unique([carritoId, productoId])
+  @@map("items_carrito")
+}
+
+// ── Pedidos (base para checkout / fase 3 facturación y envíos) ─
+
+model Pedido {
+  id            String       @id @default(uuid())
+  usuarioId     String
+  usuario       Usuario      @relation(fields: [usuarioId], references: [id])
+  items         ItemPedido[]
+  estado        EstadoPedido @default(PENDIENTE)
+  total         Decimal      @db.Decimal(10, 2)
+  creadoEn      DateTime     @default(now())
+  actualizadoEn DateTime     @updatedAt
+
+  @@map("pedidos")
+}
+
+model ItemPedido {
+  id          String   @id @default(uuid())
+  pedidoId    String
+  pedido      Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  productoId  String
+  producto    Producto @relation(fields: [productoId], references: [id])
+  cantidad    Int
+  precioUnit  Decimal  @db.Decimal(10, 2)
+
+  @@map("items_pedido")
+}
+
+enum EstadoPedido {
+  PENDIENTE
+  PAGADO
+  EN_PREPARACION
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
