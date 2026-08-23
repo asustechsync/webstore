@@ -107,15 +107,16 @@ model Producto {
   descripcion   String
   precio        Decimal           @db.Decimal(10, 2)
   precioOferta  Decimal?          @db.Decimal(10, 2)
-  sku           String            @unique
+  sku           String            @unique // código base; cada variante tiene el suyo
   categoriaId   String
   categoria     Categoria         @relation(fields: [categoriaId], references: [id])
   marcaId       String?
   marca         Marca?            @relation(fields: [marcaId], references: [id])
   imagenes      ImagenProducto[]
-  stock         Stock?
-  itemsPedido   ItemPedido[]
-  itemsCarrito  ItemCarrito[]
+  variantes     Variante[]
+  material      String?           // "95% algodón, 5% elastano"
+  cuidados      String?           // "Lavar a máquina en frío, no usar secadora"
+  guiaTallas    String?
   activo        Boolean           @default(true)
   destacado     Boolean           @default(false)
   creadoEn      DateTime          @default(now())
@@ -137,17 +138,29 @@ model ImagenProducto {
   @@map("imagenes_producto")
 }
 
-// ── Stock (fase 2, modelo base ya incluido) ────────────────
+// ── Variantes: la unidad que realmente se vende ────────────
+// En ropa el stock no vive en el producto sino en cada combinación de talla y
+// color, así que el carrito y los pedidos apuntan acá, no a Producto.
 
-model Stock {
-  id            String   @id @default(uuid())
-  productoId    String   @unique
-  producto      Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
-  cantidad      Int      @default(0)
-  stockMinimo   Int      @default(0)
-  actualizadoEn DateTime @updatedAt
+model Variante {
+  id            String        @id @default(uuid())
+  productoId    String
+  producto      Producto      @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  talla         String        // S, M, L, XL, 28, 30, Única...
+  color         String        @default("") // "" = sin color; evita NULLs en el índice único
+  sku           String        @unique
+  precio        Decimal?      @db.Decimal(10, 2) // opcional: sobrescribe el precio del producto
+  cantidad      Int           @default(0)
+  stockMinimo   Int           @default(0)
+  activo        Boolean       @default(true)
+  itemsCarrito  ItemCarrito[]
+  itemsPedido   ItemPedido[]
+  creadoEn      DateTime      @default(now())
+  actualizadoEn DateTime      @updatedAt
 
-  @@map("stock")
+  @@unique([productoId, talla, color])
+  @@index([productoId])
+  @@map("variantes")
 }
 
 // ── Carrito persistido (para usuarios logueados) ───────────
@@ -168,11 +181,11 @@ model ItemCarrito {
   id         String   @id @default(uuid())
   carritoId  String
   carrito    Carrito  @relation(fields: [carritoId], references: [id], onDelete: Cascade)
-  productoId String
-  producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  varianteId String
+  variante   Variante @relation(fields: [varianteId], references: [id], onDelete: Cascade)
   cantidad   Int      @default(1)
 
-  @@unique([carritoId, productoId])
+  @@unique([carritoId, varianteId])
   @@map("items_carrito")
 }
 
@@ -185,6 +198,9 @@ model Pedido {
   items         ItemPedido[]
   estado        EstadoPedido @default(PENDIENTE)
   total         Decimal      @db.Decimal(10, 2)
+  descuento     Decimal      @default(0) @db.Decimal(10, 2)
+  cuponId       String?
+  cupon         Cupon?       @relation(fields: [cuponId], references: [id])
   creadoEn      DateTime     @default(now())
   actualizadoEn DateTime     @updatedAt
 
@@ -195,8 +211,8 @@ model ItemPedido {
   id          String   @id @default(uuid())
   pedidoId    String
   pedido      Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  productoId  String
-  producto    Producto @relation(fields: [productoId], references: [id])
+  varianteId  String
+  variante    Variante @relation(fields: [varianteId], references: [id])
   cantidad    Int
   precioUnit  Decimal  @db.Decimal(10, 2)
 
@@ -210,4 +226,29 @@ enum EstadoPedido {
   ENVIADO
   ENTREGADO
   CANCELADO
+}
+
+// ── Marketing: cupones de descuento ────────────────────────
+
+model Cupon {
+  id            String     @id @default(uuid())
+  codigo        String     @unique
+  tipo          TipoCupon
+  valor         Decimal    @db.Decimal(10, 2) // % si tipo=PORCENTAJE, soles si tipo=MONTO_FIJO
+  montoMinimo   Decimal?   @db.Decimal(10, 2)
+  usoMaximo     Int?       // null = sin límite de usos
+  usosActuales  Int        @default(0)
+  fechaInicio   DateTime?
+  fechaFin      DateTime?
+  activo        Boolean    @default(true)
+  pedidos       Pedido[]
+  creadoEn      DateTime   @default(now())
+  actualizadoEn DateTime   @updatedAt
+
+  @@map("cupones")
+}
+
+enum TipoCupon {
+  PORCENTAJE
+  MONTO_FIJO
 }

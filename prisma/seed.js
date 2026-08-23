@@ -37,6 +37,9 @@ const PERMISOS = [
   "pedidos.gestionar",
   "pedidos.despachar",
   "facturacion.emitir",
+  "cupones.crear",
+  "cupones.editar",
+  "cupones.eliminar",
 ];
 
 async function main() {

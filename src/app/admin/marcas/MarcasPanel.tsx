@@ -1,0 +1,215 @@
+"use client";
+
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { actualizarMarca, crearMarca, eliminarMarca } from "@/features/catalogo/actions";
+import { slugificar } from "@/lib/utils";
+import styles from "../admin.module.css";
+
+type Fila = {
+  id: string;
+  nombre: string;
+  slug: string;
+  logoUrl: string | null;
+  activo: boolean;
+  productos: number;
+};
+
+const VACIA = { nombre: "", slug: "", logoUrl: "", activo: true };
+
+export function MarcasPanel({ marcas }: { marcas: Fila[] }) {
+  const router = useRouter();
+  const [pendiente, iniciarTransicion] = useTransition();
+  const [editandoId, setEditandoId] = useState<string | null>(null);
+  const [form, setForm] = useState(VACIA);
+  const [slugManual, setSlugManual] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  function limpiar() {
+    setEditandoId(null);
+    setForm(VACIA);
+    setSlugManual(false);
+    setError(null);
+  }
+
+  function editar(marca: Fila) {
+    setEditandoId(marca.id);
+    setForm({
+      nombre: marca.nombre,
+      slug: marca.slug,
+      logoUrl: marca.logoUrl ?? "",
+      activo: marca.activo,
+    });
+    setSlugManual(true);
+    setError(null);
+  }
+
+  function onSubmit(evento: React.FormEvent) {
+    evento.preventDefault();
+    setError(null);
+
+    iniciarTransicion(async () => {
+      const resultado = editandoId
+        ? await actualizarMarca(editandoId, form)
+        : await crearMarca(form);
+
+      if (!resultado.ok) {
+        setError(resultado.error);
+        return;
+      }
+
+      limpiar();
+      router.refresh();
+    });
+  }
+
+  function onEliminar(marca: Fila) {
+    const aviso =
+      marca.productos > 0
+        ? `"${marca.nombre}" tiene ${marca.productos} producto(s); quedarán sin marca. ¿Continuar?`
+        : `¿Eliminar la marca "${marca.nombre}"?`;
+    if (!confirm(aviso)) return;
+
+    setError(null);
+    iniciarTransicion(async () => {
+      const resultado = await eliminarMarca(marca.id);
+      if (!resultado.ok) {
+        setError(resultado.error);
+        return;
+      }
+      if (editandoId === marca.id) limpiar();
+      router.refresh();
+    });
+  }
+
+  return (
+    <>
+      <section className={styles.seccion}>
+        <h2 className={styles.titulo}>{editandoId ? "Editar marca" : "Nueva marca"}</h2>
+
+        <form className={styles.form} onSubmit={onSubmit}>
+          {error && <p className={styles.mensajeError}>{error}</p>}
+
+          <div className={styles.fila}>
+            <label className={styles.campo}>
+              <span className={styles.etiqueta}>Nombre</span>
+              <input
+                className={styles.control}
+                value={form.nombre}
+                required
+                onChange={(evento) => {
+                  const nombre = evento.target.value;
+                  setForm((previo) => ({
+                    ...previo,
+                    nombre,
+                    slug: slugManual ? previo.slug : slugificar(nombre),
+                  }));
+                }}
+              />
+            </label>
+
+            <label className={styles.campo}>
+              <span className={styles.etiqueta}>Slug (URL)</span>
+              <input
+                className={styles.control}
+                value={form.slug}
+                required
+                onChange={(evento) => {
+                  setSlugManual(true);
+                  setForm((previo) => ({ ...previo, slug: evento.target.value }));
+                }}
+              />
+            </label>
+          </div>
+
+          <label className={styles.campo}>
+            <span className={styles.etiqueta}>Logo (URL)</span>
+            <input
+              className={styles.control}
+              value={form.logoUrl}
+              placeholder="https://..."
+              onChange={(evento) =>
+                setForm((previo) => ({ ...previo, logoUrl: evento.target.value }))
+              }
+            />
+          </label>
+
+          <label className={`${styles.campo} ${styles.checkbox}`}>
+            <input
+              type="checkbox"
+              checked={form.activo}
+              onChange={(evento) =>
+                setForm((previo) => ({ ...previo, activo: evento.target.checked }))
+              }
+            />
+            <span className={styles.etiqueta}>Visible en la tienda</span>
+          </label>
+
+          <div className={styles.botones}>
+            <button type="submit" className={styles.boton} disabled={pendiente}>
+              {pendiente ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear marca"}
+            </button>
+            {editandoId && (
+              <button type="button" className={styles.botonSecundario} onClick={limpiar}>
+                Cancelar
+              </button>
+            )}
+          </div>
+        </form>
+      </section>
+
+      <section>
+        <h2 className={styles.titulo}>Marcas existentes</h2>
+
+        {marcas.length === 0 ? (
+          <p className={styles.vacio}>Todavía no hay marcas. Crea la primera arriba.</p>
+        ) : (
+          <div className={styles.tablaWrap}>
+            <table className={styles.tabla}>
+              <thead>
+                <tr>
+                  <th>Nombre</th>
+                  <th>Slug</th>
+                  <th>Productos</th>
+                  <th>Estado</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {marcas.map((marca) => (
+                  <tr key={marca.id}>
+                    <td>{marca.nombre}</td>
+                    <td>{marca.slug}</td>
+                    <td>{marca.productos}</td>
+                    <td>
+                      <span className={styles.badge}>{marca.activo ? "Visible" : "Oculta"}</span>
+                    </td>
+                    <td>
+                      <div className={styles.acciones}>
+                        <button
+                          type="button"
+                          className={styles.botonChico}
+                          onClick={() => editar(marca)}
+                        >
+                          Editar
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.botonPeligro}
+                          disabled={pendiente}
+                          onClick={() => onEliminar(marca)}
+                        >
+                          Eliminar
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </section>
+    </>
+  );
+}

@@ -40,7 +40,8 @@ export function obtenerProductoPorSlug(slug: string) {
       imagenes: { orderBy: { orden: "asc" } },
       categoria: true,
       marca: true,
-      stock: true,
+      // Solo las tallas activas: son las que el cliente puede elegir.
+      variantes: { where: { activo: true }, orderBy: [{ color: "asc" }, { talla: "asc" }] },
     },
   });
 }

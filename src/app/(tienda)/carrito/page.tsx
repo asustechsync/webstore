@@ -25,8 +25,11 @@ export default function CarritoPage() {
         <h1>Carrito</h1>
         <ul className={styles.lista}>
           {items.map((item) => (
-            <li key={item.productoId} className={styles.item}>
-              <span>{item.nombre} x{item.cantidad}</span>
+            <li key={item.varianteId} className={styles.item}>
+              <span>
+                {item.nombre} · {item.talla}
+                {item.color && ` · ${item.color}`} x{item.cantidad}
+              </span>
               <span>{formatearPrecio(item.precio * item.cantidad)}</span>
             </li>
           ))}
