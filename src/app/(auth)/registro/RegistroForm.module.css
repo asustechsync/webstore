@@ -3,20 +3,16 @@
 }
 
 .mensajeError {
-  color: var(--color-error);
-  font-size: 0.875rem;
-  margin-bottom: var(--espacio-4);
+  composes: mensajeError from "../../../styles/ui.module.css";
 }
 
 .mensajeExito {
-  color: var(--color-exito);
-  font-size: 0.875rem;
-  margin-bottom: var(--espacio-4);
+  composes: mensajeExito from "../../../styles/ui.module.css";
 }
 
 .enlace {
   margin-top: var(--espacio-4);
-  font-size: 0.875rem;
+  font-size: var(--texto-sm);
   text-align: center;
 }
 

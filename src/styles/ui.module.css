@@ -1,0 +1,182 @@
+/*
+ * Patrones visuales compartidos.
+ * Los módulos de una página pueden componer estas clases y agregar solamente
+ * reglas de distribución particulares.
+ */
+
+.titulo {
+  margin: 0;
+  font-size: var(--texto-lg);
+  line-height: var(--interlineado-compacto);
+  font-weight: var(--peso-semibold);
+}
+
+.subtitulo {
+  margin: var(--espacio-1) 0 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.tarjeta {
+  background: var(--tarjeta-fondo);
+  border: 1px solid var(--tarjeta-borde);
+  border-radius: var(--tarjeta-radio);
+  padding: var(--tarjeta-padding);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.5rem;
+  padding: 0 var(--espacio-2);
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--radio-full);
+  background: var(--superficie-suave);
+  font-size: var(--texto-xs);
+  line-height: 1;
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  margin-bottom: var(--espacio-4);
+}
+
+.etiqueta {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+.control {
+  width: 100%;
+  min-height: var(--control-alto);
+  padding: var(--espacio-2) var(--control-padding-x);
+  border: 1px solid var(--control-borde);
+  border-radius: var(--control-radio);
+  background: var(--control-fondo);
+}
+
+.control:focus {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 1px;
+}
+
+.textarea {
+  min-height: 6rem;
+  resize: vertical;
+}
+
+.checkbox {
+  flex-direction: row;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+.checkbox input {
+  width: auto;
+}
+
+.grupoBotones {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-alto);
+  padding: var(--espacio-2) var(--boton-padding-x);
+  border: 1px solid transparent;
+  border-radius: var(--control-radio);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    opacity var(--transicion-rapida),
+    background-color var(--transicion-rapida),
+    border-color var(--transicion-rapida);
+}
+
+.boton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.botonPrimario {
+  composes: boton;
+  background: var(--boton-primario-fondo);
+  color: var(--boton-primario-texto);
+}
+
+.botonSecundario {
+  composes: boton;
+  background: var(--boton-secundario-fondo);
+  color: var(--boton-secundario-texto);
+  border-color: var(--borde-sutil);
+}
+
+.botonPeligro {
+  composes: boton;
+  background: transparent;
+  color: var(--estado-error);
+  border-color: var(--estado-error);
+}
+
+.botonPequeno {
+  min-height: var(--control-alto-sm);
+  padding: var(--espacio-1) var(--espacio-3);
+}
+
+.textoError,
+.textoExito {
+  font-size: var(--texto-sm);
+}
+
+.textoError {
+  color: var(--estado-error);
+}
+
+.textoExito {
+  color: var(--estado-exito);
+}
+
+.mensajeError {
+  composes: textoError;
+  margin: 0 0 var(--espacio-4);
+}
+
+.mensajeExito {
+  composes: textoExito;
+  margin: 0 0 var(--espacio-4);
+}
+
+.tablaContenedor {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: var(--texto-sm);
+}
+
+.tabla th,
+.tabla td {
+  padding: var(--espacio-2) var(--espacio-3) var(--espacio-2) 0;
+  border-bottom: 1px solid var(--borde-sutil);
+  white-space: nowrap;
+}
+
+.tabla th {
+  color: var(--texto-secundario);
+  font-weight: var(--peso-medio);
+}
+
+.seccion {
+  margin-bottom: var(--espacio-8);
+}

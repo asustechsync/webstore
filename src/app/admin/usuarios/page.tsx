@@ -1,10 +1,10 @@
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { getUsuarioActual } from "@/lib/auth";
+import { PageHeader } from "@/components/ui";
 import { CrearUsuarioForm } from "./CrearUsuarioForm";
 import { FiltrosUsuarios } from "./FiltrosUsuarios";
 import { UsuariosTabla } from "./UsuariosTabla";
-import styles from "../admin.module.css";
 
 export default async function AdminUsuariosPage({
   searchParams,
@@ -33,13 +33,9 @@ export default async function AdminUsuariosPage({
 
   return (
     <>
-      <div className={styles.encabezado}>
-        <div>
-          <h1 className={styles.titulo}>Usuarios</h1>
-          <p className={styles.subtitulo}>{usuarios.length} usuario(s) en la lista.</p>
-        </div>
+      <PageHeader titulo="Usuarios" descripcion={`${usuarios.length} usuario(s) en la lista.`}>
         <CrearUsuarioForm roles={roles} />
-      </div>
+      </PageHeader>
 
       <FiltrosUsuarios roles={roles} />
 

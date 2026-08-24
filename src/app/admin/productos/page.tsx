@@ -2,16 +2,16 @@ import Link from "next/link";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { formatearPrecio } from "@/lib/utils";
-import { FiltrosProductos } from "./FiltrosProductos";
-import { ProductosTabla } from "./ProductosTabla";
+import { PageHeader } from "@/components/ui";
+import { ProductosPanel } from "./ProductosPanel";
 import styles from "../admin.module.css";
 
 export default async function AdminProductosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; categoria?: string; estado?: string }>;
+  searchParams: Promise<{ q?: string; sku?: string; categoria?: string; estado?: string; stock?: string; oferta?: string }>;
 }) {
-  const { q, categoria, estado } = await searchParams;
+  const { q, sku, categoria, estado, stock, oferta } = await searchParams;
 
   const where: Prisma.ProductoWhereInput = {
     ...(q
@@ -22,16 +22,24 @@ export default async function AdminProductosPage({
           ],
         }
       : {}),
+    ...(sku ? { sku: { contains: sku, mode: "insensitive" } } : {}),
     ...(categoria ? { categoriaId: categoria } : {}),
     ...(estado === "activo" ? { activo: true } : {}),
     ...(estado === "inactivo" ? { activo: false } : {}),
+    ...(oferta === "con" ? { precioOferta: { not: null } } : {}),
+    ...(oferta === "sin" ? { precioOferta: null } : {}),
   };
 
   const [productos, categorias] = await Promise.all([
     db.producto.findMany({
       where,
       orderBy: { creadoEn: "desc" },
-      include: { categoria: true, marca: true, variantes: true },
+      include: {
+        categoria: true,
+        marca: true,
+        variantes: true,
+        imagenes: { orderBy: { orden: "asc" }, take: 1 },
+      },
     }),
     db.categoria.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
   ]);
@@ -45,35 +53,81 @@ export default async function AdminProductosPage({
       sku: producto.sku,
       // Decimal no es serializable hacia un componente cliente.
       precio: formatearPrecio(producto.precio.toString()),
-      categoria: producto.categoria.nombre,
-      marca: producto.marca?.nombre ?? "-",
+      valorInventario: producto.variantes.reduce(
+        (total, variante) =>
+          total + Number(variante.costo ?? producto.costo ?? 0) * variante.cantidad,
+        0,
+      ),
       activo: producto.activo,
-      tallas: producto.variantes.length,
       stock,
       stockBajo: producto.variantes.some(
         (variante) => variante.activo && variante.cantidad <= variante.stockMinimo,
       ),
+      imagenUrl: producto.imagenes[0]?.url,
+      categoria: producto.categoria.nombre,
+      marca: producto.marca?.nombre ?? "-",
+      tallas: producto.variantes.length,
+      variantes: producto.variantes.map((variante) => ({
+        id: variante.id,
+        opciones: [variante.talla, variante.color].filter(Boolean).join(" / "),
+        sku: variante.sku,
+        cantidad: variante.cantidad,
+        stockMinimo: variante.stockMinimo,
+        activo: variante.activo,
+      })),
     };
   });
 
   // "Stock bajo" se filtra acá porque depende de comparar dos columnas de la
   // variante, algo que el where de Prisma no expresa directamente.
-  const visibles = estado === "bajo" ? filas.filter((fila) => fila.stockBajo) : filas;
+  const visibles = filas.filter((fila) => {
+    if (estado === "bajo" && !fila.stockBajo) return false;
+    if (stock === "bajo" && (!fila.stockBajo || fila.stock === 0)) return false;
+    if (stock === "agotado" && fila.stock !== 0) return false;
+    if (stock === "disponible" && (fila.stock === 0 || fila.stockBajo)) return false;
+    return true;
+  });
+
+  // Los resúmenes reflejan la búsqueda/categoría activa, pero no el filtro de
+  // estado en sí: son la base sobre la que ese filtro se aplica.
+  const totalActivos = filas.filter((fila) => fila.activo).length;
+  const totalStockBajo = filas.filter((fila) => fila.stockBajo).length;
+  const valorInventarioTotal = filas.reduce((suma, fila) => suma + fila.valorInventario, 0);
+
+  const parametrosStockBajo = new URLSearchParams();
+  if (q) parametrosStockBajo.set("q", q);
+  if (sku) parametrosStockBajo.set("sku", sku);
+  if (categoria) parametrosStockBajo.set("categoria", categoria);
+  parametrosStockBajo.set("estado", "bajo");
 
   return (
     <>
-      <div className={styles.encabezado}>
-        <div>
-          <h1 className={styles.titulo}>Productos</h1>
-          <p className={styles.subtitulo}>{visibles.length} producto(s) en la lista.</p>
-        </div>
+      <PageHeader titulo="Productos" descripcion={`${visibles.length} producto(s) en la lista.`}>
         <Link href="/admin/productos/nuevo" className={styles.boton}>
           Nuevo producto
         </Link>
+      </PageHeader>
+
+      <div className={styles.tarjetas}>
+        <div className={styles.tarjeta}>
+          <div className={styles.tarjetaNumero}>{filas.length}</div>
+          <div className={styles.tarjetaLabel}>Productos en total</div>
+        </div>
+        <div className={styles.tarjeta}>
+          <div className={styles.tarjetaNumero}>{totalActivos}</div>
+          <div className={styles.tarjetaLabel}>Activos · {filas.length - totalActivos} inactivo(s)</div>
+        </div>
+        <Link href={`/admin/productos?${parametrosStockBajo.toString()}`} className={styles.tarjeta}>
+          <div className={styles.tarjetaNumero}>{totalStockBajo}</div>
+          <div className={styles.tarjetaLabel}>Con stock bajo o agotado</div>
+        </Link>
+        <div className={styles.tarjeta}>
+          <div className={styles.tarjetaNumero}>{formatearPrecio(valorInventarioTotal)}</div>
+          <div className={styles.tarjetaLabel}>Costo de inventario</div>
+        </div>
       </div>
 
-      <FiltrosProductos categorias={categorias} />
-      <ProductosTabla productos={visibles} />
+      <ProductosPanel productos={visibles} categorias={categorias} />
     </>
   );
 }

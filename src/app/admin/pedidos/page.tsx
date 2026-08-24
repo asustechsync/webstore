@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { formatearPrecio } from "@/lib/utils";
+import { PageHeader } from "@/components/ui";
 import { PedidosTabla } from "./PedidosTabla";
-import styles from "../admin.module.css";
 
 export default async function AdminPedidosPage() {
   const pedidos = await db.pedido.findMany({
@@ -11,12 +11,10 @@ export default async function AdminPedidosPage() {
 
   return (
     <>
-      <div className={styles.encabezado}>
-        <div>
-          <h1 className={styles.titulo}>Pedidos</h1>
-          <p className={styles.subtitulo}>Cambia el estado de un pedido desde la lista.</p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Pedidos"
+        descripcion="Cambia el estado de un pedido desde la lista."
+      />
 
       <PedidosTabla
         pedidos={pedidos.map((pedido) => ({

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { Search, X } from "lucide-react";
 import styles from "../admin.module.css";
 
 type Opcion = { id: string; nombre: string };
@@ -22,66 +23,38 @@ export function FiltrosProductos({ categorias }: { categorias: Opcion[] }) {
   function onBuscar(evento: React.FormEvent<HTMLFormElement>) {
     evento.preventDefault();
     const formData = new FormData(evento.currentTarget);
-    aplicar("q", String(formData.get("q") ?? "").trim());
+    const params = new URLSearchParams(searchParams.toString());
+    for (const campo of ["q", "sku"]) {
+      const valor = String(formData.get(campo) ?? "").trim();
+      if (valor) params.set(campo, valor);
+      else params.delete(campo);
+    }
+    router.push(`/admin/productos?${params.toString()}`);
   }
 
-  const hayFiltros = ["q", "categoria", "estado"].some((campo) => searchParams.get(campo));
+  const hayFiltros = ["q", "sku", "categoria", "estado", "stock", "oferta"].some((campo) => searchParams.get(campo));
 
   return (
     <form className={styles.filtros} onSubmit={onBuscar}>
-      <label className={styles.campo}>
-        <span className={styles.etiqueta}>Buscar</span>
-        <input
-          className={styles.control}
-          name="q"
-          defaultValue={searchParams.get("q") ?? ""}
-          placeholder="Nombre o SKU"
-        />
-      </label>
-
-      <label className={styles.campo}>
-        <span className={styles.etiqueta}>Categoría</span>
-        <select
-          className={styles.control}
-          value={searchParams.get("categoria") ?? ""}
-          onChange={(evento) => aplicar("categoria", evento.target.value)}
-        >
-          <option value="">Todas</option>
-          {categorias.map((categoria) => (
-            <option key={categoria.id} value={categoria.id}>
-              {categoria.nombre}
-            </option>
-          ))}
-        </select>
-      </label>
-
-      <label className={styles.campo}>
-        <span className={styles.etiqueta}>Estado</span>
-        <select
-          className={styles.control}
-          value={searchParams.get("estado") ?? ""}
-          onChange={(evento) => aplicar("estado", evento.target.value)}
-        >
-          <option value="">Todos</option>
-          <option value="activo">Visibles</option>
-          <option value="inactivo">Ocultos</option>
-          <option value="bajo">Stock bajo</option>
-        </select>
-      </label>
-
-      <div className={styles.botones}>
-        <button type="submit" className={styles.botonSecundario}>
-          Buscar
-        </button>
-        {hayFiltros && (
-          <button
-            type="button"
-            className={styles.botonChico}
-            onClick={() => router.push("/admin/productos")}
-          >
-            Limpiar
-          </button>
-        )}
+      <div className={styles.filtrosPrimeraLinea}>
+        <label className={styles.campo}>
+          <span className={styles.etiqueta}>Buscar producto</span>
+          <input className={styles.control} name="q" defaultValue={searchParams.get("q") ?? ""} placeholder="Nombre del producto" />
+        </label>
+        <label className={styles.campo}>
+          <span className={styles.etiqueta}>SKU</span>
+          <input className={styles.control} name="sku" defaultValue={searchParams.get("sku") ?? ""} placeholder="Código SKU" />
+        </label>
+        <div className={styles.botones}>
+          <button type="submit" className={styles.botonIcono} title="Buscar" aria-label="Buscar"><Search size={18} aria-hidden="true" /></button>
+          {hayFiltros && <button type="button" className={styles.botonIcono} onClick={() => router.push("/admin/productos")} title="Limpiar filtros" aria-label="Limpiar filtros"><X size={18} aria-hidden="true" /></button>}
+        </div>
+      </div>
+      <div className={styles.filtrosSegundaLinea}>
+        <label className={styles.campo}><span className={styles.etiqueta}>Categoría</span><select className={styles.control} value={searchParams.get("categoria") ?? ""} onChange={(evento) => aplicar("categoria", evento.target.value)}><option value="">Todas</option>{categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}</select></label>
+        <label className={styles.campo}><span className={styles.etiqueta}>Estado</span><select className={styles.control} value={searchParams.get("estado") ?? ""} onChange={(evento) => aplicar("estado", evento.target.value)}><option value="">Todos</option><option value="activo">Visibles</option><option value="inactivo">Ocultos</option></select></label>
+        <label className={styles.campo}><span className={styles.etiqueta}>Stock</span><select className={styles.control} value={searchParams.get("stock") ?? ""} onChange={(evento) => aplicar("stock", evento.target.value)}><option value="">Todos</option><option value="disponible">Disponible</option><option value="bajo">Stock bajo</option><option value="agotado">Agotado</option></select></label>
+        <label className={styles.campo}><span className={styles.etiqueta}>Oferta</span><select className={styles.control} value={searchParams.get("oferta") ?? ""} onChange={(evento) => aplicar("oferta", evento.target.value)}><option value="">Todos</option><option value="con">Con oferta</option><option value="sin">Sin oferta</option></select></label>
       </div>
     </form>
   );

@@ -8,9 +8,22 @@
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  gap: var(--espacio-3);
   padding: var(--espacio-3);
   background: var(--color-bg-suave);
+}
+
+/* El fondo gris (.shell) sigue ocupando todo el ancho de la pantalla; lo que
+   se angosta y centra es el contenido, con el mismo ancho máximo que usa
+   el resto del sitio, para que el panel no se estire borde a borde. */
+.shellInterior {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  max-width: var(--ancho-maximo);
+  margin-inline: auto;
+  gap: var(--espacio-3);
 }
 
 .barra {
@@ -26,14 +39,14 @@
 }
 
 .marca {
-  font-weight: 600;
+  font-weight: var(--peso-semibold);
 }
 
 .barraDerecha {
   display: flex;
   align-items: center;
   gap: var(--espacio-3);
-  font-size: 0.875rem;
+  font-size: var(--texto-sm);
 }
 
 .enlaceTienda {
@@ -82,7 +95,7 @@
   white-space: nowrap;
   padding: var(--espacio-2) var(--espacio-3);
   border-radius: var(--radio-borde);
-  font-size: 0.875rem;
+  font-size: var(--texto-sm);
   color: var(--color-texto-suave);
 }
 
@@ -93,7 +106,7 @@
 .enlaceActivo {
   background: var(--color-bg-suave);
   color: var(--color-texto);
-  font-weight: 500;
+  font-weight: var(--peso-medio);
 }
 
 /* En móvil el envoltorio no debe generar una caja propia (display: contents)
@@ -121,7 +134,8 @@
 
   .nav {
     flex-direction: column;
-    width: 13rem;
+    width: 16rem;
+    min-width: 16rem;
     flex-shrink: 0;
     overflow-x: visible;
     padding: var(--espacio-3);
@@ -148,8 +162,8 @@
     padding: var(--espacio-1) var(--espacio-3);
     margin-bottom: var(--espacio-1);
     font: inherit;
-    font-size: 0.75rem;
-    font-weight: 600;
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-semibold);
     text-transform: uppercase;
     letter-spacing: 0.03em;
     color: var(--color-texto-suave);
@@ -212,26 +226,12 @@
   }
 }
 
-/* ── Encabezado de sección ─────────────────────────────── */
-
-.encabezado {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--espacio-4);
-  flex-wrap: wrap;
-  margin-bottom: var(--espacio-4);
-}
-
 .titulo {
-  margin: 0;
-  font-size: 1.25rem;
+  composes: titulo from "../../styles/ui.module.css";
 }
 
 .subtitulo {
-  margin: var(--espacio-1) 0 0;
-  font-size: 0.875rem;
-  color: var(--color-texto-suave);
+  composes: subtitulo from "../../styles/ui.module.css";
 }
 
 /* ── Tarjetas del dashboard ────────────────────────────── */
@@ -240,6 +240,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--espacio-3);
+  margin-bottom: var(--espacio-6);
 }
 
 @media (min-width: 768px) {
@@ -249,38 +250,36 @@
 }
 
 .tarjeta {
+  composes: tarjeta from "../../styles/ui.module.css";
   display: flex;
   flex-direction: column;
   gap: var(--espacio-1);
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-borde);
-  padding: var(--espacio-4);
 }
 
 .tarjetaNumero {
-  font-size: 1.5rem;
-  font-weight: 600;
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-semibold);
 }
 
 .tarjetaLabel {
-  font-size: 0.8125rem;
+  font-size: var(--texto-caption);
   color: var(--color-texto-suave);
 }
 
 .variacionPositiva {
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: var(--texto-caption);
+  font-weight: var(--peso-medio);
   color: var(--color-exito);
 }
 
 .variacionNegativa {
-  font-size: 0.8125rem;
-  font-weight: 500;
+  font-size: var(--texto-caption);
+  font-weight: var(--peso-medio);
   color: var(--color-error);
 }
 
 .tarjetaComparacion {
-  font-weight: 400;
+  font-weight: var(--peso-normal);
   color: var(--color-texto-suave);
 }
 
@@ -323,7 +322,7 @@
   border: 1px solid var(--color-borde);
   border-radius: var(--radio-borde);
   padding: var(--espacio-3);
-  font-size: 0.875rem;
+  font-size: var(--texto-sm);
   color: var(--color-texto-suave);
   text-align: center;
 }
@@ -332,7 +331,7 @@
 
 .tituloSeccionDashboard {
   margin: var(--espacio-8) 0 var(--espacio-3);
-  font-size: 1rem;
+  font-size: var(--texto-base);
 }
 
 .tituloSeccionDashboard:first-of-type {
@@ -352,9 +351,8 @@
 }
 
 .panelAlerta {
-  border: 1px solid var(--color-error);
-  border-radius: var(--radio-borde);
-  padding: var(--espacio-4);
+  composes: tarjeta from "../../styles/ui.module.css";
+  border-color: var(--estado-error);
 }
 
 .panelAlertaTitulo {
@@ -362,7 +360,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--espacio-2);
-  font-weight: 500;
+  font-weight: var(--peso-medio);
   margin-bottom: var(--espacio-3);
 }
 
@@ -370,7 +368,7 @@
   display: flex;
   flex-direction: column;
   gap: var(--espacio-2);
-  font-size: 0.8125rem;
+  font-size: var(--texto-caption);
 }
 
 .listaAlerta li {
@@ -395,26 +393,11 @@
 /* ── Tablas ────────────────────────────────────────────── */
 
 .tablaWrap {
-  overflow-x: auto;
+  composes: tablaContenedor from "../../styles/ui.module.css";
 }
 
 .tabla {
-  width: 100%;
-  text-align: left;
-  font-size: 0.875rem;
-  border-collapse: collapse;
-}
-
-.tabla th,
-.tabla td {
-  padding: var(--espacio-2) var(--espacio-3) var(--espacio-2) 0;
-  border-bottom: 1px solid var(--color-borde);
-  white-space: nowrap;
-}
-
-.tabla th {
-  font-weight: 500;
-  color: var(--color-texto-suave);
+  composes: tabla from "../../styles/ui.module.css";
 }
 
 .acciones {
@@ -422,25 +405,116 @@
   gap: var(--espacio-2);
 }
 
+.filaSeleccionada {
+  background: var(--color-bg-suave);
+}
+
+.filaVariantes > td {
+  padding: var(--espacio-3) var(--espacio-4) !important;
+  background: var(--color-bg-suave);
+}
+
+.tablaVariantesProducto {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--texto-sm);
+}
+
+.tablaVariantesProducto th,
+.tablaVariantesProducto td {
+  padding: var(--espacio-2) var(--espacio-3);
+  text-align: left;
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.tablaVariantesProducto th {
+  color: var(--color-texto-suave);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+}
+
+/* ── Vista previa del producto (barra lateral) ─────────── */
+
+.previaProducto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}
+
+.previaImagen {
+  display: block;
+  width: 100%;
+  height: 12rem;
+  border-radius: var(--radio-borde);
+  object-fit: cover;
+  background: var(--color-bg-suave);
+}
+
+.previaImagenVacia {
+  width: 100%;
+  height: 12rem;
+  border-radius: var(--radio-borde);
+  background: var(--color-bg-suave);
+}
+
+.previaNombre {
+  font-weight: var(--peso-semibold);
+}
+
+.previaDatos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  margin: 0;
+  font-size: var(--texto-sm);
+}
+
+.previaDatos > div {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+  padding-bottom: var(--espacio-2);
+  border-bottom: 1px solid var(--color-borde);
+}
+
+.previaDatos dt {
+  color: var(--color-texto-suave);
+}
+
+.previaDatos dd {
+  margin: 0;
+  text-align: right;
+}
+
+/* Botones de acción solo-ícono para las filas de tabla: mismo alto que
+   .botonPequeno pero cuadrados, para no gastar ancho en texto repetido
+   ("Editar" en cada fila) cuando el ícono ya lo dice. */
+.botonIcono {
+  composes: botonSecundario botonPequeno from "../../styles/ui.module.css";
+  padding: var(--espacio-1);
+  width: var(--control-alto-sm);
+}
+
+.botonIconoPeligro {
+  composes: botonPeligro botonPequeno from "../../styles/ui.module.css";
+  padding: var(--espacio-1);
+  width: var(--control-alto-sm);
+}
+
 .vacio {
   padding: var(--espacio-6) 0;
   color: var(--color-texto-suave);
-  font-size: 0.875rem;
+  font-size: var(--texto-sm);
 }
 
 .badge {
-  display: inline-block;
-  padding: 0 var(--espacio-2);
-  border-radius: var(--radio-full);
-  background: var(--color-bg-suave);
-  border: 1px solid var(--color-borde);
-  font-size: 0.75rem;
+  composes: badge from "../../styles/ui.module.css";
 }
 
 /* ── Formularios ───────────────────────────────────────── */
 
 .form {
-  max-width: 34rem;
+  max-width: var(--ancho-formulario);
 }
 
 .formAncho {
@@ -448,43 +522,23 @@
 }
 
 .campo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espacio-1);
-  margin-bottom: var(--espacio-4);
+  composes: campo from "../../styles/ui.module.css";
 }
 
 .etiqueta {
-  font-size: 0.875rem;
-  font-weight: 500;
+  composes: etiqueta from "../../styles/ui.module.css";
 }
 
 .control {
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-borde);
-  padding: var(--espacio-2) var(--espacio-3);
-  background: var(--color-bg);
-  width: 100%;
-}
-
-.control:focus {
-  outline: 2px solid var(--color-primario);
-  outline-offset: 1px;
+  composes: control from "../../styles/ui.module.css";
 }
 
 .textarea {
-  min-height: 6rem;
-  resize: vertical;
+  composes: textarea from "../../styles/ui.module.css";
 }
 
 .checkbox {
-  flex-direction: row;
-  align-items: center;
-  gap: var(--espacio-2);
-}
-
-.checkbox input {
-  width: auto;
+  composes: checkbox from "../../styles/ui.module.css";
 }
 
 .fila {
@@ -499,88 +553,708 @@
 }
 
 .botones {
-  display: flex;
-  gap: var(--espacio-3);
-  align-items: center;
+  composes: grupoBotones from "../../styles/ui.module.css";
 }
 
 .boton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
-  border-radius: var(--radio-borde);
-  padding: var(--espacio-2) var(--espacio-4);
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  background: var(--color-primario);
-  color: var(--color-primario-texto);
-}
-
-.boton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
+  composes: botonPrimario from "../../styles/ui.module.css";
 }
 
 .botonSecundario {
-  composes: boton;
-  background: var(--color-bg-suave);
-  color: var(--color-texto);
-  border-color: var(--color-borde);
+  composes: botonSecundario from "../../styles/ui.module.css";
 }
 
 .botonPeligro {
-  composes: boton;
-  background: transparent;
-  color: var(--color-error);
-  border-color: var(--color-error);
-  padding: var(--espacio-1) var(--espacio-3);
+  composes: botonPeligro botonPequeno from "../../styles/ui.module.css";
 }
 
 .botonChico {
-  composes: botonSecundario;
-  padding: var(--espacio-1) var(--espacio-3);
+  composes: botonSecundario botonPequeno from "../../styles/ui.module.css";
 }
 
 .mensajeError {
-  color: var(--color-error);
-  font-size: 0.875rem;
-  margin: 0 0 var(--espacio-4);
+  composes: mensajeError from "../../styles/ui.module.css";
 }
 
 .mensajeExito {
-  color: var(--color-exito);
-  font-size: 0.875rem;
-  margin: 0 0 var(--espacio-4);
+  composes: mensajeExito from "../../styles/ui.module.css";
 }
 
 .seccion {
-  margin-bottom: var(--espacio-8);
+  composes: seccion from "../../styles/ui.module.css";
 }
 
 .seccionEspaciada {
   margin-top: var(--espacio-8);
 }
 
+/* ── Diseño de dos columnas (contenido + vista previa) ── */
+.diseñoColumnas {
+  display: grid;
+  gap: var(--espacio-6);
+  align-items: start;
+}
+
+.formAncho .diseñoColumnas {
+  grid-template-columns: minmax(0, 1fr) minmax(17rem, 19rem);
+  column-gap: var(--espacio-6);
+}
+
+@media (min-width: 1024px) {
+  .diseñoColumnas {
+    grid-template-columns: 2fr 1fr;
+  }
+
+  /* En el listado, la tabla y filtros necesitan más ancho que la vista
+     previa lateral. El formulario conserva su distribución propia. */
+  .panelProductos {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--espacio-3);
+  }
+
+  .panelProductos > .columna:first-child {
+    grid-column: span 3;
+  }
+
+  .panelProductos > .columna:last-child {
+    grid-column: span 1;
+  }
+}
+
+@media (max-width: 900px) {
+  .formAncho .diseñoColumnas {
+    grid-template-columns: 1fr;
+  }
+}
+
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-6);
+  min-width: 0;
+}
+
+.listaAtajos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+}
+
+.listaAtajos .enlace {
+  padding-left: 0;
+}
+
+.listaAtajos .enlace:hover {
+  background: var(--color-bg-suave);
+}
+
 /* ── Bloques del formulario de producto ────────────────── */
 
 .bloque {
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-borde);
-  padding: var(--espacio-4);
-  margin-bottom: var(--espacio-6);
+  composes: tarjeta from "../../styles/ui.module.css";
+  margin-bottom: 0;
 }
 
 .bloqueTitulo {
   margin: 0 0 var(--espacio-1);
-  font-size: 1rem;
+  font-size: var(--texto-base);
 }
 
 .bloqueAyuda {
   margin: 0 0 var(--espacio-4);
-  font-size: 0.8125rem;
+  font-size: var(--texto-caption);
   color: var(--color-texto-suave);
+}
+
+/* ── Pestañas del formulario de producto ──────────────────
+   Solo el contenido de este bloque cambia al hacer clic; la vista previa
+   y el resto de la barra lateral no se mueven. */
+.pestañas {
+  display: flex;
+  gap: var(--espacio-4);
+  margin: calc(var(--espacio-4) * -1) calc(var(--espacio-4) * -1) var(--espacio-4);
+  padding: 0 var(--espacio-4);
+  border-bottom: 1px solid var(--color-borde);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+}
+
+.pestañas::-webkit-scrollbar {
+  display: none;
+}
+
+.pestaña {
+  flex-shrink: 0;
+  padding: var(--espacio-3) var(--espacio-1);
+  margin-bottom: -1px;
+  border: none;
+  border-bottom: 2px solid transparent;
+  background: transparent;
+  font-size: var(--texto-sm);
+  color: var(--color-texto-suave);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pestañaActiva {
+  color: var(--color-texto);
+  font-weight: var(--peso-medio);
+  border-bottom-color: var(--color-texto);
+}
+
+.productoContexto {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  float: right;
+  width: min(24rem, 40%);
+  margin: 0 0 var(--espacio-4) var(--espacio-5);
+  padding: var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg-suave);
+}
+
+/* La vista previa grande ocupa la columna derecha; este resumen compacto ya
+   no hace falta duplicarlo dentro del formulario principal. */
+.formAncho .productoContexto {
+  display: none;
+}
+
+.productoContextoImagen,
+.productoContextoImagenVacia {
+  flex: 0 0 4.25rem;
+  width: 4.25rem;
+  height: 4.25rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg);
+  object-fit: cover;
+}
+
+.productoContextoDatos {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.productoContextoDatos strong,
+.productoContextoDatos span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.productoContextoDatos span {
+  color: var(--color-texto-suave);
+  font-size: var(--texto-sm);
+}
+
+.productoContextoPrecio {
+  font-weight: var(--peso-medio);
+  white-space: nowrap;
+}
+
+@media (max-width: 700px) {
+  .productoContexto {
+    float: none;
+    width: 100%;
+    margin: 0 0 var(--espacio-3);
+  }
+}
+
+.opcionesConfig {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-3);
+}
+
+.opcionEditor {
+  position: relative;
+  padding: var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg-suave);
+}
+
+.opcionResumen {
+  display: grid;
+  grid-template-columns: 9rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--espacio-3);
+  min-height: 2.25rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.opcionResumen::-webkit-details-marker {
+  display: none;
+}
+
+.opcionResumenNombre {
+  font-weight: var(--peso-medio);
+}
+
+.opcionResumenValores {
+  overflow: hidden;
+  color: var(--color-texto-suave);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.opcionResumenFlecha {
+  color: var(--color-texto-suave);
+  transition: transform 160ms ease;
+}
+
+.opcionEditor[open] .opcionResumenFlecha {
+  transform: rotate(180deg);
+}
+
+.opcionContenido {
+  padding-top: var(--espacio-3);
+}
+
+.opcionCabecera {
+  display: grid;
+  grid-template-columns: minmax(10rem, 0.8fr) minmax(14rem, 1.2fr) auto;
+  align-items: end;
+  gap: var(--espacio-3);
+}
+
+.opcionValores {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(19rem, 1.4fr);
+  align-items: end;
+  gap: var(--espacio-3);
+  margin-top: var(--espacio-2);
+}
+
+.opcionValores .campo {
+  margin-bottom: 0;
+}
+
+.colorSeleccionResumen {
+  display: block;
+  padding-top: var(--espacio-1);
+  color: var(--color-texto-suave);
+  font-size: var(--texto-sm);
+}
+
+.paletaColores {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: var(--control-alto);
+  padding: 0.2rem 0;
+}
+
+.muestraColor {
+  flex: 0 0 1.2rem;
+  width: 1.2rem;
+  height: 1.2rem;
+  padding: 0;
+  border: 2px solid var(--color-borde);
+  border-radius: 50%;
+  background: var(--color-muestra);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 12%);
+  cursor: pointer;
+}
+
+.muestraColor[aria-label="Blanco"] {
+  border-color: var(--color-texto-suave);
+}
+
+.muestraColorActiva {
+  outline: 2px solid var(--color-primario);
+  outline-offset: 2px;
+}
+
+.opcionCabecera .botonIconoPeligro {
+  margin-bottom: var(--espacio-1);
+}
+
+.opcionContenido > .fila {
+  display: grid;
+  grid-template-columns: minmax(8rem, 0.8fr) minmax(14rem, 1.2fr);
+  align-items: start;
+  gap: var(--espacio-3);
+  padding-right: 7.5rem;
+}
+
+.opcionContenido > .botonPeligro {
+  position: absolute;
+  top: var(--espacio-2);
+  right: var(--espacio-2);
+  padding: var(--espacio-1) var(--espacio-2);
+  font-size: var(--texto-xs);
+}
+
+.opcionEditor .campo {
+  margin-bottom: 0;
+}
+
+.valoresRapidos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(9rem, auto);
+  align-items: center;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-2);
+}
+
+.valoresResumen {
+  min-width: 0;
+  overflow: hidden;
+  padding: var(--espacio-1) var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg);
+  color: var(--color-texto);
+  font-size: var(--texto-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.valorRapido {
+  min-width: 2.5rem;
+  padding: var(--espacio-1) var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg);
+  color: var(--color-texto-suave);
+  cursor: pointer;
+}
+
+.valorRapido:hover {
+  border-color: var(--color-primario);
+  color: var(--color-texto);
+}
+
+.valorRapidoSeleccionado {
+  border-color: var(--color-primario);
+  background: var(--color-primario);
+  color: var(--color-primario-texto);
+}
+
+.selectorValor {
+  min-width: 9rem;
+  max-width: 13rem;
+  padding: var(--espacio-1) var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg);
+  color: var(--color-texto-suave);
+}
+
+.agregarValor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--espacio-2);
+}
+
+.agregarValor .control {
+  min-width: 0;
+}
+
+.ayudaValores {
+  display: none;
+  color: var(--color-texto-suave);
+  font-size: var(--texto-xs);
+}
+
+@media (max-width: 700px) {
+  .opcionEditor {
+    padding-bottom: 2.75rem;
+  }
+
+  .opcionResumen {
+    grid-template-columns: 7rem minmax(0, 1fr) auto;
+  }
+
+  .opcionContenido > .fila {
+    grid-template-columns: 1fr;
+    gap: var(--espacio-2);
+    padding-right: 0;
+  }
+
+  .opcionCabecera,
+  .opcionValores {
+    grid-template-columns: 1fr;
+    gap: var(--espacio-2);
+  }
+
+  .opcionCabecera .botonIconoPeligro {
+    justify-self: start;
+    margin-bottom: 0;
+  }
+
+  .opcionContenido > .botonPeligro {
+    top: auto;
+    bottom: var(--espacio-2);
+    left: var(--espacio-2);
+    right: auto;
+  }
+
+  .valoresRapidos {
+    grid-template-columns: 1fr;
+  }
+}
+
+.contadorVariantes {
+  margin: var(--espacio-4) 0 var(--espacio-2);
+  color: var(--color-texto-suave);
+  font-size: var(--texto-sm);
+}
+
+.resumenMargen {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-6);
+  padding: var(--espacio-3);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg-suave);
+  font-size: var(--texto-sm);
+}
+
+.margenPositivo {
+  color: var(--color-exito);
+  font-weight: var(--peso-medio);
+}
+
+.margenNegativo {
+  color: var(--color-error);
+  font-weight: var(--peso-medio);
+}
+
+/* ── Vista previa de la tarjeta de producto (formulario) ── */
+
+.previewCard {
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  overflow: hidden;
+  background: var(--color-bg);
+  box-shadow: var(--sombra-md);
+}
+
+.formAncho .diseñoColumnas > .columna:last-child {
+  position: sticky;
+  top: var(--espacio-6);
+  min-width: 0;
+  align-self: start;
+}
+
+.formAncho .diseñoColumnas > .columna:last-child .bloque {
+  width: 100%;
+  max-width: 19rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.formAncho .previewCard {
+  width: 100%;
+  max-width: 17rem;
+  margin: 0 auto;
+}
+
+.formAncho .diseñoColumnas > .columna:last-child .bloqueTitulo,
+.formAncho .diseñoColumnas > .columna:last-child .bloqueAyuda {
+  width: min(100%, 17rem);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.previewTitulo {
+  position: absolute;
+  top: -2.25rem;
+  left: 50%;
+  width: min(100%, 17rem);
+  margin: 0;
+  font-size: var(--texto-base);
+  line-height: 1.2;
+  transform: translateX(-50%);
+}
+
+.formAncho .previewCardCuerpo {
+  padding: var(--espacio-3);
+}
+
+.formAncho .previewCardNombre {
+  font-size: var(--texto-base);
+}
+
+.formAncho .previewCardPrecio {
+  font-size: var(--texto-lg);
+}
+
+.formAncho .previewCardImagen,
+.formAncho .previewCardImagenVacia {
+  height: 12rem;
+  aspect-ratio: auto;
+}
+
+.formAncho .previewCardImagen {
+  padding: var(--espacio-4);
+}
+
+.formAncho .previewCardDescripcion {
+  margin-top: var(--espacio-1);
+  -webkit-line-clamp: 1;
+}
+
+.formAncho .previewCardDatos {
+  margin-top: var(--espacio-2);
+  padding-top: var(--espacio-2);
+}
+
+.previewCardEtiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+  color: var(--color-texto-suave);
+  font-size: var(--texto-xs);
+}
+
+.previewCardEtiquetas span {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-full);
+}
+
+.previewCardDescripcion {
+  display: -webkit-box;
+  margin: var(--espacio-2) 0 0;
+  overflow: hidden;
+  color: var(--color-texto-suave);
+  font-size: var(--texto-xs);
+  line-height: var(--interlineado-base);
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.previewCardDatos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-3);
+  padding-top: var(--espacio-3);
+  border-top: 1px solid var(--color-borde);
+  color: var(--color-texto-suave);
+  font-size: var(--texto-2xs);
+}
+
+.previewCardDatos span {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.previewCardDatos strong {
+  overflow: hidden;
+  color: var(--color-texto);
+  font-size: var(--texto-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.variantesBloque {
+  grid-column: 1 / -1;
+  min-width: 0;
+}
+
+.variantesCabecera {
+  margin-bottom: var(--espacio-4);
+}
+
+.variantesCabecera .bloqueTitulo,
+.variantesCabecera .bloqueAyuda {
+  margin-bottom: var(--espacio-1);
+}
+
+.resumenBase {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-4);
+}
+
+.resumenBase div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  padding: var(--espacio-3);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg-suave);
+}
+
+.resumenBase span {
+  color: var(--color-texto-suave);
+  font-size: var(--texto-xs);
+}
+
+.resumenBase strong {
+  overflow: hidden;
+  font-size: var(--texto-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .resumenBase {
+    grid-template-columns: 1fr;
+  }
+}
+
+.previewCardImagen {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  box-sizing: border-box;
+  padding: var(--espacio-5);
+  object-fit: contain;
+  background: var(--color-bg-suave);
+}
+
+.previewCardImagenVacia {
+  width: 100%;
+  aspect-ratio: 1;
+  background: var(--color-bg-suave);
+}
+
+.previewCardCuerpo {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--espacio-1);
+  padding: var(--espacio-3);
+}
+
+.previewCardNombre {
+  margin: 0;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+.previewCardPrecio {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espacio-2);
+  margin: 0;
+  font-weight: var(--peso-semibold);
+}
+
+.previewCardPrecioTachado {
+  font-weight: var(--peso-normal);
+  color: var(--color-texto-suave);
+  text-decoration: line-through;
 }
 
 /* ── Galería de imágenes ───────────────────────────────── */
@@ -619,7 +1293,7 @@
   background: transparent;
   cursor: pointer;
   padding: var(--espacio-1);
-  font-size: 0.875rem;
+  font-size: var(--texto-sm);
   line-height: 1;
 }
 
@@ -629,7 +1303,7 @@
 }
 
 .portada {
-  font-size: 0.6875rem;
+  font-size: var(--texto-2xs);
   color: var(--color-texto-suave);
 }
 
@@ -638,12 +1312,13 @@
 .variantes {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.875rem;
+  font-size: var(--texto-sm);
+  table-layout: fixed;
 }
 
 .variantes th {
   text-align: left;
-  font-weight: 500;
+  font-weight: var(--peso-medio);
   color: var(--color-texto-suave);
   padding-bottom: var(--espacio-2);
   white-space: nowrap;
@@ -655,7 +1330,41 @@
 }
 
 .variantes .control {
-  min-width: 5rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.variantes th:nth-child(1),
+.variantes td:nth-child(1),
+.variantes th:nth-child(2),
+.variantes td:nth-child(2),
+.variantes th:nth-child(3),
+.variantes td:nth-child(3) {
+  width: 10%;
+}
+
+.variantes th:nth-child(4),
+.variantes td:nth-child(4) {
+  width: 29%;
+}
+
+.variantes th:nth-child(5),
+.variantes td:nth-child(5),
+.variantes th:nth-child(6),
+.variantes td:nth-child(6) {
+  width: 14%;
+}
+
+.variantes th:nth-child(7),
+.variantes td:nth-child(7) {
+  width: 8%;
+  text-align: center;
+}
+
+.variantes th:nth-child(8),
+.variantes td:nth-child(8) {
+  width: 5%;
+  text-align: center;
 }
 
 .tallasRapidas {
@@ -668,19 +1377,68 @@
 /* ── Filtros de la lista ───────────────────────────────── */
 
 .filtros {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--espacio-3);
   margin-bottom: var(--espacio-4);
 }
 
+.filtrosPrimeraLinea,
+.filtrosSegundaLinea {
+  display: grid;
+  gap: var(--espacio-3);
+}
+
+.filtrosPrimeraLinea {
+  grid-template-columns: minmax(0, 1fr) minmax(10rem, 0.35fr) auto;
+  align-items: end;
+}
+
+.filtrosSegundaLinea {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 @media (min-width: 640px) {
-  .filtros {
-    grid-template-columns: 2fr 1fr 1fr auto;
-    align-items: end;
+  .filtrosPrimeraLinea {
+    grid-template-columns: 2fr 0.7fr auto;
   }
+}
+
+@media (max-width: 639px) {
+  .filtrosPrimeraLinea,
+  .filtrosSegundaLinea { grid-template-columns: 1fr; }
 }
 
 .alerta {
   color: var(--color-error);
-  font-weight: 500;
+  font-weight: var(--peso-medio);
 }
+
+/* ── Inventario ─────────────────────────────────────────── */
+
+.stockImagen,
+.stockImagenVacia {
+  display: block;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: var(--radio-borde);
+  object-fit: cover;
+  background: var(--color-bg-suave);
+}
+
+.stockEstado {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 999px;
+}
+
+.stockDisponible { background: color-mix(in srgb, var(--estado-exito) 16%, transparent); color: var(--estado-exito); }
+.stockBajo { background: color-mix(in srgb, var(--estado-advertencia) 16%, transparent); color: var(--estado-advertencia); }
+.stockAgotado { background: color-mix(in srgb, var(--estado-error) 16%, transparent); color: var(--estado-error); }
+.stockInactivo { background: var(--color-bg-suave); color: var(--color-texto-suave); }
+.stockFecha { min-width: 8.5rem; color: var(--color-texto-suave); font-size: var(--texto-xs); }
+.stockVariante { display: block; margin-top: 0.15rem; color: var(--color-texto-suave); font-size: var(--texto-xs); }
+.stockCantidadControl { width: 5.5rem; }

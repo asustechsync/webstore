@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
+import { PageHeader } from "@/components/ui";
 import { MarcasPanel } from "./MarcasPanel";
-import styles from "../admin.module.css";
 
 export default async function AdminMarcasPage() {
   const marcas = await db.marca.findMany({
@@ -10,14 +10,10 @@ export default async function AdminMarcasPage() {
 
   return (
     <>
-      <div className={styles.encabezado}>
-        <div>
-          <h1 className={styles.titulo}>Marcas</h1>
-          <p className={styles.subtitulo}>
-            Al eliminar una marca, sus productos quedan sin marca (no se borran).
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Marcas"
+        descripcion="Al eliminar una marca, sus productos quedan sin marca (no se borran)."
+      />
 
       <MarcasPanel
         marcas={marcas.map((marca) => ({

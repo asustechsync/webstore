@@ -11,12 +11,12 @@
 }
 
 .marca {
-  font-size: 1.125rem;
-  font-weight: 600;
+  font-size: var(--texto-marca);
+  font-weight: var(--peso-semibold);
 }
 
 .enlaces {
   display: flex;
   gap: var(--espacio-6);
-  font-size: 0.875rem;
+  font-size: var(--texto-sm);
 }

@@ -93,6 +93,10 @@ CREATE TABLE "productos" (
     "nombre" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
     "descripcion" TEXT NOT NULL,
+    "descripcionCorta" TEXT,
+    "skuInterno" TEXT UNIQUE,
+    "codigoBarras" TEXT UNIQUE,
+    "proveedor" TEXT,
     "precio" DECIMAL(10,2) NOT NULL,
     "precioOferta" DECIMAL(10,2),
     "sku" TEXT NOT NULL,
@@ -256,4 +260,3 @@ ALTER TABLE "items_pedido" ADD CONSTRAINT "items_pedido_pedidoId_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "items_pedido" ADD CONSTRAINT "items_pedido_productoId_fkey" FOREIGN KEY ("productoId") REFERENCES "productos"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-

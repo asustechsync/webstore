@@ -10,13 +10,24 @@ export const imagenSchema = z.object({
   publicId: z.string().min(1),
 });
 
+export const opcionProductoSchema = z.object({
+  clave: z.string().min(1, "La opción necesita una clave"),
+  nombre: z.string().min(1, "La opción necesita un nombre"),
+  valores: z.array(z.string().trim().min(1)).min(1, "Agrega al menos un valor"),
+});
+
+export const atributoVarianteSchema = z.object({
+  clave: z.string().min(1),
+  valor: z.string().trim().min(1, "Todas las opciones necesitan un valor"),
+});
+
 export const varianteSchema = z.object({
   // Sin id = variante nueva; con id = variante existente que se actualiza.
   id: opcional(z.string().uuid()),
-  talla: z.string().min(1, "La talla es obligatoria"),
-  color: z.string().default(""),
+  atributos: z.array(atributoVarianteSchema).min(1, "La variante necesita opciones"),
   sku: z.string().min(1, "Cada variante necesita su propio SKU"),
   precio: opcional(z.coerce.number().positive("El precio de la variante debe ser mayor a 0")),
+  costo: opcional(z.coerce.number().min(0, "El costo no puede ser negativo")),
   cantidad: z.coerce.number().int().min(0, "La cantidad no puede ser negativa"),
   stockMinimo: z.coerce.number().int().min(0, "El mínimo no puede ser negativo"),
   activo: z.boolean().default(true),
@@ -26,9 +37,16 @@ export const productoSchema = z.object({
   nombre: z.string().min(3, "El nombre es muy corto"),
   slug: z.string().min(3, "El slug es muy corto"),
   descripcion: z.string().min(10, "Agrega una descripción más completa"),
+  descripcionCorta: opcional(z.string().max(180, "La descripción corta admite hasta 180 caracteres")),
+  skuInterno: opcional(z.string().max(80, "El SKU interno admite hasta 80 caracteres")),
+  codigoBarras: opcional(z.string().max(80, "El código de barras admite hasta 80 caracteres")),
+  proveedor: opcional(z.string().max(120, "El proveedor admite hasta 120 caracteres")),
   precio: z.coerce.number().positive("El precio debe ser mayor a 0"),
   precioOferta: opcional(z.coerce.number().positive("El precio de oferta debe ser mayor a 0")),
+  costo: opcional(z.coerce.number().min(0, "El costo no puede ser negativo")),
   sku: z.string().min(1, "El SKU es obligatorio"),
+  tipoProducto: opcional(z.string().min(1)),
+  perfilOpciones: opcional(z.string().min(1)),
   categoriaId: z.string().uuid("Selecciona una categoría"),
   marcaId: opcional(z.string().uuid("Selecciona una marca válida")),
   material: opcional(z.string()),
@@ -36,10 +54,65 @@ export const productoSchema = z.object({
   guiaTallas: opcional(z.string()),
   activo: z.boolean().default(true),
   destacado: z.boolean().default(false),
+  opciones: z.array(opcionProductoSchema).min(1, "Configura al menos una opción"),
   variantes: z
     .array(varianteSchema)
-    .min(1, "Agrega al menos una talla; es lo que realmente se vende"),
+    .min(1, "Genera al menos una variante; es lo que realmente se vende"),
   imagenes: z.array(imagenSchema).default([]),
+}).superRefine((producto, contexto) => {
+  const opciones = new Map<string, Set<string>>();
+
+  producto.opciones.forEach((opcion, indice) => {
+    if (opciones.has(opcion.clave)) {
+      contexto.addIssue({
+        code: "custom",
+        path: ["opciones", indice, "clave"],
+        message: "No puede haber opciones repetidas",
+      });
+    }
+    opciones.set(opcion.clave, new Set(opcion.valores));
+  });
+
+  const combinaciones = new Set<string>();
+  const skus = new Set<string>();
+
+  producto.variantes.forEach((variante, indice) => {
+    const atributos = new Map(variante.atributos.map((atributo) => [atributo.clave, atributo.valor]));
+
+    for (const [clave, valores] of opciones) {
+      const valor = atributos.get(clave);
+      if (!valor || !valores.has(valor)) {
+        contexto.addIssue({
+          code: "custom",
+          path: ["variantes", indice, "atributos"],
+          message: `La variante no tiene un valor válido para ${clave}`,
+        });
+      }
+    }
+
+    const combinacion = [...atributos]
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([clave, valor]) => `${clave}=${valor.toLocaleLowerCase("es")}`)
+      .join("|");
+    if (combinaciones.has(combinacion)) {
+      contexto.addIssue({
+        code: "custom",
+        path: ["variantes", indice],
+        message: "Hay dos variantes con la misma combinación de opciones",
+      });
+    }
+    combinaciones.add(combinacion);
+
+    const sku = variante.sku.toLocaleUpperCase("es");
+    if (skus.has(sku)) {
+      contexto.addIssue({
+        code: "custom",
+        path: ["variantes", indice, "sku"],
+        message: "Los SKU de las variantes no se pueden repetir",
+      });
+    }
+    skus.add(sku);
+  });
 });
 
 export const categoriaSchema = z.object({
@@ -67,6 +140,7 @@ export const ajusteStockSchema = z.object({
 // z.input (no z.infer) porque los formularios mandan los números y opcionales
 // como texto; la coerción y los valores por defecto se aplican al validar.
 export type ProductoInput = z.input<typeof productoSchema>;
+export type ProductoValidado = z.output<typeof productoSchema>;
 export type VarianteInput = z.input<typeof varianteSchema>;
 export type ImagenInput = z.input<typeof imagenSchema>;
 export type CategoriaInput = z.input<typeof categoriaSchema>;

@@ -1,0 +1,3 @@
+/* Único punto de entrada global del sistema visual. */
+@import "./tokens.css";
+@import "./base.css";

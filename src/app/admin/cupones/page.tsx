@@ -1,18 +1,16 @@
 import { db } from "@/lib/db";
+import { PageHeader } from "@/components/ui";
 import { CuponesPanel } from "./CuponesPanel";
-import styles from "../admin.module.css";
 
 export default async function AdminCuponesPage() {
   const cupones = await db.cupon.findMany({ orderBy: { creadoEn: "desc" } });
 
   return (
     <>
-      <div className={styles.encabezado}>
-        <div>
-          <h1 className={styles.titulo}>Cupones</h1>
-          <p className={styles.subtitulo}>Códigos de descuento aplicables en el checkout.</p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Cupones"
+        descripcion="Códigos de descuento aplicables en el checkout."
+      />
 
       <CuponesPanel
         cupones={cupones.map((cupon) => ({

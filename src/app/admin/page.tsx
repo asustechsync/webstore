@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatearPrecio } from "@/lib/utils";
+import { PageHeader } from "@/components/ui";
 import styles from "./admin.module.css";
 
 // Mismo criterio que en Reportes: solo estos estados cuentan como venta real.
@@ -161,12 +162,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <>
-      <div className={styles.encabezado}>
-        <div>
-          <h1 className={styles.titulo}>Panel administrativo</h1>
-          <p className={styles.subtitulo}>Resumen general de la tienda.</p>
-        </div>
-      </div>
+      <PageHeader titulo="Panel administrativo" descripcion="Resumen general de la tienda." />
 
       {/* ── Nivel 1: qué necesita atención ahora ───────────── */}
       {hayAlertas ? (

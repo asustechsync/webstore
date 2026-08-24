@@ -6,6 +6,6 @@
 }
 
 .texto {
-  font-size: 0.875rem;
+  font-size: var(--texto-sm);
   color: var(--color-texto-suave);
 }

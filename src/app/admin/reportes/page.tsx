@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { requirePermiso } from "@/lib/auth";
 import { formatearPrecio } from "@/lib/utils";
+import { PageHeader } from "@/components/ui";
 import { FiltroFechas } from "./FiltroFechas";
 import styles from "../admin.module.css";
 
@@ -39,10 +40,24 @@ export default async function AdminReportesPage({
   const totalVentas = pedidos.reduce((suma, pedido) => suma + Number(pedido.total), 0);
   const cantidadPedidos = pedidos.length;
   const ticketPromedio = cantidadPedidos > 0 ? totalVentas / cantidadPedidos : 0;
+  const costoTotal = pedidos.reduce(
+    (suma, pedido) =>
+      suma +
+      pedido.items.reduce((subtotal, item) => {
+        const costo = item.costoUnit ?? item.variante.costo ?? item.variante.producto.costo ?? 0;
+        return subtotal + item.cantidad * Number(costo);
+      }, 0),
+    0,
+  );
+  const gananciaBruta = totalVentas - costoTotal;
+  const margenBruto = totalVentas > 0 ? (gananciaBruta / totalVentas) * 100 : 0;
 
   // Se agrega en memoria (no en la base) porque el ingreso por producto es
   // cantidad × precioUnit, una expresión que Prisma no puede sumar directo.
-  const porProducto = new Map<string, { nombre: string; unidades: number; ingreso: number }>();
+  const porProducto = new Map<
+    string,
+    { nombre: string; unidades: number; ingreso: number; costo: number }
+  >();
 
   for (const pedido of pedidos) {
     for (const item of pedido.items) {
@@ -51,9 +66,13 @@ export default async function AdminReportesPage({
         nombre: producto.nombre,
         unidades: 0,
         ingreso: 0,
+        costo: 0,
       };
       actual.unidades += item.cantidad;
       actual.ingreso += item.cantidad * Number(item.precioUnit);
+      actual.costo +=
+        item.cantidad *
+        Number(item.costoUnit ?? item.variante.costo ?? item.variante.producto.costo ?? 0);
       porProducto.set(producto.id, actual);
     }
   }
@@ -64,14 +83,10 @@ export default async function AdminReportesPage({
 
   return (
     <>
-      <div className={styles.encabezado}>
-        <div>
-          <h1 className={styles.titulo}>Reportes de ventas</h1>
-          <p className={styles.subtitulo}>
-            Solo se cuentan pedidos pagados o en curso; excluye pendientes y cancelados.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Reportes de ventas"
+        descripcion="Solo se cuentan pedidos pagados o en curso; excluye pendientes y cancelados."
+      />
 
       <FiltroFechas />
 
@@ -88,6 +103,18 @@ export default async function AdminReportesPage({
           <div className={styles.tarjetaNumero}>{formatearPrecio(ticketPromedio)}</div>
           <div className={styles.tarjetaLabel}>Ticket promedio</div>
         </div>
+        <div className={styles.tarjeta}>
+          <div className={styles.tarjetaNumero}>{formatearPrecio(costoTotal)}</div>
+          <div className={styles.tarjetaLabel}>Costo de productos</div>
+        </div>
+        <div className={styles.tarjeta}>
+          <div className={styles.tarjetaNumero}>{formatearPrecio(gananciaBruta)}</div>
+          <div className={styles.tarjetaLabel}>Ganancia bruta</div>
+        </div>
+        <div className={styles.tarjeta}>
+          <div className={styles.tarjetaNumero}>{margenBruto.toFixed(1)}%</div>
+          <div className={styles.tarjetaLabel}>Margen bruto</div>
+        </div>
       </div>
 
       <section className={`${styles.seccion} ${styles.seccionEspaciada}`}>
@@ -103,6 +130,9 @@ export default async function AdminReportesPage({
                   <th>Producto</th>
                   <th>Unidades vendidas</th>
                   <th>Ingreso generado</th>
+                  <th>Costo</th>
+                  <th>Ganancia</th>
+                  <th>Margen</th>
                 </tr>
               </thead>
               <tbody>
@@ -111,6 +141,13 @@ export default async function AdminReportesPage({
                     <td>{producto.nombre}</td>
                     <td>{producto.unidades}</td>
                     <td>{formatearPrecio(producto.ingreso)}</td>
+                    <td>{formatearPrecio(producto.costo)}</td>
+                    <td>{formatearPrecio(producto.ingreso - producto.costo)}</td>
+                    <td>
+                      {producto.ingreso > 0
+                        ? `${(((producto.ingreso - producto.costo) / producto.ingreso) * 100).toFixed(1)}%`
+                        : "0.0%"}
+                    </td>
                   </tr>
                 ))}
               </tbody>

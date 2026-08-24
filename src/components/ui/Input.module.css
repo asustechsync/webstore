@@ -1,28 +1,16 @@
 .grupo {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espacio-1);
-  margin-bottom: var(--espacio-4);
+  composes: campo from "../../styles/ui.module.css";
 }
 
 .etiqueta {
-  font-size: 0.875rem;
-  font-weight: 500;
+  composes: etiqueta from "../../styles/ui.module.css";
 }
 
 .input {
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-borde);
-  padding: var(--espacio-2) var(--espacio-3);
-  background: var(--color-bg);
-}
-
-.input:focus {
-  outline: 2px solid var(--color-primario);
-  outline-offset: 1px;
+  composes: control from "../../styles/ui.module.css";
 }
 
 .error {
-  font-size: 0.8125rem;
-  color: var(--color-error);
+  composes: textoError from "../../styles/ui.module.css";
+  font-size: var(--texto-xs);
 }

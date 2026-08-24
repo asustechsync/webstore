@@ -1,0 +1,22 @@
+.encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--espacio-4);
+}
+
+.titulo {
+  composes: titulo from "../../styles/ui.module.css";
+}
+
+.subtitulo {
+  composes: subtitulo from "../../styles/ui.module.css";
+}
+
+.acciones {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+}

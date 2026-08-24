@@ -6,7 +6,11 @@ import styles from "./BotonesOAuth.module.css";
 
 const PROVEEDORES = [
   { id: "google", nombre: "Google" },
+  // La tienda solo necesita identificar al cliente. No solicitamos acceso a
+  // calendarios, contactos, archivos ni refresh tokens del proveedor.
   { id: "azure", nombre: "Microsoft" },
+  // `public_profile` es el perfil básico que Meta incluye por defecto;
+  // `email` permite a Supabase crear y asociar la cuenta del cliente.
   { id: "facebook", nombre: "Facebook" },
 ] as const;
 
@@ -16,9 +20,19 @@ export function BotonesOAuth() {
   async function ingresarCon(proveedor: (typeof PROVEEDORES)[number]["id"]) {
     setCargando(proveedor);
     const supabase = createClient();
+    const scopes =
+      proveedor === "google"
+        ? "openid email profile"
+        : proveedor === "azure" || proveedor === "facebook"
+          ? "email"
+          : undefined;
+
     await supabase.auth.signInWithOAuth({
       provider: proveedor,
-      options: { redirectTo: `${window.location.origin}/api/auth/callback` },
+      options: {
+        redirectTo: `${window.location.origin}/api/auth/callback`,
+        ...(scopes ? { scopes } : {}),
+      },
     });
     // El navegador redirige al proveedor; si vuelve sin completar, se libera el botón.
     setCargando(null);

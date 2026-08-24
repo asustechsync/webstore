@@ -10,7 +10,7 @@ export class NoAutorizadoError extends Error {
   }
 }
 
-// Sesión actual + su fila en `usuarios` (con rol y permisos) desde Supabase Auth.
+// Sesión actual + perfil mínimo para renderizar layouts y navegación.
 // cache() de React: si en el mismo request se llama varias veces (layout +
 // Header + la página, por ejemplo), solo se consulta la base de datos una vez.
 export const getUsuarioActual = cache(async () => {
@@ -23,7 +23,19 @@ export const getUsuarioActual = cache(async () => {
 
   return db.usuario.findUnique({
     where: { authId: data.claims.sub },
-    include: { rol: { include: { permisos: { include: { permiso: true } } } } },
+    // Esta función se invoca en layouts y cabeceras; traer solo lo que usan
+    // la navegación y la autorización reduce el trabajo y datos transferidos.
+    select: {
+      id: true,
+      nombre: true,
+      email: true,
+      rol: {
+        select: {
+          id: true,
+          nombre: true,
+        },
+      },
+    },
   });
 });
 
@@ -40,10 +52,16 @@ export async function requireAlgunPermiso(...claves: string[]) {
   const usuario = await getUsuarioActual();
   if (!usuario) throw new NoAutorizadoError("Debes iniciar sesión");
 
-  const tienePermiso = usuario.rol.permisos.some((rp) =>
-    claves.includes(rp.permiso.clave),
-  );
-  if (!tienePermiso) throw new NoAutorizadoError("No tienes permiso para esta acción");
+  // Los permisos completos no se cargan al abrir una página. En una operación
+  // sensible se consulta únicamente el permiso que esa operación necesita.
+  const permiso = await db.rolPermiso.findFirst({
+    where: {
+      rolId: usuario.rol.id,
+      permiso: { clave: { in: claves } },
+    },
+    select: { permisoId: true },
+  });
+  if (!permiso) throw new NoAutorizadoError("No tienes permiso para esta acción");
 
   return usuario;
 }

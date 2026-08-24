@@ -9,19 +9,19 @@ datasource db {
 // ── Usuarios, roles y permisos ─────────────────────────────
 
 model Usuario {
-  id            String   @id @default(uuid())
-  authId        String   @unique // id del usuario en Supabase Auth
-  email         String   @unique
+  id            String      @id @default(uuid())
+  authId        String      @unique // id del usuario en Supabase Auth
+  email         String      @unique
   nombre        String
   apellidos     String?
   telefono      String?
   rolId         String
-  rol           Rol      @relation(fields: [rolId], references: [id])
+  rol           Rol         @relation(fields: [rolId], references: [id])
   direcciones   Direccion[]
   pedidos       Pedido[]
   carrito       Carrito?
-  creadoEn      DateTime @default(now())
-  actualizadoEn DateTime @updatedAt
+  creadoEn      DateTime    @default(now())
+  actualizadoEn DateTime    @updatedAt
 
   @@map("usuarios")
 }
@@ -36,9 +36,9 @@ model Rol {
 }
 
 model Permiso {
-  id     String       @id @default(uuid())
-  clave  String       @unique // "productos.crear", "stock.editar", "pedidos.despachar"...
-  roles  RolPermiso[]
+  id    String       @id @default(uuid())
+  clave String       @unique // "productos.crear", "stock.editar", "pedidos.despachar"...
+  roles RolPermiso[]
 
   @@map("permisos")
 }
@@ -54,18 +54,18 @@ model RolPermiso {
 }
 
 model Direccion {
-  id            String   @id @default(uuid())
-  usuarioId     String
-  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
-  destinatario  String
-  telefono      String
-  departamento  String
-  provincia     String
-  distrito      String
-  direccion     String
-  referencia    String?
-  predeterminada Boolean @default(false)
-  creadoEn      DateTime @default(now())
+  id             String   @id @default(uuid())
+  usuarioId      String
+  usuario        Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  destinatario   String
+  telefono       String
+  departamento   String
+  provincia      String
+  distrito       String
+  direccion      String
+  referencia     String?
+  predeterminada Boolean  @default(false)
+  creadoEn       DateTime @default(now())
 
   @@map("direcciones")
 }
@@ -76,7 +76,7 @@ model Marca {
   id        String     @id @default(uuid())
   nombre    String     @unique
   slug      String     @unique
-  logoUrl   String?    // URL de Cloudinary
+  logoUrl   String? // URL de Cloudinary
   activo    Boolean    @default(true)
   productos Producto[]
   creadoEn  DateTime   @default(now())
@@ -89,7 +89,7 @@ model Categoria {
   nombre        String
   slug          String      @unique
   descripcion   String?
-  imagenUrl     String?     // URL de Cloudinary
+  imagenUrl     String? // URL de Cloudinary
   padreId       String?
   padre         Categoria?  @relation("SubCategorias", fields: [padreId], references: [id])
   subcategorias Categoria[] @relation("SubCategorias")
@@ -101,26 +101,34 @@ model Categoria {
 }
 
 model Producto {
-  id            String            @id @default(uuid())
-  nombre        String
-  slug          String            @unique
-  descripcion   String
-  precio        Decimal           @db.Decimal(10, 2)
-  precioOferta  Decimal?          @db.Decimal(10, 2)
-  sku           String            @unique // código base; cada variante tiene el suyo
-  categoriaId   String
-  categoria     Categoria         @relation(fields: [categoriaId], references: [id])
-  marcaId       String?
-  marca         Marca?            @relation(fields: [marcaId], references: [id])
-  imagenes      ImagenProducto[]
-  variantes     Variante[]
-  material      String?           // "95% algodón, 5% elastano"
-  cuidados      String?           // "Lavar a máquina en frío, no usar secadora"
-  guiaTallas    String?
-  activo        Boolean           @default(true)
-  destacado     Boolean           @default(false)
-  creadoEn      DateTime          @default(now())
-  actualizadoEn DateTime          @updatedAt
+  id             String           @id @default(uuid())
+  nombre         String
+  slug           String           @unique
+  descripcion    String
+  descripcionCorta String?
+  skuInterno     String?          @unique
+  codigoBarras   String?          @unique
+  proveedor      String?
+  precio         Decimal          @db.Decimal(10, 2)
+  precioOferta   Decimal?         @db.Decimal(10, 2)
+  costo          Decimal?         @db.Decimal(10, 2) // costo base actual; la variante puede sobrescribirlo
+  sku            String           @unique // código base; cada variante tiene el suyo
+  tipoProducto   String? // MEDIAS_MUJER, BOXER_ADULTO, BRASIER, PERSONALIZADO...
+  perfilOpciones String? // preset usado por el editor; no limita opciones futuras
+  categoriaId    String
+  categoria      Categoria        @relation(fields: [categoriaId], references: [id])
+  marcaId        String?
+  marca          Marca?           @relation(fields: [marcaId], references: [id])
+  imagenes       ImagenProducto[]
+  opciones       OpcionProducto[]
+  variantes      Variante[]
+  material       String? // "95% algodón, 5% elastano"
+  cuidados       String? // "Lavar a máquina en frío, no usar secadora"
+  guiaTallas     String?
+  activo         Boolean          @default(true)
+  destacado      Boolean          @default(false)
+  creadoEn       DateTime         @default(now())
+  actualizadoEn  DateTime         @updatedAt
 
   @@index([categoriaId])
   @@index([marcaId])
@@ -131,11 +139,41 @@ model ImagenProducto {
   id         String   @id @default(uuid())
   productoId String
   producto   Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
-  url        String   // URL de Cloudinary
-  publicId   String   // public_id de Cloudinary, para poder borrarla
+  url        String // URL de Cloudinary
+  publicId   String // public_id de Cloudinary, para poder borrarla
   orden      Int      @default(0)
 
   @@map("imagenes_producto")
+}
+
+// Opciones configurables del producto: Talla, Color, Contorno, Copa, Edad...
+// Se modelan como datos y no como columnas para admitir nuevos tipos de
+// producto sin volver a modificar el esquema.
+model OpcionProducto {
+  id         String                @id @default(uuid())
+  productoId String
+  producto   Producto              @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  clave      String // talla, color, contorno, copa...
+  nombre     String
+  orden      Int                   @default(0)
+  valores    ValorOpcionProducto[]
+
+  @@unique([productoId, clave])
+  @@index([productoId])
+  @@map("opciones_producto")
+}
+
+model ValorOpcionProducto {
+  id        String          @id @default(uuid())
+  opcionId  String
+  opcion    OpcionProducto  @relation(fields: [opcionId], references: [id], onDelete: Cascade)
+  valor     String
+  orden     Int             @default(0)
+  variantes ValorVariante[]
+
+  @@unique([opcionId, valor])
+  @@index([opcionId])
+  @@map("valores_opcion_producto")
 }
 
 // ── Variantes: la unidad que realmente se vende ────────────
@@ -143,24 +181,38 @@ model ImagenProducto {
 // color, así que el carrito y los pedidos apuntan acá, no a Producto.
 
 model Variante {
-  id            String        @id @default(uuid())
+  id            String          @id @default(uuid())
   productoId    String
-  producto      Producto      @relation(fields: [productoId], references: [id], onDelete: Cascade)
-  talla         String        // S, M, L, XL, 28, 30, Única...
-  color         String        @default("") // "" = sin color; evita NULLs en el índice único
-  sku           String        @unique
-  precio        Decimal?      @db.Decimal(10, 2) // opcional: sobrescribe el precio del producto
-  cantidad      Int           @default(0)
-  stockMinimo   Int           @default(0)
-  activo        Boolean       @default(true)
+  producto      Producto        @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  talla         String // S, M, L, XL, 28, 30, Única...
+  color         String          @default("") // "" = sin color; evita NULLs en el índice único
+  claveOpciones String // representación canónica para impedir combinaciones duplicadas
+  sku           String          @unique
+  precio        Decimal?        @db.Decimal(10, 2) // opcional: sobrescribe el precio del producto
+  costo         Decimal?        @db.Decimal(10, 2) // opcional: sobrescribe el costo base
+  cantidad      Int             @default(0)
+  stockMinimo   Int             @default(0)
+  activo        Boolean         @default(true)
   itemsCarrito  ItemCarrito[]
   itemsPedido   ItemPedido[]
-  creadoEn      DateTime      @default(now())
-  actualizadoEn DateTime      @updatedAt
+  valores       ValorVariante[]
+  creadoEn      DateTime        @default(now())
+  actualizadoEn DateTime        @updatedAt
 
-  @@unique([productoId, talla, color])
+  @@unique([productoId, claveOpciones])
   @@index([productoId])
   @@map("variantes")
+}
+
+model ValorVariante {
+  varianteId String
+  valorId    String
+  variante   Variante            @relation(fields: [varianteId], references: [id], onDelete: Cascade)
+  valor      ValorOpcionProducto @relation(fields: [valorId], references: [id], onDelete: Cascade)
+
+  @@id([varianteId, valorId])
+  @@index([valorId])
+  @@map("valores_variante")
 }
 
 // ── Carrito persistido (para usuarios logueados) ───────────
@@ -208,13 +260,14 @@ model Pedido {
 }
 
 model ItemPedido {
-  id          String   @id @default(uuid())
-  pedidoId    String
-  pedido      Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
-  varianteId  String
-  variante    Variante @relation(fields: [varianteId], references: [id])
-  cantidad    Int
-  precioUnit  Decimal  @db.Decimal(10, 2)
+  id         String   @id @default(uuid())
+  pedidoId   String
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  varianteId String
+  variante   Variante @relation(fields: [varianteId], references: [id])
+  cantidad   Int
+  precioUnit Decimal  @db.Decimal(10, 2)
+  costoUnit  Decimal? @db.Decimal(10, 2) // snapshot del costo al confirmar la venta
 
   @@map("items_pedido")
 }
@@ -231,19 +284,19 @@ enum EstadoPedido {
 // ── Marketing: cupones de descuento ────────────────────────
 
 model Cupon {
-  id            String     @id @default(uuid())
-  codigo        String     @unique
+  id            String    @id @default(uuid())
+  codigo        String    @unique
   tipo          TipoCupon
-  valor         Decimal    @db.Decimal(10, 2) // % si tipo=PORCENTAJE, soles si tipo=MONTO_FIJO
-  montoMinimo   Decimal?   @db.Decimal(10, 2)
-  usoMaximo     Int?       // null = sin límite de usos
-  usosActuales  Int        @default(0)
+  valor         Decimal   @db.Decimal(10, 2) // % si tipo=PORCENTAJE, soles si tipo=MONTO_FIJO
+  montoMinimo   Decimal?  @db.Decimal(10, 2)
+  usoMaximo     Int? // null = sin límite de usos
+  usosActuales  Int       @default(0)
   fechaInicio   DateTime?
   fechaFin      DateTime?
-  activo        Boolean    @default(true)
+  activo        Boolean   @default(true)
   pedidos       Pedido[]
-  creadoEn      DateTime   @default(now())
-  actualizadoEn DateTime   @updatedAt
+  creadoEn      DateTime  @default(now())
+  actualizadoEn DateTime  @updatedAt
 
   @@map("cupones")
 }

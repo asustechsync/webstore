@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requireAlgunPermiso, requirePermiso } from "@/lib/auth";
 import { ejecutar } from "@/lib/acciones";
@@ -14,7 +15,13 @@ import {
   type CategoriaInput,
   type MarcaInput,
   type ProductoInput,
+  type ProductoValidado,
 } from "./schemas";
+import {
+  claveAtributos,
+  etiquetaAtributos,
+  obtenerAtributo,
+} from "./opciones";
 
 const MAXIMO_IMAGEN_BYTES = 5 * 1024 * 1024;
 
@@ -23,6 +30,65 @@ function revalidarCatalogo(slug?: string) {
   revalidatePath("/admin/stock");
   revalidatePath("/productos");
   if (slug) revalidatePath(`/productos/${slug}`);
+}
+
+type OpcionValidada = ProductoValidado["opciones"][number];
+type VarianteValidada = ProductoValidado["variantes"][number];
+
+async function crearOpcionesProducto(
+  tx: Prisma.TransactionClient,
+  productoId: string,
+  opciones: OpcionValidada[],
+) {
+  const idsPorValor = new Map<string, string>();
+
+  for (const [ordenOpcion, opcion] of opciones.entries()) {
+    const creada = await tx.opcionProducto.create({
+      data: {
+        productoId,
+        clave: opcion.clave,
+        nombre: opcion.nombre,
+        orden: ordenOpcion,
+        valores: {
+          create: opcion.valores.map((valor, orden) => ({ valor, orden })),
+        },
+      },
+      include: { valores: true },
+    });
+
+    for (const valor of creada.valores) {
+      idsPorValor.set(`${creada.clave}\u0000${valor.valor}`, valor.id);
+    }
+  }
+
+  return idsPorValor;
+}
+
+function datosEscalaresVariante(variante: VarianteValidada) {
+  const sinColor = variante.atributos.filter((atributo) => atributo.clave !== "color");
+
+  return {
+    talla: etiquetaAtributos(sinColor),
+    color: obtenerAtributo(variante.atributos, "color"),
+    claveOpciones: claveAtributos(variante.atributos),
+    sku: variante.sku,
+    precio: variante.precio ?? null,
+    costo: variante.costo ?? null,
+    cantidad: variante.cantidad,
+    stockMinimo: variante.stockMinimo,
+    activo: variante.activo,
+  };
+}
+
+function idsValoresVariante(
+  variante: VarianteValidada,
+  idsPorValor: Map<string, string>,
+) {
+  return variante.atributos.map((atributo) => {
+    const id = idsPorValor.get(`${atributo.clave}\u0000${atributo.valor}`);
+    if (!id) throw new Error(`La opción ${atributo.clave}=${atributo.valor} no existe`);
+    return id;
+  });
 }
 
 // ── Imágenes ──────────────────────────────────────────────
@@ -51,29 +117,95 @@ export async function subirImagenProducto(formData: FormData) {
 
 // ── Productos ─────────────────────────────────────────────
 
+/**
+ * Crea solamente el registro base para que el administrador pueda continuar
+ * completando el producto y sus variantes en una segunda pantalla.
+ * El SKU se reserva desde el primer clic y no vuelve a cambiar.
+ */
+export async function crearProductoBorrador() {
+  return ejecutar(async () => {
+    await requirePermiso("productos.crear");
+
+    const categoria = await db.categoria.findFirst({
+      where: { activo: true },
+      orderBy: { nombre: "asc" },
+      select: { id: true },
+    });
+    if (!categoria) throw new Error("Primero crea una categoría para registrar productos");
+
+    const creado = await db.$transaction(async (tx) => {
+      // El contador se calcula dentro de la transacción y se confirma contra
+      // la restricción UNIQUE para que el SKU quede reservado inmediatamente.
+      let numero = (await tx.producto.count()) + 1;
+      while (true) {
+        const sku = `PRD-${String(numero).padStart(3, "0")}`;
+        const existente = await tx.producto.findUnique({ where: { sku }, select: { id: true } });
+        if (!existente) {
+          return tx.producto.create({
+            data: {
+              nombre: "Nuevo producto",
+              slug: `nuevo-producto-${sku.toLowerCase()}`,
+              descripcion: "Completa la descripción del producto.",
+              precio: 0,
+              sku,
+              tipoProducto: "PERSONALIZADO",
+              categoriaId: categoria.id,
+              activo: false,
+              destacado: false,
+            },
+            select: { id: true, sku: true },
+          });
+        }
+        numero += 1;
+      }
+    });
+
+    revalidarCatalogo();
+    return creado;
+  });
+}
+
 export async function crearProducto(datos: ProductoInput) {
   return ejecutar(async () => {
     await requirePermiso("productos.crear");
-    const { variantes, imagenes, ...producto } = productoSchema.parse(datos);
+    const { variantes, imagenes, opciones, ...producto } = productoSchema.parse(datos);
 
-    const creado = await db.producto.create({
-      data: {
-        ...producto,
-        variantes: {
-          create: variantes.map((variante) => ({
-            talla: variante.talla,
-            color: variante.color,
-            sku: variante.sku,
-            precio: variante.precio,
-            cantidad: variante.cantidad,
-            stockMinimo: variante.stockMinimo,
-            activo: variante.activo,
-          })),
+    const creado = await db.$transaction(async (tx) => {
+      const nuevo = await tx.producto.create({
+        data: {
+          ...producto,
+          descripcionCorta: producto.descripcionCorta ?? null,
+          skuInterno: producto.skuInterno ?? null,
+          codigoBarras: producto.codigoBarras ?? null,
+          proveedor: producto.proveedor ?? null,
+          precioOferta: producto.precioOferta ?? null,
+          costo: producto.costo ?? null,
+          marcaId: producto.marcaId ?? null,
+          tipoProducto: producto.tipoProducto ?? null,
+          perfilOpciones: producto.perfilOpciones ?? null,
+          material: producto.material ?? null,
+          cuidados: producto.cuidados ?? null,
+          guiaTallas: producto.guiaTallas ?? null,
+          imagenes: {
+            create: imagenes.map((imagen, indice) => ({ ...imagen, orden: indice })),
+          },
         },
-        imagenes: {
-          create: imagenes.map((imagen, indice) => ({ ...imagen, orden: indice })),
-        },
-      },
+      });
+
+      const idsPorValor = await crearOpcionesProducto(tx, nuevo.id, opciones);
+
+      for (const variante of variantes) {
+        const idsValores = idsValoresVariante(variante, idsPorValor);
+        await tx.variante.create({
+          data: {
+            productoId: nuevo.id,
+            ...datosEscalaresVariante(variante),
+            valores: { create: idsValores.map((valorId) => ({ valorId })) },
+          },
+        });
+      }
+
+      return nuevo;
     });
 
     revalidarCatalogo(creado.slug);
@@ -84,7 +216,7 @@ export async function crearProducto(datos: ProductoInput) {
 export async function actualizarProducto(id: string, datos: ProductoInput) {
   return ejecutar(async () => {
     await requirePermiso("productos.editar");
-    const { variantes, imagenes, ...producto } = productoSchema.parse(datos);
+    const { variantes, imagenes, opciones, ...producto } = productoSchema.parse(datos);
 
     const actual = await db.producto.findUnique({
       where: { id },
@@ -117,11 +249,38 @@ export async function actualizarProducto(id: string, datos: ProductoInput) {
         where: { productoId: id, id: { notIn: idsConservados } },
       });
 
-      for (const { id: varianteId, ...variante } of variantes) {
+      // Libera temporalmente las claves únicas por si el usuario intercambia
+      // opciones entre dos variantes existentes.
+      for (const varianteId of idsConservados) {
+        await tx.variante.update({
+          where: { id: varianteId },
+          data: { claveOpciones: `__temporal__=${varianteId}` },
+        });
+      }
+
+      // Las opciones se reconstruyen porque solo pertenecen a este producto;
+      // las variantes conservan su id, pedidos, carrito y movimientos de stock.
+      await tx.opcionProducto.deleteMany({ where: { productoId: id } });
+      const idsPorValor = await crearOpcionesProducto(tx, id, opciones);
+
+      for (const variante of variantes) {
+        const { id: varianteId } = variante;
+        const escalares = datosEscalaresVariante(variante);
+        const idsValores = idsValoresVariante(variante, idsPorValor);
+
         if (varianteId) {
-          await tx.variante.update({ where: { id: varianteId }, data: variante });
+          await tx.variante.update({ where: { id: varianteId }, data: escalares });
+          await tx.valorVariante.createMany({
+            data: idsValores.map((valorId) => ({ varianteId, valorId })),
+          });
         } else {
-          await tx.variante.create({ data: { ...variante, productoId: id } });
+          await tx.variante.create({
+            data: {
+              productoId: id,
+              ...escalares,
+              valores: { create: idsValores.map((valorId) => ({ valorId })) },
+            },
+          });
         }
       }
 
@@ -142,8 +301,15 @@ export async function actualizarProducto(id: string, datos: ProductoInput) {
         // el formulario dejó vacíos se mandan explícitamente como null.
         data: {
           ...producto,
+          descripcionCorta: producto.descripcionCorta ?? null,
+          skuInterno: producto.skuInterno ?? null,
+          codigoBarras: producto.codigoBarras ?? null,
+          proveedor: producto.proveedor ?? null,
           precioOferta: producto.precioOferta ?? null,
+          costo: producto.costo ?? null,
           marcaId: producto.marcaId ?? null,
+          tipoProducto: producto.tipoProducto ?? null,
+          perfilOpciones: producto.perfilOpciones ?? null,
           material: producto.material ?? null,
           cuidados: producto.cuidados ?? null,
           guiaTallas: producto.guiaTallas ?? null,
@@ -197,20 +363,29 @@ export async function duplicarProducto(id: string) {
 
     const original = await db.producto.findUnique({
       where: { id },
-      include: { variantes: true, imagenes: { orderBy: { orden: "asc" } } },
+      include: {
+        opciones: { orderBy: { orden: "asc" }, include: { valores: { orderBy: { orden: "asc" } } } },
+        variantes: { include: { valores: { include: { valor: { include: { opcion: true } } } } } },
+        imagenes: { orderBy: { orden: "asc" } },
+      },
     });
     if (!original) throw new Error("El producto ya no existe");
 
     const sufijo = Date.now().toString().slice(-5);
 
-    const copia = await db.producto.create({
-      data: {
+    const copia = await db.$transaction(async (tx) => {
+      const productoCopia = await tx.producto.create({ data: {
         nombre: `${original.nombre} (copia)`,
         slug: `${original.slug}-copia-${sufijo}`,
         descripcion: original.descripcion,
+        descripcionCorta: original.descripcionCorta,
+        proveedor: original.proveedor,
         precio: original.precio,
         precioOferta: original.precioOferta,
+        costo: original.costo,
         sku: `${original.sku}-COPIA-${sufijo}`,
+        tipoProducto: original.tipoProducto,
+        perfilOpciones: original.perfilOpciones,
         categoriaId: original.categoriaId,
         marcaId: original.marcaId,
         material: original.material,
@@ -218,18 +393,6 @@ export async function duplicarProducto(id: string) {
         guiaTallas: original.guiaTallas,
         activo: false,
         destacado: false,
-        variantes: {
-          create: original.variantes.map((variante) => ({
-            talla: variante.talla,
-            color: variante.color,
-            sku: `${variante.sku}-COPIA-${sufijo}`,
-            precio: variante.precio,
-            // El stock no se copia: la copia arranca sin inventario.
-            cantidad: 0,
-            stockMinimo: variante.stockMinimo,
-            activo: variante.activo,
-          })),
-        },
         imagenes: {
           create: original.imagenes.map((imagen) => ({
             url: imagen.url,
@@ -237,7 +400,44 @@ export async function duplicarProducto(id: string) {
             orden: imagen.orden,
           })),
         },
-      },
+      } });
+
+      const opciones = original.opciones.map((opcion) => ({
+        clave: opcion.clave,
+        nombre: opcion.nombre,
+        valores: opcion.valores.map((valor) => valor.valor),
+      }));
+      const idsPorValor = await crearOpcionesProducto(tx, productoCopia.id, opciones);
+
+      for (const variante of original.variantes) {
+        const atributos = variante.valores.map(({ valor }) => ({
+          clave: valor.opcion.clave,
+          valor: valor.valor,
+        }));
+        const idsValores = atributos.map((atributo) => {
+          const valorId = idsPorValor.get(`${atributo.clave}\u0000${atributo.valor}`);
+          if (!valorId) throw new Error("No se pudo copiar una opción del producto");
+          return valorId;
+        });
+
+        await tx.variante.create({
+          data: {
+            productoId: productoCopia.id,
+            talla: variante.talla,
+            color: variante.color,
+            claveOpciones: claveAtributos(atributos),
+            sku: `${variante.sku}-COPIA-${sufijo}`,
+            precio: variante.precio,
+            costo: variante.costo,
+            cantidad: 0,
+            stockMinimo: variante.stockMinimo,
+            activo: variante.activo,
+            valores: { create: idsValores.map((valorId) => ({ valorId })) },
+          },
+        });
+      }
+
+      return productoCopia;
     });
 
     revalidarCatalogo();

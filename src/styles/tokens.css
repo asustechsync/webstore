@@ -1,18 +1,58 @@
 :root {
-  /* Colores — placeholders neutros hasta definir la paleta de marca */
-  --color-bg: #ffffff;
-  --color-bg-suave: #f6f6f7;
-  --color-texto: #171717;
-  --color-texto-suave: #6b6b70;
-  --color-borde: #e3e3e6;
-  --color-primario: #171717;
-  --color-primario-texto: #ffffff;
-  --color-error: #d92d20;
-  --color-exito: #17803d;
+  /*
+   * Sistema visual central.
+   * Para cambiar la identidad del proyecto, comienza por este archivo.
+   * Los componentes consumen los tokens semánticos, no valores sueltos.
+   */
+
+  /* Paleta de marca */
+  --marca-primario: #171717;
+  --marca-contraste: #ffffff;
+
+  /* Superficies */
+  --superficie-pagina: #ffffff;
+  --superficie-suave: #f6f6f7;
+  --superficie-elevada: #ffffff;
+
+  /* Texto y bordes */
+  --texto-principal: #171717;
+  --texto-secundario: #6b6b70;
+  --borde-sutil: #e3e3e6;
+
+  /* Estados */
+  --estado-error: #d92d20;
+  --estado-exito: #17803d;
+  --estado-advertencia: #b54708;
+
+  /* Alias compatibles con los estilos existentes */
+  --color-bg: var(--superficie-pagina);
+  --color-bg-suave: var(--superficie-suave);
+  --color-texto: var(--texto-principal);
+  --color-texto-suave: var(--texto-secundario);
+  --color-borde: var(--borde-sutil);
+  --color-primario: var(--marca-primario);
+  --color-primario-texto: var(--marca-contraste);
+  --color-error: var(--estado-error);
+  --color-exito: var(--estado-exito);
 
   /* Tipografía */
   --fuente-base: var(--font-geist-sans), system-ui, sans-serif;
   --fuente-mono: var(--font-geist-mono), monospace;
+  --texto-2xs: 0.6875rem;
+  --texto-xs: 0.75rem;
+  --texto-caption: 0.8125rem;
+  --texto-sm: 0.875rem;
+  --texto-base: 1rem;
+  --texto-marca: 1.125rem;
+  --texto-lg: 1.25rem;
+  --texto-2xl: 1.5rem;
+  --texto-xl: 1.75rem;
+  --texto-titulo-pagina: 2rem;
+  --peso-normal: 400;
+  --peso-medio: 500;
+  --peso-semibold: 600;
+  --interlineado-compacto: 1.2;
+  --interlineado-base: 1.5;
 
   /* Espaciados */
   --espacio-1: 0.25rem;
@@ -36,5 +76,72 @@
   --sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
 
   /* Layout */
-  --ancho-maximo: 72rem;
+  --ancho-maximo: 84rem;
+  --ancho-formulario: 34rem;
+
+  /* Controles y componentes */
+  --control-alto-sm: 2rem;
+  --control-alto: 2.5rem;
+  --control-padding-x: var(--espacio-3);
+  --control-radio: var(--radio-borde);
+  --control-fondo: var(--superficie-elevada);
+  --control-borde: var(--borde-sutil);
+  --control-focus: var(--marca-primario);
+
+  --boton-padding-x: var(--espacio-4);
+  --boton-primario-fondo: var(--marca-primario);
+  --boton-primario-texto: var(--marca-contraste);
+  --boton-secundario-fondo: var(--superficie-suave);
+  --boton-secundario-texto: var(--texto-principal);
+
+  --tarjeta-fondo: var(--superficie-elevada);
+  --tarjeta-borde: var(--borde-sutil);
+  --tarjeta-radio: var(--radio-borde);
+  --tarjeta-padding: var(--espacio-4);
+
+  /* Movimiento */
+  --transicion-rapida: 150ms ease;
+}
+
+/* ── Modo oscuro ──────────────────────────────────────────
+   Los alias de arriba (--color-bg, --tarjeta-fondo, etc.) apuntan a estos
+   tokens con var(), así que con solo redefinir la paleta acá se propaga a
+   todo el sitio sin tocar los componentes.
+   Se activa por preferencia del sistema si el usuario no eligió nada
+   (:root sin [data-theme]), o de forma explícita con [data-theme="dark"]
+   guardado en localStorage por el selector del menú. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --marca-primario: #f2f2f2;
+    --marca-contraste: #171717;
+
+    --superficie-pagina: #121212;
+    --superficie-suave: #1c1c1f;
+    --superficie-elevada: #1e1e22;
+
+    --texto-principal: #f2f2f2;
+    --texto-secundario: #a1a1aa;
+    --borde-sutil: #303035;
+
+    --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+    --sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  }
+}
+
+:root[data-theme="dark"] {
+  --marca-primario: #f2f2f2;
+  --marca-contraste: #171717;
+
+  --superficie-pagina: #121212;
+  --superficie-suave: #1c1c1f;
+  --superficie-elevada: #1e1e22;
+
+  --texto-principal: #f2f2f2;
+  --texto-secundario: #a1a1aa;
+  --borde-sutil: #303035;
+
+  --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.45);
+  --sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
 }

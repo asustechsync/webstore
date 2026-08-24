@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { loginSchema } from "@/features/usuarios/schemas";
 import { decodificarClaims } from "@/lib/jwt";
@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/Button";
 import styles from "../registro/RegistroForm.module.css";
 
 export function IngresarForm() {
-  const router = useRouter();
   const searchParams = useSearchParams();
   const [cargando, setCargando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -44,10 +43,16 @@ export function IngresarForm() {
     // El rol viene incluido en el token (hook de Supabase) — sin consulta extra.
     const claims = decodificarClaims(data.session.access_token);
     const rutaPorRol = claims.user_role === "ADMIN" ? "/admin" : "/cuenta";
-    const redirectTo = searchParams.get("redirectTo") ?? rutaPorRol;
+    const redirectToParam = searchParams.get("redirectTo");
+    const redirectTo =
+      redirectToParam?.startsWith("/") && !redirectToParam.startsWith("//")
+        ? redirectToParam
+        : rutaPorRol;
 
-    router.push(redirectTo);
-    router.refresh();
+    // Después de escribir la sesión en las cookies, una navegación completa
+    // garantiza que proxy y Server Components lean la sesión nueva. Evita el
+    // router.refresh() duplicado y el estado "Ingresando..." atascado.
+    window.location.assign(redirectTo);
   }
 
   return (

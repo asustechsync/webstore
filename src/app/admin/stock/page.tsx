@@ -1,11 +1,18 @@
 import { db } from "@/lib/db";
+import { PageHeader } from "@/components/ui";
 import { StockTabla } from "./StockTabla";
-import styles from "../admin.module.css";
 
 export default async function AdminStockPage() {
   const variantes = await db.variante.findMany({
     orderBy: [{ producto: { nombre: "asc" } }, { color: "asc" }, { talla: "asc" }],
-    include: { producto: { select: { nombre: true } } },
+    include: {
+      producto: {
+        select: {
+          nombre: true,
+          imagenes: { orderBy: { orden: "asc" }, take: 1, select: { url: true } },
+        },
+      },
+    },
   });
 
   const bajos = variantes.filter(
@@ -14,27 +21,26 @@ export default async function AdminStockPage() {
 
   return (
     <>
-      <div className={styles.encabezado}>
-        <div>
-          <h1 className={styles.titulo}>Stock</h1>
-          <p className={styles.subtitulo}>
-            {bajos > 0
-              ? `${bajos} talla(s) en o por debajo de su mínimo.`
-              : "Todas las tallas están por encima de su mínimo."}
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Stock"
+        descripcion={
+          bajos > 0
+            ? `${bajos} variante(s) en o por debajo de su mínimo.`
+            : "Todas las variantes están por encima de su mínimo."
+        }
+      />
 
       <StockTabla
         variantes={variantes.map((variante) => ({
           varianteId: variante.id,
           producto: variante.producto.nombre,
-          talla: variante.talla,
-          color: variante.color,
+          imagenUrl: variante.producto.imagenes[0]?.url ?? null,
+          opciones: [variante.talla, variante.color].filter(Boolean).join(" / "),
           sku: variante.sku,
           cantidad: variante.cantidad,
           stockMinimo: variante.stockMinimo,
           activo: variante.activo,
+          actualizadoEn: variante.actualizadoEn.toISOString(),
         }))}
       />
     </>

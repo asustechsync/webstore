@@ -1,6 +1,6 @@
 import { db } from "@/lib/db";
+import { PageHeader } from "@/components/ui";
 import { CategoriasPanel } from "./CategoriasPanel";
-import styles from "../admin.module.css";
 
 export default async function AdminCategoriasPage() {
   const categorias = await db.categoria.findMany({
@@ -10,14 +10,10 @@ export default async function AdminCategoriasPage() {
 
   return (
     <>
-      <div className={styles.encabezado}>
-        <div>
-          <h1 className={styles.titulo}>Categorías</h1>
-          <p className={styles.subtitulo}>
-            Organiza el catálogo. Una categoría con productos no se puede eliminar.
-          </p>
-        </div>
-      </div>
+      <PageHeader
+        titulo="Categorías"
+        descripcion="Organiza el catálogo. Una categoría con productos no se puede eliminar."
+      />
 
       <CategoriasPanel
         categorias={categorias.map((categoria) => ({

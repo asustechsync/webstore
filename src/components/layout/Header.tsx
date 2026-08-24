@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Container";
+import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { getUsuarioActual } from "@/lib/auth";
 import styles from "./Header.module.css";
 
@@ -19,6 +20,7 @@ export async function Header() {
             <Link href="/carrito">Carrito</Link>
             <Link href="/cuenta">Mi cuenta</Link>
             {usuario?.rol.nombre === "ADMIN" && <Link href="/admin">Panel admin</Link>}
+            <ThemeToggle />
           </div>
         </nav>
       </Container>

@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { Copy, Pencil, Trash2 } from "lucide-react";
+import { Fragment, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   alternarActivoProducto,
@@ -15,15 +16,28 @@ type Fila = {
   nombre: string;
   sku: string;
   precio: string;
-  categoria: string;
-  marca: string;
   activo: boolean;
-  tallas: number;
   stock: number;
   stockBajo: boolean;
+  variantes: Array<{
+    id: string;
+    opciones: string;
+    sku: string;
+    cantidad: number;
+    stockMinimo: number;
+    activo: boolean;
+  }>;
 };
 
-export function ProductosTabla({ productos }: { productos: Fila[] }) {
+export function ProductosTabla({
+  productos,
+  seleccionadoId,
+  onSeleccionar,
+}: {
+  productos: Fila[];
+  seleccionadoId?: string | null;
+  onSeleccionar?: (id: string) => void;
+}) {
   const router = useRouter();
   const [pendiente, iniciarTransicion] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -57,63 +71,36 @@ export function ProductosTabla({ productos }: { productos: Fila[] }) {
               <th>Nombre</th>
               <th>SKU</th>
               <th>Precio</th>
-              <th>Categoría</th>
-              <th>Marca</th>
-              <th>Tallas</th>
               <th>Stock</th>
               <th>Visible</th>
               <th />
             </tr>
           </thead>
           <tbody>
-            {productos.map((producto) => (
-              <tr key={producto.id}>
-                <td>{producto.nombre}</td>
-                <td>{producto.sku}</td>
-                <td>{producto.precio}</td>
-                <td>{producto.categoria}</td>
-                <td>{producto.marca}</td>
-                <td>{producto.tallas}</td>
-                <td className={producto.stockBajo ? styles.alerta : undefined}>
-                  {producto.stock}
-                  {producto.stockBajo && " ⚠"}
-                </td>
-                <td>
-                  <input
-                    type="checkbox"
-                    checked={producto.activo}
-                    disabled={pendiente}
-                    aria-label={`Mostrar ${producto.nombre} en la tienda`}
-                    onChange={(evento) =>
-                      correr(() => alternarActivoProducto(producto.id, evento.target.checked))
-                    }
-                  />
-                </td>
-                <td>
-                  <div className={styles.acciones}>
-                    <Link href={`/admin/productos/${producto.id}`} className={styles.botonChico}>
-                      Editar
-                    </Link>
-                    <button
-                      type="button"
-                      className={styles.botonChico}
-                      disabled={pendiente}
-                      onClick={() => correr(() => duplicarProducto(producto.id))}
-                    >
-                      Duplicar
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.botonPeligro}
-                      disabled={pendiente}
-                      onClick={() => onEliminar(producto)}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </td>
+            {productos.map((producto) => <Fragment key={producto.id}>
+              <tr className={producto.id === seleccionadoId ? styles.filaSeleccionada : undefined} onClick={() => onSeleccionar?.(producto.id)} style={onSeleccionar ? { cursor: "pointer" } : undefined}>
+                <td>{producto.nombre}</td><td>{producto.sku}</td><td>{producto.precio}</td>
+                <td className={producto.stockBajo ? styles.alerta : undefined}>{producto.stock}{producto.stockBajo && " ⚠"}</td>
+                <td><input type="checkbox" checked={producto.activo} disabled={pendiente} aria-label={`Mostrar ${producto.nombre} en la tienda`} onClick={(evento) => evento.stopPropagation()} onChange={(evento) => correr(() => alternarActivoProducto(producto.id, evento.target.checked))} /></td>
+                <td><div className={styles.acciones} onClick={(evento) => evento.stopPropagation()}>
+                  <Link href={`/admin/productos/${producto.id}`} className={styles.botonIcono} title="Editar" aria-label={`Editar ${producto.nombre}`}><Pencil size={14} /></Link>
+                  <button type="button" className={styles.botonIcono} disabled={pendiente} title="Duplicar" aria-label={`Duplicar ${producto.nombre}`} onClick={() => correr(() => duplicarProducto(producto.id))}><Copy size={14} /></button>
+                  <button type="button" className={styles.botonIconoPeligro} disabled={pendiente} title="Eliminar" aria-label={`Eliminar ${producto.nombre}`} onClick={() => onEliminar(producto)}><Trash2 size={14} /></button>
+                </div></td>
               </tr>
-            ))}
+              {producto.id === seleccionadoId && <tr className={styles.filaVariantes}>
+                <td colSpan={6}>
+                  <table className={styles.tablaVariantesProducto}>
+                    <thead><tr><th>Variante</th><th>SKU</th><th>Stock</th><th>Mínimo</th><th>Estado</th></tr></thead>
+                    <tbody>{producto.variantes.map((variante) => {
+                      const bajo = variante.activo && variante.cantidad <= variante.stockMinimo;
+                      const estado = !variante.activo ? "Inactiva" : variante.cantidad === 0 ? "Agotada" : bajo ? "Stock bajo" : "Disponible";
+                      return <tr key={variante.id}><td>{variante.opciones}</td><td>{variante.sku}</td><td className={bajo ? styles.alerta : undefined}>{variante.cantidad}</td><td>{variante.stockMinimo}</td><td className={bajo ? styles.alerta : undefined}>{estado}</td></tr>;
+                    })}</tbody>
+                  </table>
+                </td>
+              </tr>}
+            </Fragment>)}
           </tbody>
         </table>
       </div>

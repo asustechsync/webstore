@@ -1,27 +1,24 @@
 .boton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: var(--radio-borde);
-  padding: var(--espacio-2) var(--espacio-4);
-  font-weight: 500;
-  cursor: pointer;
+  composes: boton from "../../styles/ui.module.css";
   width: 100%;
 }
 
-.boton:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
 .primario {
-  background: var(--color-primario);
-  color: var(--color-primario-texto);
+  composes: botonPrimario from "../../styles/ui.module.css";
 }
 
 .secundario {
-  background: var(--color-bg-suave);
-  color: var(--color-texto);
-  border: 1px solid var(--color-borde);
+  composes: botonSecundario from "../../styles/ui.module.css";
+}
+
+.peligro {
+  composes: botonPeligro from "../../styles/ui.module.css";
+}
+
+.pequeno {
+  composes: botonPequeno from "../../styles/ui.module.css";
+}
+
+.anchoAuto {
+  width: auto;
 }
