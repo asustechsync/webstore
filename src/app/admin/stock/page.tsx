@@ -1,6 +1,7 @@
 import { db } from "@/lib/db";
 import { PageHeader } from "@/components/ui";
 import { StockTabla } from "./StockTabla";
+import styles from "../admin.module.css";
 
 export default async function AdminStockPage() {
   const variantes = await db.variante.findMany({
@@ -30,19 +31,21 @@ export default async function AdminStockPage() {
         }
       />
 
-      <StockTabla
-        variantes={variantes.map((variante) => ({
-          varianteId: variante.id,
-          producto: variante.producto.nombre,
-          imagenUrl: variante.producto.imagenes[0]?.url ?? null,
-          opciones: [variante.talla, variante.color].filter(Boolean).join(" / "),
-          sku: variante.sku,
-          cantidad: variante.cantidad,
-          stockMinimo: variante.stockMinimo,
-          activo: variante.activo,
-          actualizadoEn: variante.actualizadoEn.toISOString(),
-        }))}
-      />
+      <div className={styles.bloque}>
+        <StockTabla
+          variantes={variantes.map((variante) => ({
+            varianteId: variante.id,
+            producto: variante.producto.nombre,
+            imagenUrl: variante.producto.imagenes[0]?.url ?? null,
+            opciones: [variante.talla, variante.color].filter(Boolean).join(" / "),
+            sku: variante.sku,
+            cantidad: variante.cantidad,
+            stockMinimo: variante.stockMinimo,
+            activo: variante.activo,
+            actualizadoEn: variante.actualizadoEn.toISOString(),
+          }))}
+        />
+      </div>
     </>
   );
 }

@@ -1,0 +1,89 @@
+.tarjeta {
+  composes: tarjeta from "@/styles/ui.module.css";
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  transition: box-shadow var(--transicion-rapida), transform var(--transicion-rapida);
+}
+
+.tarjeta:hover {
+  box-shadow: var(--sombra-md);
+  transform: translateY(-2px);
+}
+
+.imagenContenedor {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: var(--superficie-suave);
+}
+
+.imagen {
+  object-fit: cover;
+}
+
+.imagenPlaceholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.info {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  padding: var(--espacio-3);
+}
+
+.marca {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.nombre {
+  margin: 0;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: var(--interlineado-compacto);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sku,
+.tallas {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.precios {
+  display: flex;
+  align-items: baseline;
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-1);
+}
+
+.precio {
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+}
+
+.precioOferta {
+  color: var(--estado-error);
+}
+
+.precioTachado {
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+  text-decoration: line-through;
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Copy, Pencil, Trash2 } from "lucide-react";
+import { IconoDisponible, IconoSinStock, IconoStockBajo } from "@/components/ui/ActionIcons";
 import { Fragment, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
@@ -11,6 +11,7 @@ import {
   eliminarProducto,
 } from "@/features/catalogo/actions";
 import styles from "../admin.module.css";
+import { IconoEditar, IconoClonar, IconoEliminar } from "@/components/ui/ActionIcons";
 
 type Fila = {
   id: string;
@@ -119,6 +120,7 @@ export function ProductosTabla({
               <th>SKU</th>
               <th>Precio</th>
               <th>Stock</th>
+              <th>Estado</th>
               <th>Variantes</th>
               <th>Visible</th>
               <th />
@@ -132,29 +134,37 @@ export function ProductosTabla({
                 const varianteVisible = visibilidadVariantes[variante.id] ?? variante.activo;
                 return varianteVisible && variante.cantidad > 0 && variante.cantidad <= variante.stockMinimo;
               });
+              const IconoStock = tieneAgotada ? IconoSinStock : tieneStockBajo ? IconoStockBajo : IconoDisponible;
+              const claseEstadoStock = tieneAgotada ? styles.stockAgotado : tieneStockBajo ? styles.stockBajo : styles.stockDisponible;
 
               return <Fragment key={producto.id}>
               <tr className={producto.id === seleccionadoId ? styles.filaSeleccionada : undefined} onClick={() => onSeleccionar?.(producto.id)} style={onSeleccionar ? { cursor: "pointer" } : undefined}>
                 <td>{producto.nombre}</td><td>{producto.sku}</td><td>{producto.precio}</td>
-                <td className={tieneAgotada ? styles.alerta : tieneStockBajo ? styles.stockBajoTexto : undefined}>{producto.stock}</td>
+                <td>{producto.stock}</td>
+                <td>
+                  <span className={`${styles.stockEstado} ${claseEstadoStock}`} title={tieneAgotada ? "Agotado" : tieneStockBajo ? "Stock bajo" : "Disponible"} aria-label={tieneAgotada ? "Agotado" : tieneStockBajo ? "Stock bajo" : "Disponible"}>
+                    <IconoStock aria-hidden="true" />
+                  </span>
+                </td>
                 <td>{producto.variantes.length}</td>
-                <td><input type="checkbox" checked={productoVisible} disabled={pendiente || Boolean(guardandoVisibilidad[producto.id])} aria-label={`Mostrar ${producto.nombre} en la tienda`} onClick={(evento) => evento.stopPropagation()} onChange={(evento) => cambiarVisibilidadProducto(producto.id, evento.target.checked, productoVisible)} /></td>
+                <td><button type="button" className={`${styles.switch} ${productoVisible ? styles.switchActivo : ""}`} disabled={pendiente || Boolean(guardandoVisibilidad[producto.id])} role="switch" aria-checked={productoVisible} aria-label={`${productoVisible ? "Ocultar" : "Mostrar"} ${producto.nombre} en la tienda`} title={productoVisible ? "Ocultar en la tienda" : "Mostrar en la tienda"} onClick={(evento) => { evento.stopPropagation(); cambiarVisibilidadProducto(producto.id, !productoVisible, productoVisible); }}><span className={styles.switchPunto} aria-hidden="true" /></button></td>
                 <td><div className={styles.acciones} onClick={(evento) => evento.stopPropagation()}>
-                  <Link href={`/admin/productos/${producto.id}`} className={styles.botonIcono} title="Editar" aria-label={`Editar ${producto.nombre}`}><Pencil size={14} /></Link>
-                  <button type="button" className={styles.botonIcono} disabled={pendiente} title="Duplicar" aria-label={`Duplicar ${producto.nombre}`} onClick={() => correr(() => duplicarProducto(producto.id))}><Copy size={14} /></button>
-                  <button type="button" className={styles.botonIconoPeligro} disabled={pendiente} title="Eliminar" aria-label={`Eliminar ${producto.nombre}`} onClick={() => onEliminar(producto)}><Trash2 size={14} /></button>
+                  <Link href={`/admin/productos/${producto.id}`} className={styles.botonIcono} title="Editar" aria-label={`Editar ${producto.nombre}`}><IconoEditar /></Link>
+                  <button type="button" className={styles.botonIcono} disabled={pendiente} title="Duplicar" aria-label={`Duplicar ${producto.nombre}`} onClick={() => correr(() => duplicarProducto(producto.id))}><IconoClonar /></button>
+                  <button type="button" className={styles.botonIcono} disabled={pendiente} title="Eliminar" aria-label={`Eliminar ${producto.nombre}`} onClick={() => onEliminar(producto)}><IconoEliminar /></button>
                 </div></td>
               </tr>
               {producto.id === seleccionadoId && <tr className={styles.filaVariantes}>
-                <td colSpan={7}>
+                <td colSpan={8}>
                   <table className={styles.tablaVariantesProducto}>
-                    <thead><tr><th>Variante</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Visible</th></tr></thead>
+                    <thead><tr><th>Variante</th><th>SKU</th><th>Precio</th><th>Stock</th><th>Estado</th><th>Visible</th></tr></thead>
                     <tbody>{producto.variantes.map((variante) => {
                       const varianteVisible = visibilidadVariantes[variante.id] ?? variante.activo;
                       const agotada = varianteVisible && variante.cantidad === 0;
                       const bajo = varianteVisible && variante.cantidad > 0 && variante.cantidad <= variante.stockMinimo;
-                      const claseStock = agotada ? styles.alerta : bajo ? styles.stockBajoTexto : undefined;
-                      return <tr key={variante.id}><td>{variante.opciones}</td><td>{variante.sku}</td><td>{variante.precio}</td><td className={claseStock}>{variante.cantidad}</td><td><input type="checkbox" checked={varianteVisible} disabled={pendiente || Boolean(guardandoVisibilidad[variante.id])} aria-label={`Mostrar la variante ${variante.opciones} en la tienda`} onChange={(evento) => cambiarVisibilidadVariante(variante.id, evento.target.checked, varianteVisible)} /></td></tr>;
+                      const IconoVariante = agotada ? IconoSinStock : bajo ? IconoStockBajo : IconoDisponible;
+                      const claseEstadoVariante = agotada ? styles.stockAgotado : bajo ? styles.stockBajo : styles.stockDisponible;
+                      return <tr key={variante.id}><td>{variante.opciones}</td><td>{variante.sku}</td><td>{variante.precio}</td><td>{variante.cantidad}</td><td><span className={`${styles.stockEstado} ${claseEstadoVariante}`} title={agotada ? "Agotado" : bajo ? "Stock bajo" : "Disponible"} aria-label={agotada ? "Agotado" : bajo ? "Stock bajo" : "Disponible"}><IconoVariante aria-hidden="true" /></span></td><td><button type="button" className={`${styles.switch} ${varianteVisible ? styles.switchActivo : ""}`} disabled={pendiente || Boolean(guardandoVisibilidad[variante.id])} role="switch" aria-checked={varianteVisible} aria-label={`${varianteVisible ? "Ocultar" : "Mostrar"} la variante ${variante.opciones} en la tienda`} title={varianteVisible ? "Ocultar en la tienda" : "Mostrar en la tienda"} onClick={(evento) => { evento.stopPropagation(); cambiarVisibilidadVariante(variante.id, !varianteVisible, varianteVisible); }}><span className={styles.switchPunto} aria-hidden="true" /></button></td></tr>;
                     })}</tbody>
                   </table>
                 </td>

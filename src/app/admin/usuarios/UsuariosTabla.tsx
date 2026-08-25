@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { cambiarRolUsuario, editarUsuario, eliminarUsuario } from "@/features/usuarios/actions";
 import styles from "../admin.module.css";
+import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
 
 type Fila = {
   id: string;
@@ -151,8 +152,10 @@ export function UsuariosTabla({
                         <>
                           <button
                             type="button"
-                            className={styles.botonChico}
+                            className={styles.botonIcono}
                             disabled={pendiente}
+                            title="Editar"
+                            aria-label={`Editar ${usuario.email}`}
                             onClick={() => onGuardarEdicion(usuario.id)}
                           >
                             Guardar
@@ -174,18 +177,20 @@ export function UsuariosTabla({
                             disabled={pendiente}
                             onClick={() => empezarEdicion(usuario)}
                           >
-                            Editar
+                            <IconoEditar />
                           </button>
                           {usuario.id === usuarioActualId ? (
                             <span className={styles.badge}>Tu cuenta</span>
                           ) : (
                             <button
                               type="button"
-                              className={styles.botonPeligro}
+                              className={styles.botonIcono}
                               disabled={pendiente}
+                              title="Eliminar"
+                              aria-label={`Eliminar ${usuario.email}`}
                               onClick={() => onEliminar(usuario)}
                             >
-                              Eliminar
+                              <IconoEliminar />
                             </button>
                           )}
                         </>

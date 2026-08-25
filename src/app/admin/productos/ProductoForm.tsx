@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { Plus, Trash2 } from "lucide-react";
+import { IconoAgregar, IconoEliminar, IconoFlecha } from "@/components/ui/ActionIcons";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { actualizarProducto, crearProducto, subirImagenProducto } from "@/features/catalogo/actions";
@@ -144,7 +145,10 @@ function skuParaVariante(skuBase: string, atributos: AtributoVariante[]) {
     const posicionB = prioridad.indexOf(b.clave);
     return (posicionA === -1 ? 99 : posicionA) - (posicionB === -1 ? 99 : posicionB);
   });
-  return [skuBase, ...ordenados.map(({ clave, valor }) => codigoSkuAtributo(clave, valor))].join("-");
+  const codigos = ordenados.map(({ clave, valor }) => codigoSkuAtributo(clave, valor));
+  // Se conserva toda la información, pero se elimina un separador:
+  // ME002-35-AZ-RY -> ME00235-AZ-RY.
+  return `${skuBase}${codigos[0] ?? ""}${codigos.slice(1).map((codigo) => `-${codigo}`).join("")}`;
 }
 function calcularMargen(precio: string | number, costo: string | number) {
   const precioNumero = Number(precio);
@@ -378,8 +382,8 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
                 <label className={styles.campo}><span className={styles.etiqueta}>SKU interno</span><input className={styles.control} value={form.skuInterno} placeholder="Código interno de almacén" onChange={(evento) => actualizar("skuInterno", evento.target.value)} /></label>
               </div>
               <div className={styles.fila}>
-                <label className={styles.campo}><span className={styles.etiqueta}>Categoría</span><select className={styles.control} value={form.categoriaId} required onChange={(evento) => actualizar("categoriaId", evento.target.value)}><option value="">Selecciona una categoría</option>{categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}</select></label>
-                <label className={styles.campo}><span className={styles.etiqueta}>Marca (opcional)</span><select className={styles.control} value={form.marcaId} onChange={(evento) => actualizar("marcaId", evento.target.value)}><option value="">Sin marca</option>{marcas.map((marca) => <option key={marca.id} value={marca.id}>{marca.nombre}</option>)}</select></label>
+                <label className={styles.campo}><span className={styles.etiqueta}>Categoría</span><SelectConFlecha className={styles.control} value={form.categoriaId} required onChange={(evento) => actualizar("categoriaId", evento.target.value)}><option value="">Selecciona una categoría</option>{categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}</SelectConFlecha></label>
+                <label className={styles.campo}><span className={styles.etiqueta}>Marca (opcional)</span><SelectConFlecha className={styles.control} value={form.marcaId} onChange={(evento) => actualizar("marcaId", evento.target.value)}><option value="">Sin marca</option>{marcas.map((marca) => <option key={marca.id} value={marca.id}>{marca.nombre}</option>)}</SelectConFlecha></label>
               </div>
               <div className={styles.fila}>
                 <label className={styles.campo}><span className={styles.etiqueta}>Código de barras</span><input className={styles.control} value={form.codigoBarras} placeholder="EAN, UPC o código propio" onChange={(evento) => actualizar("codigoBarras", evento.target.value)} /></label>
@@ -403,21 +407,21 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
             {pestaña === "variantes" && <>
               <p className={styles.bloqueAyuda}>Configura el tipo de producto, sus opciones y los valores disponibles antes de crear las combinaciones.</p>
               <div className={styles.fila}>
-                <label className={styles.campo}><span className={styles.etiqueta}>Tipo de producto</span><select className={styles.control} value={contextoTipo.tipo} onChange={(evento) => aplicarTipo(evento.target.value as TipoEditor, TIPOS_EDITOR.find((tipo) => tipo.clave === evento.target.value)?.publicos?.[0])}>{TIPOS_EDITOR.map((tipo) => <option key={tipo.clave} value={tipo.clave}>{tipo.nombre}</option>)}</select></label>
-                {TIPOS_EDITOR.find((tipo) => tipo.clave === contextoTipo.tipo)?.publicos && <label className={styles.campo}><span className={styles.etiqueta}>Para</span><select className={styles.control} value={contextoTipo.publico ?? ""} onChange={(evento) => aplicarTipo(contextoTipo.tipo, evento.target.value as PublicoEditor)}>{TIPOS_EDITOR.find((tipo) => tipo.clave === contextoTipo.tipo)?.publicos?.map((publico) => <option key={publico} value={publico}>{NOMBRES_PUBLICO[publico]}</option>)}</select></label>}
+                <label className={styles.campo}><span className={styles.etiqueta}>Tipo de producto</span><SelectConFlecha className={styles.control} value={contextoTipo.tipo} onChange={(evento) => aplicarTipo(evento.target.value as TipoEditor, TIPOS_EDITOR.find((tipo) => tipo.clave === evento.target.value)?.publicos?.[0])}>{TIPOS_EDITOR.map((tipo) => <option key={tipo.clave} value={tipo.clave}>{tipo.nombre}</option>)}</SelectConFlecha></label>
+                {TIPOS_EDITOR.find((tipo) => tipo.clave === contextoTipo.tipo)?.publicos && <label className={styles.campo}><span className={styles.etiqueta}>Para</span><SelectConFlecha className={styles.control} value={contextoTipo.publico ?? ""} onChange={(evento) => aplicarTipo(contextoTipo.tipo, evento.target.value as PublicoEditor)}>{TIPOS_EDITOR.find((tipo) => tipo.clave === contextoTipo.tipo)?.publicos?.map((publico) => <option key={publico} value={publico}>{NOMBRES_PUBLICO[publico]}</option>)}</SelectConFlecha></label>}
               </div>
               <div className={styles.opcionesConfig}>
                 {form.opciones.map((opcion, indice) => <details key={indice} className={styles.opcionEditor} open={opcionAbierta === indice}>
                   <summary className={styles.opcionResumen} onClick={(evento) => { evento.preventDefault(); setOpcionAbierta((actual) => actual === indice ? null : indice); }}>
                     <span className={styles.opcionResumenNombre}>{opcion.nombre}</span>
                     <span className={styles.opcionResumenValores}>{opcion.valores.length > 0 ? opcion.valores.join(", ") : "Sin valores"}</span>
-                    <span className={styles.opcionResumenFlecha}>⌄</span>
+                    <span className={styles.opcionResumenFlecha} aria-hidden="true"><IconoFlecha /></span>
                   </summary>
                   <div className={styles.opcionContenido}>
                     <div className={styles.opcionCabecera}>
                       <label className={styles.campo}><span className={styles.etiqueta}>Nombre de la opción</span><input className={styles.control} value={opcion.nombre} onChange={(evento) => actualizarNombreOpcion(indice, evento.target.value)} placeholder="Talla" /></label>
-                      {opcion.clave === "color" ? <div className={styles.campo}><span className={styles.etiqueta}>Paleta básica</span><span className={styles.colorSeleccionResumen}>{opcion.valores.length ? `${opcion.valores.length} seleccionado(s)` : "Selecciona colores"}</span></div> : <label className={styles.campo}><span className={styles.etiqueta}>Agregar {opcion.nombre.toLocaleLowerCase("es")}</span><select className={styles.control} value="" onChange={(evento) => { if (evento.target.value) alternarValor(indice, evento.target.value); }} aria-label={`Agregar ${opcion.nombre}`}><option value="">Seleccionar valor</option>{[...new Set([...(opcion.sugeridos ?? []), ...opcion.valores])].map((valor) => <option key={valor} value={valor}>{opcion.valores.includes(valor) ? `Quitar ${valor}` : valor}</option>)}</select></label>}
-                      {form.opciones.length > 1 && <button type="button" className={styles.botonIconoPeligro} onClick={() => quitarOpcion(indice)} aria-label={`Quitar opción ${opcion.nombre}`} title="Quitar opción"><Trash2 size={16} aria-hidden="true" /></button>}
+                      {opcion.clave === "color" ? <div className={styles.campo}><span className={styles.etiqueta}>Paleta básica</span><span className={styles.colorSeleccionResumen}>{opcion.valores.length ? `${opcion.valores.length} seleccionado(s)` : "Selecciona colores"}</span></div> : <label className={styles.campo}><span className={styles.etiqueta}>Agregar {opcion.nombre.toLocaleLowerCase("es")}</span><SelectConFlecha className={styles.control} value="" onChange={(evento) => { if (evento.target.value) alternarValor(indice, evento.target.value); }} aria-label={`Agregar ${opcion.nombre}`}><option value="">Seleccionar valor</option>{[...new Set([...(opcion.sugeridos ?? []), ...opcion.valores])].map((valor) => <option key={valor} value={valor}>{opcion.valores.includes(valor) ? `Quitar ${valor}` : valor}</option>)}</SelectConFlecha></label>}
+                      {form.opciones.length > 1 && <button type="button" className={styles.botonIcono} onClick={() => quitarOpcion(indice)} aria-label={`Quitar opción ${opcion.nombre}`} title="Quitar opción"><IconoEliminar /></button>}
                     </div>
                     <div className={styles.opcionValores}>
                       <label className={styles.campo}><span className={styles.etiqueta}>Valores seleccionados</span><input className={styles.control} readOnly value={opcion.valores.join(", ")} placeholder="Ninguno seleccionado" /></label>
@@ -425,7 +429,7 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
                         {COLORES_BASICOS.map((color) => <button key={color.nombre} type="button" className={opcion.valores.includes(color.nombre) ? `${styles.muestraColor} ${styles.muestraColorActiva}` : styles.muestraColor} style={{ "--color-muestra": color.hex } as React.CSSProperties} onClick={() => alternarValor(indice, color.nombre)} aria-pressed={opcion.valores.includes(color.nombre)} title={color.nombre} aria-label={color.nombre} />)}
                       </div> : <div className={styles.agregarValor}>
                         <input className={styles.control} value={valorPersonalizado[indice] ?? ""} onChange={(evento) => setValorPersonalizado((previo) => ({ ...previo, [indice]: evento.target.value }))} onKeyDown={(evento) => { if (evento.key === "Enter") { evento.preventDefault(); agregarValorPersonalizado(indice); } }} placeholder={`Escribir ${opcion.nombre.toLocaleLowerCase("es")}`} aria-label={`Escribir ${opcion.nombre.toLocaleLowerCase("es")}`} />
-                        <button type="button" className={styles.botonIcono} onClick={() => agregarValorPersonalizado(indice)} aria-label={`Agregar ${opcion.nombre} personalizado`} title="Agregar valor"><Plus size={18} aria-hidden="true" /></button>
+                        <button type="button" className={styles.botonIcono} onClick={() => agregarValorPersonalizado(indice)} aria-label={`Agregar ${opcion.nombre} personalizado`} title="Agregar valor"><IconoAgregar /></button>
                       </div>}
                     </div>
                   </div>
@@ -472,7 +476,7 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
               <label className={styles.campo}><span className={styles.etiqueta}>Guía de tallas</span><textarea className={`${styles.control} ${styles.textarea}`} value={form.guiaTallas} placeholder="M: pecho 97–101 cm" onChange={(evento) => actualizar("guiaTallas", evento.target.value)} /></label>
             </>}
 
-            {pestaña === "visibilidad" && <><label className={`${styles.campo} ${styles.checkbox}`}><input type="checkbox" checked={form.activo} onChange={(evento) => actualizar("activo", evento.target.checked)} /><span className={styles.etiqueta}>Visible en la tienda</span></label><label className={`${styles.campo} ${styles.checkbox}`}><input type="checkbox" checked={form.destacado} onChange={(evento) => actualizar("destacado", evento.target.checked)} /><span className={styles.etiqueta}>Destacado en la portada</span></label></>}
+            {pestaña === "visibilidad" && <><div className={`${styles.campo} ${styles.checkbox}`}><button type="button" className={`${styles.switch} ${form.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={form.activo} onClick={() => actualizar("activo", !form.activo)}><span className={styles.switchPunto} aria-hidden="true" /></button><span className={styles.etiqueta}>Visible en la tienda</span></div><div className={`${styles.campo} ${styles.checkbox}`}><button type="button" className={`${styles.switch} ${form.destacado ? styles.switchActivo : ""}`} role="switch" aria-checked={form.destacado} onClick={() => actualizar("destacado", !form.destacado)}><span className={styles.switchPunto} aria-hidden="true" /></button><span className={styles.etiqueta}>Destacado en la portada</span></div></>}
           </div>
         </div>
 
@@ -489,11 +493,11 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
           </div>
           <div className={styles.tablaWrap}><table className={styles.variantes}><thead><tr>{form.opciones.map((opcion) => <th key={opcion.clave}>{opcion.nombre}</th>)}<th>SKU</th><th>Stock</th><th>Mínimo</th><th>Activa</th><th /></tr></thead><tbody>
             {form.variantes.map((variante) => <tr key={variante.clave}>
-              {form.opciones.map((opcion) => <td key={opcion.clave}><select className={styles.control} value={variante.atributos.find((atributo) => atributo.clave === opcion.clave)?.valor ?? ""} onChange={(evento) => actualizarAtributoVariante(variante.clave, opcion.clave, evento.target.value)}>{opcion.valores.map((valor) => <option key={valor} value={valor}>{valor}</option>)}</select></td>)}
+              {form.opciones.map((opcion) => <td key={opcion.clave}><SelectConFlecha className={styles.control} value={variante.atributos.find((atributo) => atributo.clave === opcion.clave)?.valor ?? ""} onChange={(evento) => actualizarAtributoVariante(variante.clave, opcion.clave, evento.target.value)}>{opcion.valores.map((valor) => <option key={valor} value={valor}>{valor}</option>)}</SelectConFlecha></td>)}
               <td><input className={styles.control} value={variante.sku} required onChange={(evento) => actualizarVariante(variante.clave, "sku", evento.target.value)} /></td>
               <td><input className={styles.control} type="number" min="0" value={variante.cantidad} required onChange={(evento) => actualizarVariante(variante.clave, "cantidad", evento.target.value)} /></td>
               <td><input className={styles.control} type="number" min="0" value={variante.stockMinimo} required onChange={(evento) => actualizarVariante(variante.clave, "stockMinimo", evento.target.value)} /></td>
-              <td><input type="checkbox" checked={variante.activo} onChange={(evento) => actualizarVariante(variante.clave, "activo", evento.target.checked)} /></td>
+              <td><button type="button" className={`${styles.switch} ${variante.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={variante.activo} onClick={() => actualizarVariante(variante.clave, "activo", !variante.activo)}><span className={styles.switchPunto} aria-hidden="true" /></button></td>
               <td><button type="button" className={styles.miniaturaBoton} disabled={form.variantes.length === 1} onClick={() => quitarVariante(variante.clave)} aria-label="Quitar variante">✕</button></td>
             </tr>)}
           </tbody></table></div>

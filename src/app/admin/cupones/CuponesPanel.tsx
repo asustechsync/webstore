@@ -10,6 +10,7 @@ import {
 } from "@/features/cupones/actions";
 import { formatearPrecio } from "@/lib/utils";
 import styles from "../admin.module.css";
+import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
 
 type Fila = {
   id: string;
@@ -241,16 +242,7 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
             </label>
           </div>
 
-          <label className={`${styles.campo} ${styles.checkbox}`}>
-            <input
-              type="checkbox"
-              checked={form.activo}
-              onChange={(evento) =>
-                setForm((previo) => ({ ...previo, activo: evento.target.checked }))
-              }
-            />
-            <span className={styles.etiqueta}>Activo</span>
-          </label>
+          <div className={`${styles.campo} ${styles.checkbox}`}><button type="button" className={`${styles.switch} ${form.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={form.activo} onClick={() => setForm((previo) => ({ ...previo, activo: !previo.activo }))}><span className={styles.switchPunto} aria-hidden="true" /></button><span className={styles.etiqueta}>Activo</span></div>
 
           <div className={styles.botones}>
             <button type="submit" className={styles.boton} disabled={pendiente}>
@@ -316,28 +308,36 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
                       <div className={styles.acciones}>
                         <button
                           type="button"
-                          className={styles.botonChico}
-                          onClick={() => editar(cupon)}
-                        >
-                          Editar
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.botonChico}
+                          className={`${styles.switch} ${cupon.activo ? styles.switchActivo : ""}`}
                           disabled={pendiente}
+                          role="switch"
+                          aria-checked={cupon.activo}
+                          aria-label={`${cupon.activo ? "Desactivar" : "Activar"} cupón ${cupon.codigo}`}
+                          title={cupon.activo ? "Desactivar cupón" : "Activar cupón"}
                           onClick={() =>
                             correr(() => alternarActivoCupon(cupon.id, !cupon.activo))
                           }
                         >
-                          {cupon.activo ? "Desactivar" : "Activar"}
+                          <span className={styles.switchPunto} aria-hidden="true" />
                         </button>
                         <button
                           type="button"
-                          className={styles.botonPeligro}
+                          className={styles.botonIcono}
+                          title="Editar"
+                          aria-label={`Editar ${cupon.codigo}`}
+                          onClick={() => editar(cupon)}
+                        >
+                          <IconoEditar />
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.botonIcono}
                           disabled={pendiente}
+                          title="Eliminar"
+                          aria-label={`Eliminar ${cupon.codigo}`}
                           onClick={() => onEliminar(cupon)}
                         >
-                          Eliminar
+                          <IconoEliminar />
                         </button>
                       </div>
                     </td>

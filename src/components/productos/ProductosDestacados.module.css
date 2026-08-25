@@ -1,0 +1,16 @@
+.botonVerMas {
+  composes: botonSecundario from "@/styles/ui.module.css";
+}
+
+.navegacion {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-3);
+  margin-top: var(--espacio-6);
+}
+
+.indicadorPagina {
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}

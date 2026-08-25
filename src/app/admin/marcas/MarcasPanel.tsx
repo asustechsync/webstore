@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { actualizarMarca, crearMarca, eliminarMarca } from "@/features/catalogo/actions";
 import { slugificar } from "@/lib/utils";
+import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
 import styles from "../admin.module.css";
 
 type Fila = {
@@ -134,16 +135,7 @@ export function MarcasPanel({ marcas }: { marcas: Fila[] }) {
             />
           </label>
 
-          <label className={`${styles.campo} ${styles.checkbox}`}>
-            <input
-              type="checkbox"
-              checked={form.activo}
-              onChange={(evento) =>
-                setForm((previo) => ({ ...previo, activo: evento.target.checked }))
-              }
-            />
-            <span className={styles.etiqueta}>Visible en la tienda</span>
-          </label>
+          <div className={`${styles.campo} ${styles.checkbox}`}><button type="button" className={`${styles.switch} ${form.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={form.activo} onClick={() => setForm((previo) => ({ ...previo, activo: !previo.activo }))}><span className={styles.switchPunto} aria-hidden="true" /></button><span className={styles.etiqueta}>Visible en la tienda</span></div>
 
           <div className={styles.botones}>
             <button type="submit" className={styles.boton} disabled={pendiente}>
@@ -188,18 +180,22 @@ export function MarcasPanel({ marcas }: { marcas: Fila[] }) {
                       <div className={styles.acciones}>
                         <button
                           type="button"
-                          className={styles.botonChico}
+                          className={styles.botonIcono}
+                          title="Editar"
+                          aria-label={`Editar ${marca.nombre}`}
                           onClick={() => editar(marca)}
                         >
-                          Editar
+                          <IconoEditar />
                         </button>
                         <button
                           type="button"
-                          className={styles.botonPeligro}
+                          className={styles.botonIcono}
                           disabled={pendiente}
+                          title="Eliminar"
+                          aria-label={`Eliminar ${marca.nombre}`}
                           onClick={() => onEliminar(marca)}
                         >
-                          Eliminar
+                          <IconoEliminar />
                         </button>
                       </div>
                     </td>

@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, X } from "lucide-react";
+import { IconoBuscar, IconoCerrar } from "@/components/ui/ActionIcons";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 import styles from "../admin.module.css";
 
 type Opcion = { id: string; nombre: string };
@@ -46,8 +47,8 @@ export function FiltrosProductos({ categorias }: { categorias: Opcion[] }) {
           <input className={styles.control} name="sku" defaultValue={searchParams.get("sku") ?? ""} placeholder="Código SKU" />
         </label>
         <div className={styles.botones}>
-          <button type="submit" className={styles.botonIcono} title="Buscar" aria-label="Buscar"><Search size={18} aria-hidden="true" /></button>
-          {hayFiltros && <button type="button" className={styles.botonIcono} onClick={() => router.push("/admin/productos")} title="Limpiar filtros" aria-label="Limpiar filtros"><X size={18} aria-hidden="true" /></button>}
+          <button type="submit" className={styles.botonIcono} title="Buscar" aria-label="Buscar"><IconoBuscar /></button>
+          {hayFiltros && <button type="button" className={styles.botonIcono} onClick={() => router.push("/admin/productos")} title="Limpiar filtros" aria-label="Limpiar filtros"><IconoCerrar /></button>}
         </div>
       </div>
       <div className={styles.filtrosSegundaLinea}>

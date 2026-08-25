@@ -1,4 +1,5 @@
 :root {
+  --icono-tamano: 1rem;
   /*
    * Sistema visual central.
    * Para cambiar la identidad del proyecto, comienza por este archivo.
@@ -15,7 +16,7 @@
   --superficie-elevada: #ffffff;
 
   /* Texto y bordes */
-  --texto-principal: #171717;
+  --texto-principal: #67757c;
   --texto-secundario: #6b6b70;
   --borde-sutil: #e3e3e6;
 
@@ -23,6 +24,9 @@
   --estado-error: #d92d20;
   --estado-exito: #17803d;
   --estado-advertencia: #b54708;
+  --estado-stock-disponible: #238f61;
+  --estado-stock-bajo: #ffbf00;
+  --estado-stock-agotado: #b92a1f;
 
   /* Alias compatibles con los estilos existentes */
   --color-bg: var(--superficie-pagina);
@@ -36,7 +40,7 @@
   --color-exito: var(--estado-exito);
 
   /* Tipografía */
-  --fuente-base: var(--font-geist-sans), system-ui, sans-serif;
+  --fuente-base: var(--font-poppins), system-ui, sans-serif;
   --fuente-mono: var(--font-geist-mono), monospace;
   --texto-2xs: 0.6875rem;
   --texto-xs: 0.75rem;
@@ -49,6 +53,7 @@
   --texto-xl: 1.75rem;
   --texto-titulo-pagina: 2rem;
   --peso-normal: 400;
+  --peso-ligero: 300;
   --peso-medio: 500;
   --peso-semibold: 600;
   --interlineado-compacto: 1.2;
@@ -123,6 +128,10 @@
     --texto-secundario: #a1a1aa;
     --borde-sutil: #303035;
 
+    --estado-stock-disponible: #238f61;
+    --estado-stock-bajo: #ffbf00;
+    --estado-stock-agotado: #b92a1f;
+
     --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.45);
     --sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
@@ -140,6 +149,10 @@
   --texto-principal: #f2f2f2;
   --texto-secundario: #a1a1aa;
   --borde-sutil: #303035;
+
+  --estado-stock-disponible: #238f61;
+  --estado-stock-bajo: #ffbf00;
+  --estado-stock-agotado: #b92a1f;
 
   --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.45);

@@ -1,0 +1,22 @@
+.encabezado {
+  padding: var(--espacio-8) 0 var(--espacio-6);
+}
+
+.encabezado h1 {
+  margin: 0;
+  font-size: var(--texto-titulo-pagina);
+}
+
+.encabezado p {
+  margin: var(--espacio-2) 0 0;
+  color: var(--texto-secundario);
+}
+
+.seccion {
+  margin-bottom: var(--espacio-12);
+}
+
+.tituloSeccion {
+  margin: 0 0 var(--espacio-4);
+  font-size: var(--texto-xl);
+}

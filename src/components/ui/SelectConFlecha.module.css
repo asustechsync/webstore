@@ -1,0 +1,23 @@
+.contenedor {
+  position: relative;
+  display: block;
+}
+
+.select {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  padding-right: 2.25rem !important;
+  background-image: none !important;
+}
+
+.flecha {
+  position: absolute;
+  top: 50%;
+  right: .75rem;
+  width: 1rem;
+  height: 1rem;
+  color: var(--color-texto);
+  pointer-events: none;
+  transform: translateY(-50%);
+}

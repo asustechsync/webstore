@@ -6,8 +6,9 @@ export async function listarProductos(opciones: {
   pagina?: number;
   categoriaSlug?: string;
   marcaSlug?: string;
+  porPagina?: number;
 } = {}) {
-  const { pagina = 1, categoriaSlug, marcaSlug } = opciones;
+  const { pagina = 1, categoriaSlug, marcaSlug, porPagina = PRODUCTOS_POR_PAGINA } = opciones;
 
   const where = {
     activo: true,
@@ -18,10 +19,18 @@ export async function listarProductos(opciones: {
   const [productos, total] = await Promise.all([
     db.producto.findMany({
       where,
-      include: { imagenes: { orderBy: { orden: "asc" }, take: 1 }, marca: true },
+      include: {
+        imagenes: { orderBy: { orden: "asc" }, take: 1 },
+        marca: true,
+        variantes: {
+          where: { activo: true },
+          orderBy: [{ color: "asc" }, { talla: "asc" }],
+          select: { id: true, sku: true, talla: true, color: true, precio: true },
+        },
+      },
       orderBy: { creadoEn: "desc" },
-      skip: (pagina - 1) * PRODUCTOS_POR_PAGINA,
-      take: PRODUCTOS_POR_PAGINA,
+      skip: (pagina - 1) * porPagina,
+      take: porPagina,
     }),
     db.producto.count({ where }),
   ]);
@@ -29,7 +38,7 @@ export async function listarProductos(opciones: {
   return {
     productos,
     total,
-    totalPaginas: Math.ceil(total / PRODUCTOS_POR_PAGINA),
+    totalPaginas: Math.ceil(total / porPagina),
   };
 }
 
