@@ -449,9 +449,27 @@ export async function alternarActivoProducto(id: string, activo: boolean) {
   return ejecutar(async () => {
     await requirePermiso("productos.editar");
 
-    const producto = await db.producto.update({ where: { id }, data: { activo } });
+    const producto = await db.producto.update({
+      where: { id },
+      data: { activo },
+      select: { slug: true },
+    });
 
     revalidarCatalogo(producto.slug);
+  });
+}
+
+export async function alternarActivoVariante(id: string, activo: boolean) {
+  return ejecutar(async () => {
+    await requirePermiso("productos.editar");
+
+    const variante = await db.variante.update({
+      where: { id },
+      data: { activo },
+      select: { producto: { select: { slug: true } } },
+    });
+
+    revalidarCatalogo(variante.producto.slug);
   });
 }
 

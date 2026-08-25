@@ -11,6 +11,12 @@ body {
   min-height: 100%;
 }
 
+html {
+  /* Reserva el ancho de la barra vertical para evitar saltos de diseño. */
+  background: var(--superficie-pagina);
+  scrollbar-gutter: stable;
+}
+
 body {
   background: var(--superficie-pagina);
   color: var(--texto-principal);

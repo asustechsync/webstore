@@ -71,6 +71,7 @@ export default async function AdminProductosPage({
         id: variante.id,
         opciones: [variante.talla, variante.color].filter(Boolean).join(" / "),
         sku: variante.sku,
+        precio: formatearPrecio((variante.precio ?? producto.precio).toString()),
         cantidad: variante.cantidad,
         stockMinimo: variante.stockMinimo,
         activo: variante.activo,

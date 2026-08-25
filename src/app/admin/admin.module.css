@@ -4,6 +4,11 @@
 /* Fondo gris de página: es lo que hace que la barra, el sidebar y las
    tarjetas de contenido "floten" como paneles separados en vez de piezas
    pegadas unas a otras con bordes divisorios. */
+:global(html):has(.shell),
+:global(body):has(.shell) {
+  background: var(--color-bg-suave);
+}
+
 .shell {
   display: flex;
   flex-direction: column;
@@ -1411,6 +1416,11 @@
 
 .alerta {
   color: var(--color-error);
+  font-weight: var(--peso-medio);
+}
+
+.stockBajoTexto {
+  color: #facc15;
   font-weight: var(--peso-medio);
 }
 

@@ -25,6 +25,7 @@ export type ProductoDetalle = {
     id: string;
     opciones: string;
     sku: string;
+    precio: string;
     cantidad: number;
     stockMinimo: number;
     activo: boolean;
