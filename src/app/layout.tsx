@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import { Geist_Mono, Poppins } from "next/font/google";
 import "@/styles/index.css";
 
@@ -36,10 +37,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${poppins.variable} ${geistMono.variable}`}
       suppressHydrationWarning
     >
-      <head>
-        <script dangerouslySetInnerHTML={{ __html: SCRIPT_TEMA }} />
-      </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <Script id="tema-inicial" strategy="beforeInteractive">
+          {SCRIPT_TEMA}
+        </Script>
+      </body>
     </html>
   );
 }

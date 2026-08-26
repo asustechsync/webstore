@@ -3,7 +3,12 @@ import { PageHeader } from "@/components/ui";
 import { StockTabla } from "./StockTabla";
 import styles from "../admin.module.css";
 
-export default async function AdminStockPage() {
+export default async function AdminStockPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ filtro?: string }>;
+}) {
+  const { filtro } = await searchParams;
   const variantes = await db.variante.findMany({
     orderBy: [{ producto: { nombre: "asc" } }, { color: "asc" }, { talla: "asc" }],
     include: {
@@ -19,13 +24,18 @@ export default async function AdminStockPage() {
   const bajos = variantes.filter(
     (variante) => variante.activo && variante.cantidad <= variante.stockMinimo,
   ).length;
+  const visibles = filtro === "alertas"
+    ? variantes.filter((variante) => variante.activo && variante.cantidad <= variante.stockMinimo)
+    : variantes;
 
   return (
     <>
       <PageHeader
-        titulo="Stock"
+        titulo={filtro === "alertas" ? "Alertas de stock" : "Stock"}
         descripcion={
-          bajos > 0
+          filtro === "alertas"
+            ? `${bajos} variante(s) requieren reposición.`
+            : bajos > 0
             ? `${bajos} variante(s) en o por debajo de su mínimo.`
             : "Todas las variantes están por encima de su mínimo."
         }
@@ -33,7 +43,7 @@ export default async function AdminStockPage() {
 
       <div className={styles.bloque}>
         <StockTabla
-          variantes={variantes.map((variante) => ({
+          variantes={visibles.map((variante) => ({
             varianteId: variante.id,
             producto: variante.producto.nombre,
             imagenUrl: variante.producto.imagenes[0]?.url ?? null,

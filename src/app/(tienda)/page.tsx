@@ -1,4 +1,5 @@
-import { listarProductos } from "@/features/catalogo/queries";
+import Link from "next/link";
+import { listarCategorias, listarProductos } from "@/features/catalogo/queries";
 import { Container } from "@/components/ui/Container";
 import { ProductosDestacados } from "@/components/productos/ProductosDestacados";
 import { aProductosCardData } from "@/components/productos/ProductoCard";
@@ -7,7 +8,10 @@ import styles from "./page.module.css";
 export const revalidate = 300; // ISR: 5 minutos
 
 export default async function HomePage() {
-  const { productos } = await listarProductos({ porPagina: 8 });
+  const [{ productos }, categorias] = await Promise.all([
+    listarProductos({ porPagina: 8 }),
+    listarCategorias({ soloDestacadas: true }),
+  ]);
   const productosCard = productos.flatMap(aProductosCardData);
 
   return (
@@ -17,6 +21,20 @@ export default async function HomePage() {
           <h1>Webstore</h1>
           <p>Descubre nuestro catálogo.</p>
         </section>
+
+        {categorias.length > 0 && (
+          <section className={styles.seccion}>
+            <h2 className={styles.tituloSeccion}>Categorías destacadas</h2>
+            <div className={styles.categoriasGrid}>
+              {categorias.map((categoria) => (
+                <Link key={categoria.id} href={`/categorias/${categoria.slug}`} className={styles.categoria}>
+                  {categoria.imagenUrl && <img src={categoria.imagenUrl} alt="" />}
+                  <span>{categoria.nombre}</span>
+                </Link>
+              ))}
+            </div>
+          </section>
+        )}
 
         {productos.length > 0 ? (
           <section className={styles.seccion}>

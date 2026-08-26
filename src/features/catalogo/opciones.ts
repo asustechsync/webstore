@@ -3,6 +3,7 @@ import { slugificar } from "@/lib/utils";
 export type OpcionConfig = {
   clave: string;
   nombre: string;
+  tipo?: "LISTA" | "COLOR";
   /** Valores que se muestran como selección rápida, sin obligar a usarlos. */
   sugeridos?: string[];
   valores: string[];

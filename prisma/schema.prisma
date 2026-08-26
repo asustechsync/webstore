@@ -90,6 +90,10 @@ model Categoria {
   slug          String      @unique
   descripcion   String?
   imagenUrl     String? // URL de Cloudinary
+  orden         Int         @default(0) // menor número = aparece primero
+  destacada     Boolean     @default(false) // se muestra en la portada
+  tituloSeo     String?     @map("titulo_seo")
+  descripcionSeo String?    @map("descripcion_seo")
   padreId       String?
   padre         Categoria?  @relation("SubCategorias", fields: [padreId], references: [id])
   subcategorias Categoria[] @relation("SubCategorias")
@@ -97,7 +101,37 @@ model Categoria {
   activo        Boolean     @default(true)
   creadoEn      DateTime    @default(now())
 
+  @@index([activo, orden])
   @@map("categorias")
+}
+
+// Catálogo reutilizable de atributos para no volver a escribir talla, color
+// u otras opciones en cada producto. Al aplicarlo a un producto se copia como
+// una opción propia, preservando su historial aunque el catálogo cambie luego.
+model AtributoCatalogo {
+  id            String                  @id @default(uuid())
+  nombre        String
+  clave         String                  @unique
+  tipo          String                  @default("LISTA") // LISTA | COLOR
+  activo        Boolean                 @default(true)
+  valores       ValorAtributoCatalogo[]
+  creadoEn      DateTime                @default(now()) @map("creado_en")
+  actualizadoEn DateTime                @updatedAt @map("actualizado_en")
+
+  @@map("atributos_catalogo")
+}
+
+model ValorAtributoCatalogo {
+  id          String            @id @default(uuid())
+  atributoId  String            @map("atributo_id")
+  atributo    AtributoCatalogo @relation(fields: [atributoId], references: [id], onDelete: Cascade)
+  valor       String
+  colorHex    String?           @map("color_hex")
+  orden       Int               @default(0)
+
+  @@unique([atributoId, valor])
+  @@index([atributoId])
+  @@map("valores_atributo_catalogo")
 }
 
 model Producto {
@@ -113,6 +147,8 @@ model Producto {
   precioOferta   Decimal?         @db.Decimal(10, 2)
   costo          Decimal?         @db.Decimal(10, 2) // costo base actual; la variante puede sobrescribirlo
   sku            String           @unique // código base; cada variante tiene el suyo
+  borrador       Boolean          @default(true)
+  modoVariantes  Boolean          @default(false)
   tipoProducto   String? // MEDIAS_MUJER, BOXER_ADULTO, BRASIER, PERSONALIZADO...
   perfilOpciones String? // preset usado por el editor; no limita opciones futuras
   categoriaId    String
@@ -125,6 +161,12 @@ model Producto {
   material       String? // "95% algodón, 5% elastano"
   cuidados       String? // "Lavar a máquina en frío, no usar secadora"
   guiaTallas     String?
+  pesoKg         Decimal?         @db.Decimal(8, 3)
+  anchoCm        Decimal?         @db.Decimal(8, 2)
+  altoCm         Decimal?         @db.Decimal(8, 2)
+  largoCm        Decimal?         @db.Decimal(8, 2)
+  tituloSeo      String?
+  descripcionSeo String?
   activo         Boolean          @default(true)
   destacado      Boolean          @default(false)
   creadoEn       DateTime         @default(now())

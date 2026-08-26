@@ -17,6 +17,10 @@ type Fila = {
   slug: string;
   descripcion: string | null;
   imagenUrl: string | null;
+  orden: number;
+  destacada: boolean;
+  tituloSeo: string | null;
+  descripcionSeo: string | null;
   padreId: string | null;
   activo: boolean;
   productos: number;
@@ -27,6 +31,10 @@ const VACIA = {
   slug: "",
   descripcion: "",
   imagenUrl: "",
+  orden: 0,
+  destacada: false,
+  tituloSeo: "",
+  descripcionSeo: "",
   padreId: "",
   activo: true,
 };
@@ -53,6 +61,10 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
       slug: categoria.slug,
       descripcion: categoria.descripcion ?? "",
       imagenUrl: categoria.imagenUrl ?? "",
+      orden: categoria.orden,
+      destacada: categoria.destacada,
+      tituloSeo: categoria.tituloSeo ?? "",
+      descripcionSeo: categoria.descripcionSeo ?? "",
       padreId: categoria.padreId ?? "",
       activo: categoria.activo,
     });
@@ -180,6 +192,39 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
             </label>
           </div>
 
+          <div className={styles.fila}>
+            <label className={styles.campo}>
+              <span className={styles.etiqueta}>Orden de visualización</span>
+              <input
+                className={styles.control}
+                type="number"
+                min="0"
+                value={form.orden}
+                onChange={(evento) =>
+                  setForm((previo) => ({ ...previo, orden: Number(evento.target.value) }))
+                }
+              />
+            </label>
+
+            <div className={`${styles.campo} ${styles.checkbox}`}>
+              <button type="button" className={`${styles.switch} ${form.destacada ? styles.switchActivo : ""}`} role="switch" aria-checked={form.destacada} onClick={() => setForm((previo) => ({ ...previo, destacada: !previo.destacada }))}><span className={styles.switchPunto} aria-hidden="true" /></button>
+              <span className={styles.etiqueta}>Destacada en la portada</span>
+            </div>
+          </div>
+
+          <div className={styles.seccionEspaciada}>
+            <h3 className={styles.bloqueTitulo}>SEO</h3>
+            <p className={styles.bloqueAyuda}>Opcional. Se usa en el resultado de búsqueda de esta categoría.</p>
+            <label className={styles.campo}>
+              <span className={styles.etiqueta}>Título SEO</span>
+              <input className={styles.control} maxLength={60} value={form.tituloSeo} onChange={(evento) => setForm((previo) => ({ ...previo, tituloSeo: evento.target.value }))} />
+            </label>
+            <label className={styles.campo}>
+              <span className={styles.etiqueta}>Descripción SEO</span>
+              <textarea className={`${styles.control} ${styles.textarea}`} maxLength={160} value={form.descripcionSeo} onChange={(evento) => setForm((previo) => ({ ...previo, descripcionSeo: evento.target.value }))} />
+            </label>
+          </div>
+
           <div className={`${styles.campo} ${styles.checkbox}`}><button type="button" className={`${styles.switch} ${form.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={form.activo} onClick={() => setForm((previo) => ({ ...previo, activo: !previo.activo }))}><span className={styles.switchPunto} aria-hidden="true" /></button><span className={styles.etiqueta}>Visible en la tienda</span></div>
 
           <div className={styles.botones}>
@@ -208,7 +253,9 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
                   <th>Nombre</th>
                   <th>Slug</th>
                   <th>Padre</th>
+                  <th>Orden</th>
                   <th>Productos</th>
+                  <th>Portada</th>
                   <th>Estado</th>
                   <th />
                 </tr>
@@ -221,7 +268,9 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
                     <td>
                       {categorias.find((otra) => otra.id === categoria.padreId)?.nombre ?? "-"}
                     </td>
+                    <td>{categoria.orden}</td>
                     <td>{categoria.productos}</td>
+                    <td>{categoria.destacada ? "Sí" : "-"}</td>
                     <td>
                       <span className={styles.badge}>
                         {categoria.activo ? "Visible" : "Oculta"}

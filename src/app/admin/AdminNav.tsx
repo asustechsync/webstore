@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { ComponentType } from "react";
 import { IconoFlecha, IconoFiltros } from "@/components/ui/ActionIcons";
@@ -21,15 +21,6 @@ const IconoInventario: ComponentType<{ size?: number; className?: string; "aria-
     <path
       fill="currentColor"
       d="M288 64L288 128C288 136.8 295.2 144 304 144L336 144C344.8 144 352 136.8 352 128L352 64L384 64C419.3 64 448 92.7 448 128L448 256C448 261.5 447.3 266.9 446 272L194 272C192.7 266.9 192 261.5 192 256L192 128C192 92.7 220.7 64 256 64L288 64zM384 576C372.8 576 362.2 573.1 353 568C362.5 551.5 368 532.4 368 512L368 384C368 363.6 362.5 344.5 353 328C362.2 322.9 372.7 320 384 320L416 320L416 384C416 392.8 423.2 400 432 400L464 400C472.8 400 480 392.8 480 384L480 320L512 320C547.3 320 576 348.7 576 384L576 512C576 547.3 547.3 576 512 576L384 576zM64 384C64 348.7 92.7 320 128 320L160 320L160 384C160 392.8 167.2 400 176 400L208 400C216.8 400 224 392.8 224 384L224 320L256 320C291.3 320 320 348.7 320 384L320 512C320 547.3 291.3 576 256 576L128 576C92.7 576 64 547.3 64 512L64 384z"
-    />
-  </svg>
-);
-
-const IconoClientes: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 14, className, ...props }) => (
-  <svg viewBox="0 0 640 640" width={size} height={size} className={className} focusable="false" {...props}>
-    <path
-      fill="currentColor"
-      d="M320 80C377.4 80 424 126.6 424 184C424 241.4 377.4 288 320 288C262.6 288 216 241.4 216 184C216 126.6 262.6 80 320 80zM96 152C135.8 152 168 184.2 168 224C168 263.8 135.8 296 96 296C56.2 296 24 263.8 24 224C24 184.2 56.2 152 96 152zM0 480C0 409.3 57.3 352 128 352C140.8 352 153.2 353.9 164.9 357.4C132 394.2 112 442.8 112 496L112 512C112 523.4 114.4 534.2 118.7 544L32 544C14.3 544 0 529.7 0 512L0 480zM521.3 544C525.6 534.2 528 523.4 528 512L528 496C528 442.8 508 394.2 475.1 357.4C486.8 353.9 499.2 352 512 352C582.7 352 640 409.3 640 480L640 512C640 529.7 625.7 544 608 544L521.3 544zM472 224C472 184.2 504.2 152 544 152C583.8 152 616 184.2 616 224C616 263.8 583.8 296 544 296C504.2 296 472 263.8 472 224zM160 496C160 407.6 231.6 336 320 336C408.4 336 480 407.6 480 496L480 512C480 529.7 465.7 544 448 544L192 544C174.3 544 160 529.7 160 512L160 496z"
     />
   </svg>
 );
@@ -70,50 +61,61 @@ const IconoMarketing: ComponentType<{ size?: number; className?: string; "aria-h
   </svg>
 );
 
+const IconoEnvios: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 14, className, ...props }) => (
+  <svg viewBox="0 0 640 640" width={size} height={size} className={className} focusable="false" {...props}>
+    <path fill="currentColor" d="M64 96C46.3 96 32 110.3 32 128L32 416C32 433.7 46.3 448 64 448L96 448C96 501 139 544 192 544C245 544 288 501 288 448L384 448C384 501 427 544 480 544C533 544 576 501 576 448L608 448L608 320C608 302.3 593.7 288 576 288L480 288L420.2 168.4C414.8 157.6 403.8 150.7 391.7 150.7L320 150.7L320 128C320 110.3 305.7 96 288 96L64 96zM384 214.7L420.6 288L352 288L352 214.7L384 214.7zM192 416C209.7 416 224 430.3 224 448C224 465.7 209.7 480 192 480C174.3 480 160 465.7 160 448C160 430.3 174.3 416 192 416zM480 416C497.7 416 512 430.3 512 448C512 465.7 497.7 480 480 480C462.3 480 448 465.7 448 448C448 430.3 462.3 416 480 416z" />
+  </svg>
+);
+
 const GRUPOS: {
   titulo: string | null;
   icono: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> | null;
   secciones: { href: string; etiqueta: string }[];
 }[] = [
   {
-    titulo: null, // "Panel" va suelto, sin encabezado de grupo ni desplegable
+    titulo: null, // Inicio va suelto, sin encabezado de grupo ni desplegable.
     icono: IconoFiltros,
-    secciones: [{ href: "/admin", etiqueta: "Panel" }],
-  },
-  {
-    titulo: "Tienda",
-    icono: IconoTienda,
-    secciones: [
-      { href: "/admin/productos", etiqueta: "Productos" },
-      { href: "/admin/categorias", etiqueta: "Categorías" },
-      { href: "/admin/marcas", etiqueta: "Marcas" },
-    ],
-  },
-  {
-    titulo: "Inventario",
-    icono: IconoInventario,
-    secciones: [{ href: "/admin/stock", etiqueta: "Stock" }],
+    secciones: [{ href: "/admin", etiqueta: "Inicio" }],
   },
   {
     titulo: "Ventas",
     icono: IconoVentas,
     secciones: [
       { href: "/admin/pedidos", etiqueta: "Pedidos" },
-      { href: "/admin/envios", etiqueta: "Envíos" },
+      { href: "/admin/clientes", etiqueta: "Clientes" },
       { href: "/admin/facturacion", etiqueta: "Facturación" },
     ],
   },
   {
-    // Apunta a Usuarios porque todavía no existe una página separada de
-    // clientes; hoy es la misma tabla con filtro por rol.
-    titulo: "Clientes",
-    icono: IconoClientes,
-    secciones: [{ href: "/admin/usuarios", etiqueta: "Clientes" }],
+    titulo: "Catálogo",
+    icono: IconoTienda,
+    secciones: [
+      { href: "/admin/productos", etiqueta: "Productos" },
+      { href: "/admin/categorias", etiqueta: "Categorías" },
+      { href: "/admin/atributos", etiqueta: "Atributos" },
+      { href: "/admin/marcas", etiqueta: "Marcas" },
+    ],
   },
   {
-    titulo: "Marketing",
+    titulo: "Inventario",
+    icono: IconoInventario,
+    secciones: [
+      { href: "/admin/stock", etiqueta: "Stock" },
+      { href: "/admin/stock?filtro=alertas", etiqueta: "Alertas" },
+    ],
+  },
+  {
+    titulo: "Promociones",
     icono: IconoMarketing,
-    secciones: [{ href: "/admin/cupones", etiqueta: "Cupones" }],
+    secciones: [
+      { href: "/admin/cupones", etiqueta: "Cupones" },
+      { href: "/admin/productos?destacado=si", etiqueta: "Destacados" },
+    ],
+  },
+  {
+    titulo: "Envíos",
+    icono: IconoEnvios,
+    secciones: [{ href: "/admin/envios", etiqueta: "Seguimiento" }],
   },
   {
     titulo: "Reportes",
@@ -125,52 +127,70 @@ const GRUPOS: {
     icono: IconoConfiguracion,
     secciones: [
       { href: "/admin/usuarios", etiqueta: "Usuarios" },
-      { href: "/admin/cuenta", etiqueta: "Cuenta" },
+      { href: "/admin/cuenta", etiqueta: "Mi cuenta" },
     ],
   },
 ];
 
-function esActivo(pathname: string, href: string) {
-  // "/admin" solo marca activo en la ruta exacta; el resto también en sus subrutas.
-  return href === "/admin" ? pathname === "/admin" : pathname.startsWith(href);
+type ParametrosRuta = { get(nombre: string): string | null };
+
+function separarHref(href: string) {
+  const [ruta, consulta = ""] = href.split("?");
+  return { ruta, parametros: new URLSearchParams(consulta) };
 }
 
-function grupoDeLaRuta(pathname: string) {
+function coincideRuta(pathname: string, href: string, parametrosActuales: ParametrosRuta) {
+  const { ruta, parametros } = separarHref(href);
+  const coincidePath = ruta === "/admin" ? pathname === ruta : pathname.startsWith(ruta);
+  return coincidePath && [...parametros].every(([nombre, valor]) => parametrosActuales.get(nombre) === valor);
+}
+
+function esActivo(pathname: string, href: string, parametrosActuales: ParametrosRuta) {
+  if (!coincideRuta(pathname, href, parametrosActuales)) return false;
+  const { ruta, parametros } = separarHref(href);
+  if ([...parametros].length > 0) return true;
+
+  // Una opción con filtros específicos (por ejemplo, Destacados) tiene
+  // prioridad visual sobre el enlace genérico de la misma página (Productos).
+  return !GRUPOS.some((grupo) =>
+    grupo.secciones.some((seccion) => {
+      const destino = separarHref(seccion.href);
+      return destino.ruta === ruta && [...destino.parametros].length > 0 && coincideRuta(pathname, seccion.href, parametrosActuales);
+    }),
+  );
+}
+
+function grupoDeLaRuta(pathname: string, parametrosActuales: ParametrosRuta) {
   return GRUPOS.find(
-    (grupo) => grupo.titulo && grupo.secciones.some((seccion) => esActivo(pathname, seccion.href)),
+    (grupo) => grupo.titulo && grupo.secciones.some((seccion) => esActivo(pathname, seccion.href, parametrosActuales)),
   )?.titulo;
 }
 
 export function AdminNav() {
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const claveRuta = `${pathname}?${searchParams.toString()}`;
   const [abiertos, setAbiertos] = useState<Set<string>>(() => {
-    const activo = grupoDeLaRuta(pathname);
+    const activo = grupoDeLaRuta(pathname, searchParams);
     return new Set(activo ? [activo] : []);
   });
   // Compara contra el pathname del render anterior (patrón recomendado por
   // React para "ajustar estado" sin useEffect: ver
   // https://react.dev/learn/you-might-not-need-an-effect#adjusting-some-state-when-a-prop-changes).
-  const [pathnamePrevio, setPathnamePrevio] = useState(pathname);
+  const [rutaPrevia, setRutaPrevia] = useState(claveRuta);
 
-  if (pathname !== pathnamePrevio) {
-    setPathnamePrevio(pathname);
-    // Al navegar a otra sección, su grupo se abre solo (sin cerrar los que el
-    // usuario ya haya abierto a mano).
-    const activo = grupoDeLaRuta(pathname);
-    if (activo && !abiertos.has(activo)) {
-      setAbiertos(new Set(abiertos).add(activo));
-    }
+  if (claveRuta !== rutaPrevia) {
+    setRutaPrevia(claveRuta);
+    // El menú es un acordeón: al navegar queda abierto únicamente el grupo
+    // que contiene la pantalla actual.
+    const activo = grupoDeLaRuta(pathname, searchParams);
+    setAbiertos(new Set(activo ? [activo] : []));
   }
 
   function alternarGrupo(titulo: string) {
     setAbiertos((previo) => {
-      const siguiente = new Set(previo);
-      if (siguiente.has(titulo)) {
-        siguiente.delete(titulo);
-      } else {
-        siguiente.add(titulo);
-      }
-      return siguiente;
+      // Abrir un grupo repliega cualquier otro; si ya estaba abierto, se cierra.
+      return previo.has(titulo) ? new Set() : new Set([titulo]);
     });
   }
 
@@ -210,7 +230,7 @@ export function AdminNav() {
                     <Link
                       key={seccion.href}
                       href={seccion.href}
-                      className={`${styles.enlace} ${esActivo(pathname, seccion.href) ? styles.enlaceActivo : ""}`}
+                      className={`${styles.enlace} ${esActivo(pathname, seccion.href, searchParams) ? styles.enlaceActivo : ""}`}
                     >
                       {seccion.etiqueta}
                     </Link>
@@ -222,7 +242,7 @@ export function AdminNav() {
                 <Link
                   key={seccion.href}
                   href={seccion.href}
-                  className={`${styles.enlace} ${esActivo(pathname, seccion.href) ? styles.enlaceActivo : ""}`}
+                  className={`${styles.enlace} ${esActivo(pathname, seccion.href, searchParams) ? styles.enlaceActivo : ""}`}
                 >
                   {Icono && <Icono size={18} className={`${styles.enlaceIcono} ${indice === 0 ? styles.enlaceIconoPanel : ""}`} aria-hidden={true} />}
                   {seccion.etiqueta}

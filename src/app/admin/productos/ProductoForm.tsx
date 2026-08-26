@@ -26,6 +26,7 @@ import { formatearPrecio, slugificar } from "@/lib/utils";
 import styles from "../admin.module.css";
 
 type Opcion = { id: string; nombre: string };
+type AtributoCatalogo = { id: string; nombre: string; clave: string; tipo: "LISTA" | "COLOR"; valores: string[] };
 export type ImagenForm = { url: string; publicId: string };
 export type VarianteForm = {
   clave: string;
@@ -50,6 +51,8 @@ export type ProductoFormValores = {
   precioOferta: string;
   costo: string;
   sku: string;
+  borrador?: boolean;
+  modoVariantes: boolean;
   categoriaId: string;
   marcaId: string;
   tipoProducto: string;
@@ -57,6 +60,12 @@ export type ProductoFormValores = {
   material: string;
   cuidados: string;
   guiaTallas: string;
+  pesoKg: string;
+  anchoCm: string;
+  altoCm: string;
+  largoCm: string;
+  tituloSeo: string;
+  descripcionSeo: string;
   activo: boolean;
   destacado: boolean;
   opciones: OpcionConfig[];
@@ -66,12 +75,11 @@ export type ProductoFormValores = {
 
 const PESTAÑAS = [
   { clave: "informacion", etiqueta: "Información" },
-  { clave: "opciones", etiqueta: "Producto base" },
-  { clave: "variantes", etiqueta: "Variantes" },
   { clave: "precios", etiqueta: "Precios" },
+  { clave: "variantes", etiqueta: "Variantes" },
   { clave: "imagenes", etiqueta: "Imágenes" },
-  { clave: "detalles", etiqueta: "Detalles" },
-  { clave: "visibilidad", etiqueta: "Visibilidad" },
+  { clave: "envio", etiqueta: "Envío" },
+  { clave: "seo", etiqueta: "SEO" },
 ] as const;
 type Pestaña = (typeof PESTAÑAS)[number]["clave"];
 
@@ -89,19 +97,11 @@ function copiarOpciones(opciones: OpcionConfig[]) {
 const PERFIL_INICIAL = PERFILES_OPCIONES[0];
 const VACIO: ProductoFormValores = {
   nombre: "", slug: "", descripcion: "", descripcionCorta: "", skuInterno: "", codigoBarras: "", proveedor: "", precio: "", precioOferta: "", costo: "", sku: "",
-  categoriaId: "", marcaId: "", tipoProducto: PERFIL_INICIAL.tipoProducto,
-  perfilOpciones: PERFIL_INICIAL.clave, material: "", cuidados: "", guiaTallas: "",
+  categoriaId: "", marcaId: "", tipoProducto: PERFIL_INICIAL.tipoProducto, modoVariantes: true,
+  perfilOpciones: PERFIL_INICIAL.clave, material: "", cuidados: "", guiaTallas: "", pesoKg: "", anchoCm: "", altoCm: "", largoCm: "", tituloSeo: "", descripcionSeo: "",
   activo: true, destacado: false, opciones: copiarOpciones(PERFIL_INICIAL.opciones),
   variantes: [], imagenes: [],
 };
-
-function prefijoSkuTipo(tipoProducto: string) {
-  if (tipoProducto.startsWith("MEDIAS")) return "ME";
-  if (tipoProducto.startsWith("BOXER")) return "BO";
-  if (tipoProducto.startsWith("ROPA")) return "RO";
-  if (tipoProducto.startsWith("BRASIER")) return "BR";
-  return "PRD";
-}
 
 const CODIGOS_COLOR: Record<string, string> = {
   negro: "NG", blanco: "BL", gris: "GR", plomo: "PL", azul: "AZ",
@@ -133,11 +133,6 @@ function codigoSkuAtributo(clave: string, valor: string) {
   return normalizado.toUpperCase().slice(0, 2) || "XX";
 }
 
-function skuBaseParaTipo(skuActual: string, tipoProducto: string) {
-  const serie = skuActual.match(/(\d+)$/)?.[1] ?? "001";
-  return `${prefijoSkuTipo(tipoProducto)}${serie.padStart(3, "0")}`;
-}
-
 function skuParaVariante(skuBase: string, atributos: AtributoVariante[]) {
   const prioridad = ["talla", "edad", "contorno", "copa", "color", "diseno"];
   const ordenados = [...atributos].sort((a, b) => {
@@ -146,9 +141,7 @@ function skuParaVariante(skuBase: string, atributos: AtributoVariante[]) {
     return (posicionA === -1 ? 99 : posicionA) - (posicionB === -1 ? 99 : posicionB);
   });
   const codigos = ordenados.map(({ clave, valor }) => codigoSkuAtributo(clave, valor));
-  // Se conserva toda la información, pero se elimina un separador:
-  // ME002-35-AZ-RY -> ME00235-AZ-RY.
-  return `${skuBase}${codigos[0] ?? ""}${codigos.slice(1).map((codigo) => `-${codigo}`).join("")}`;
+  return [skuBase, ...codigos].join("-");
 }
 function calcularMargen(precio: string | number, costo: string | number) {
   const precioNumero = Number(precio);
@@ -157,38 +150,35 @@ function calcularMargen(precio: string | number, costo: string | number) {
   return ((precioNumero - costoNumero) / precioNumero) * 100;
 }
 
-export function ProductoForm({ categorias, marcas, productoId, valoresIniciales }: {
-  categorias: Opcion[]; marcas: Opcion[]; productoId?: string; valoresIniciales?: ProductoFormValores;
+export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId, valoresIniciales }: {
+  categorias: Opcion[]; marcas: Opcion[]; atributosCatalogo: AtributoCatalogo[]; productoId?: string; valoresIniciales?: ProductoFormValores;
 }) {
   const router = useRouter();
-  const esBorradorInicial = valoresIniciales?.nombre === "Nuevo producto"
-    && valoresIniciales.descripcion === "Completa la descripción del producto.";
+  const esBorradorInicial = Boolean(valoresIniciales?.borrador);
   const [pendiente, iniciarTransicion] = useTransition();
   const [form, setForm] = useState<ProductoFormValores>(() => {
     if (!valoresIniciales) return VACIO;
-    // Solo migramos automáticamente los borradores creados con el prefijo
-    // temporal PRD; los SKU históricos escritos por el administrador no se tocan.
-    const sku = valoresIniciales.sku.startsWith("PRD-")
-      ? skuBaseParaTipo(valoresIniciales.sku, valoresIniciales.tipoProducto)
-      : valoresIniciales.sku;
-    return {
+    const base = {
       ...valoresIniciales,
-      sku,
+      sku: valoresIniciales.sku,
+      slug: valoresIniciales.borrador ? slugificar(valoresIniciales.nombre) : valoresIniciales.slug,
       variantes: valoresIniciales.variantes.map((variante) => ({
         ...variante,
-        sku: skuParaVariante(sku, variante.atributos),
+        sku: skuParaVariante(valoresIniciales.sku, variante.atributos),
       })),
-      // Los valores mínimos del borrador solo existen para cumplir las
-      // columnas obligatorias de la base; no deben aparecer como contenido
-      // escrito por el administrador.
-      ...(esBorradorInicial ? { nombre: "", slug: "", descripcion: "", descripcionCorta: "" } : {}),
     };
+    if (!base.modoVariantes && base.variantes.length === 0) {
+      const atributos = [{ clave: "presentacion", valor: "Única" }];
+      return { ...base, opciones: [{ clave: "presentacion", nombre: "Presentación", valores: ["Única"] }], variantes: [{ ...varianteVacia(atributos), sku: skuParaVariante(base.sku, atributos) }] };
+    }
+    return base;
   });
   const [pestaña, setPestaña] = useState<Pestaña>("informacion");
   const [slugManual, setSlugManual] = useState(Boolean(valoresIniciales) && !esBorradorInicial);
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [valorPersonalizado, setValorPersonalizado] = useState<Record<number, string>>({});
+  const [atributoSeleccionado, setAtributoSeleccionado] = useState("");
   const [opcionAbierta, setOpcionAbierta] = useState<number | null>(null);
   const inputArchivo = useRef<HTMLInputElement>(null);
   const combinacionesPosibles = useMemo(() => combinacionesOpciones(form.opciones).length, [form.opciones]);
@@ -206,7 +196,6 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
       ...previo,
       perfilOpciones: perfil.clave,
       tipoProducto: perfil.tipoProducto,
-      sku: skuBaseParaTipo(previo.sku, perfil.tipoProducto),
       opciones: copiarOpciones(perfil.opciones),
       variantes: [],
     }));
@@ -247,6 +236,23 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
   }
   function agregarOpcion() {
     setForm((previo) => ({ ...previo, perfilOpciones: "personalizado", opciones: [...previo.opciones, { clave: `opcion_${previo.opciones.length + 1}`, nombre: `Opción ${previo.opciones.length + 1}`, valores: [] }] }));
+  }
+  function agregarAtributoCatalogo() {
+    const atributo = atributosCatalogo.find((actual) => actual.id === atributoSeleccionado);
+    if (!atributo) return;
+    if (form.opciones.some((opcion) => opcion.clave === atributo.clave)) {
+      setError(`${atributo.nombre} ya está configurado en este producto`);
+      return;
+    }
+    setError(null);
+    setForm((previo) => ({
+      ...previo,
+      perfilOpciones: "personalizado",
+      opciones: [...previo.opciones, { clave: atributo.clave, nombre: atributo.nombre, tipo: atributo.tipo, sugeridos: atributo.valores, valores: [] }],
+      variantes: [],
+    }));
+    setOpcionAbierta(form.opciones.length);
+    setAtributoSeleccionado("");
   }
   function quitarOpcion(indice: number) {
     const clave = form.opciones[indice].clave;
@@ -395,21 +401,16 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
               </div>
             </>}
 
-            {pestaña === "opciones" && <>
-              <p className={styles.bloqueAyuda}>Este es el identificador general del producto. La configuración de tallas, colores y combinaciones vive en Variantes.</p>
-              <div className={styles.resumenBase}>
-                <div><span>Producto base</span><strong>{form.nombre || "Producto sin nombre"}</strong></div>
-                <div><span>SKU base</span><strong>{form.sku || "—"}</strong></div>
-                <div><span>Tipo configurado</span><strong>{form.tipoProducto || "—"}</strong></div>
-              </div>
-            </>}
-
             {pestaña === "variantes" && <>
-              <p className={styles.bloqueAyuda}>Configura el tipo de producto, sus opciones y los valores disponibles antes de crear las combinaciones.</p>
+              <p className={styles.bloqueAyuda}>{form.modoVariantes ? "Configura atributos y valores antes de crear las combinaciones." : "Producto de una sola presentación: puedes ajustar su SKU y stock sin crear combinaciones."}</p>
               <div className={styles.fila}>
                 <label className={styles.campo}><span className={styles.etiqueta}>Tipo de producto</span><SelectConFlecha className={styles.control} value={contextoTipo.tipo} onChange={(evento) => aplicarTipo(evento.target.value as TipoEditor, TIPOS_EDITOR.find((tipo) => tipo.clave === evento.target.value)?.publicos?.[0])}>{TIPOS_EDITOR.map((tipo) => <option key={tipo.clave} value={tipo.clave}>{tipo.nombre}</option>)}</SelectConFlecha></label>
                 {TIPOS_EDITOR.find((tipo) => tipo.clave === contextoTipo.tipo)?.publicos && <label className={styles.campo}><span className={styles.etiqueta}>Para</span><SelectConFlecha className={styles.control} value={contextoTipo.publico ?? ""} onChange={(evento) => aplicarTipo(contextoTipo.tipo, evento.target.value as PublicoEditor)}>{TIPOS_EDITOR.find((tipo) => tipo.clave === contextoTipo.tipo)?.publicos?.map((publico) => <option key={publico} value={publico}>{NOMBRES_PUBLICO[publico]}</option>)}</SelectConFlecha></label>}
               </div>
+              {atributosCatalogo.length > 0 && <div className={styles.fila}>
+                <label className={styles.campo}><span className={styles.etiqueta}>Atributo registrado</span><SelectConFlecha className={styles.control} value={atributoSeleccionado} onChange={(evento) => setAtributoSeleccionado(evento.target.value)}><option value="">Seleccionar atributo</option>{atributosCatalogo.map((atributo) => <option key={atributo.id} value={atributo.id}>{atributo.nombre}</option>)}</SelectConFlecha></label>
+                <div className={styles.campo}><span className={styles.etiqueta}> </span><button type="button" className={styles.botonSecundario} disabled={!atributoSeleccionado} onClick={agregarAtributoCatalogo}>Usar atributo</button></div>
+              </div>}
               <div className={styles.opcionesConfig}>
                 {form.opciones.map((opcion, indice) => <details key={indice} className={styles.opcionEditor} open={opcionAbierta === indice}>
                   <summary className={styles.opcionResumen} onClick={(evento) => { evento.preventDefault(); setOpcionAbierta((actual) => actual === indice ? null : indice); }}>
@@ -420,13 +421,14 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
                   <div className={styles.opcionContenido}>
                     <div className={styles.opcionCabecera}>
                       <label className={styles.campo}><span className={styles.etiqueta}>Nombre de la opción</span><input className={styles.control} value={opcion.nombre} onChange={(evento) => actualizarNombreOpcion(indice, evento.target.value)} placeholder="Talla" /></label>
-                      {opcion.clave === "color" ? <div className={styles.campo}><span className={styles.etiqueta}>Paleta básica</span><span className={styles.colorSeleccionResumen}>{opcion.valores.length ? `${opcion.valores.length} seleccionado(s)` : "Selecciona colores"}</span></div> : <label className={styles.campo}><span className={styles.etiqueta}>Agregar {opcion.nombre.toLocaleLowerCase("es")}</span><SelectConFlecha className={styles.control} value="" onChange={(evento) => { if (evento.target.value) alternarValor(indice, evento.target.value); }} aria-label={`Agregar ${opcion.nombre}`}><option value="">Seleccionar valor</option>{[...new Set([...(opcion.sugeridos ?? []), ...opcion.valores])].map((valor) => <option key={valor} value={valor}>{opcion.valores.includes(valor) ? `Quitar ${valor}` : valor}</option>)}</SelectConFlecha></label>}
+                      {(opcion.tipo === "COLOR" || opcion.clave === "color") ? <div className={styles.campo}><span className={styles.etiqueta}>Paleta básica</span><span className={styles.colorSeleccionResumen}>{opcion.valores.length ? `${opcion.valores.length} seleccionado(s)` : "Selecciona colores"}</span></div> : <label className={styles.campo}><span className={styles.etiqueta}>Agregar {opcion.nombre.toLocaleLowerCase("es")}</span><SelectConFlecha className={styles.control} value="" onChange={(evento) => { if (evento.target.value) alternarValor(indice, evento.target.value); }} aria-label={`Agregar ${opcion.nombre}`}><option value="">Seleccionar valor</option>{[...new Set([...(opcion.sugeridos ?? []), ...opcion.valores])].map((valor) => <option key={valor} value={valor}>{opcion.valores.includes(valor) ? `Quitar ${valor}` : valor}</option>)}</SelectConFlecha></label>}
                       {form.opciones.length > 1 && <button type="button" className={styles.botonIcono} onClick={() => quitarOpcion(indice)} aria-label={`Quitar opción ${opcion.nombre}`} title="Quitar opción"><IconoEliminar /></button>}
                     </div>
                     <div className={styles.opcionValores}>
                       <label className={styles.campo}><span className={styles.etiqueta}>Valores seleccionados</span><input className={styles.control} readOnly value={opcion.valores.join(", ")} placeholder="Ninguno seleccionado" /></label>
-                      {opcion.clave === "color" ? <div className={styles.paletaColores} aria-label="Colores básicos">
+                      {(opcion.tipo === "COLOR" || opcion.clave === "color") ? <div className={styles.paletaColores} aria-label="Colores básicos">
                         {COLORES_BASICOS.map((color) => <button key={color.nombre} type="button" className={opcion.valores.includes(color.nombre) ? `${styles.muestraColor} ${styles.muestraColorActiva}` : styles.muestraColor} style={{ "--color-muestra": color.hex } as React.CSSProperties} onClick={() => alternarValor(indice, color.nombre)} aria-pressed={opcion.valores.includes(color.nombre)} title={color.nombre} aria-label={color.nombre} />)}
+                        {(opcion.sugeridos ?? []).filter((valor) => !COLORES_BASICOS.some((color) => color.nombre === valor)).map((valor) => <button key={valor} type="button" className={opcion.valores.includes(valor) ? `${styles.valorRapido} ${styles.valorRapidoSeleccionado}` : styles.valorRapido} onClick={() => alternarValor(indice, valor)}>{valor}</button>)}
                       </div> : <div className={styles.agregarValor}>
                         <input className={styles.control} value={valorPersonalizado[indice] ?? ""} onChange={(evento) => setValorPersonalizado((previo) => ({ ...previo, [indice]: evento.target.value }))} onKeyDown={(evento) => { if (evento.key === "Enter") { evento.preventDefault(); agregarValorPersonalizado(indice); } }} placeholder={`Escribir ${opcion.nombre.toLocaleLowerCase("es")}`} aria-label={`Escribir ${opcion.nombre.toLocaleLowerCase("es")}`} />
                         <button type="button" className={styles.botonIcono} onClick={() => agregarValorPersonalizado(indice)} aria-label={`Agregar ${opcion.nombre} personalizado`} title="Agregar valor"><IconoAgregar /></button>
@@ -469,14 +471,24 @@ export function ProductoForm({ categorias, marcas, productoId, valoresIniciales 
               {form.imagenes.length > 0 && <div className={styles.galeria}>{form.imagenes.map((imagen, indice) => <div key={imagen.publicId} className={styles.miniatura}><Image className={styles.miniaturaImagen} src={imagen.url} alt="" width={160} height={112} unoptimized /><div className={styles.miniaturaBarra}><span className={styles.portada}>{indice === 0 ? "Portada" : indice + 1}</span><span><button type="button" className={styles.miniaturaBoton} disabled={indice === 0} onClick={() => moverImagen(indice, -1)} aria-label="Mover a la izquierda">←</button><button type="button" className={styles.miniaturaBoton} disabled={indice === form.imagenes.length - 1} onClick={() => moverImagen(indice, 1)} aria-label="Mover a la derecha">→</button><button type="button" className={styles.miniaturaBoton} onClick={() => quitarImagen(imagen.publicId)} aria-label="Quitar imagen">✕</button></span></div></div>)}</div>}
             </>}
 
-            {pestaña === "detalles" && <>
+            {pestaña === "envio" && <>
+              <p className={styles.bloqueAyuda}>Completa estos datos cuando el costo o la tarifa de entrega dependan del producto.</p>
+              <label className={styles.campo}><span className={styles.etiqueta}>Peso (kg)</span><input className={styles.control} type="number" min="0" step="0.001" value={form.pesoKg} placeholder="0.500" onChange={(evento) => actualizar("pesoKg", evento.target.value)} /></label>
+              <div className={styles.fila}>
+                <label className={styles.campo}><span className={styles.etiqueta}>Largo (cm)</span><input className={styles.control} type="number" min="0" step="0.01" value={form.largoCm} onChange={(evento) => actualizar("largoCm", evento.target.value)} /></label>
+                <label className={styles.campo}><span className={styles.etiqueta}>Ancho (cm)</span><input className={styles.control} type="number" min="0" step="0.01" value={form.anchoCm} onChange={(evento) => actualizar("anchoCm", evento.target.value)} /></label>
+              </div>
+              <label className={styles.campo}><span className={styles.etiqueta}>Alto (cm)</span><input className={styles.control} type="number" min="0" step="0.01" value={form.altoCm} onChange={(evento) => actualizar("altoCm", evento.target.value)} /></label>
+            </>}
+
+            {pestaña === "informacion" && <>
               <p className={styles.bloqueAyuda}>Estos datos reducen devoluciones y consultas del cliente.</p>
               <label className={styles.campo}><span className={styles.etiqueta}>Material</span><input className={styles.control} value={form.material} placeholder="95% algodón, 5% elastano" onChange={(evento) => actualizar("material", evento.target.value)} /></label>
               <label className={styles.campo}><span className={styles.etiqueta}>Cuidados</span><input className={styles.control} value={form.cuidados} placeholder="Lavar a máquina en frío" onChange={(evento) => actualizar("cuidados", evento.target.value)} /></label>
               <label className={styles.campo}><span className={styles.etiqueta}>Guía de tallas</span><textarea className={`${styles.control} ${styles.textarea}`} value={form.guiaTallas} placeholder="M: pecho 97–101 cm" onChange={(evento) => actualizar("guiaTallas", evento.target.value)} /></label>
             </>}
 
-            {pestaña === "visibilidad" && <><div className={`${styles.campo} ${styles.checkbox}`}><button type="button" className={`${styles.switch} ${form.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={form.activo} onClick={() => actualizar("activo", !form.activo)}><span className={styles.switchPunto} aria-hidden="true" /></button><span className={styles.etiqueta}>Visible en la tienda</span></div><div className={`${styles.campo} ${styles.checkbox}`}><button type="button" className={`${styles.switch} ${form.destacado ? styles.switchActivo : ""}`} role="switch" aria-checked={form.destacado} onClick={() => actualizar("destacado", !form.destacado)}><span className={styles.switchPunto} aria-hidden="true" /></button><span className={styles.etiqueta}>Destacado en la portada</span></div></>}
+            {pestaña === "seo" && <><p className={styles.bloqueAyuda}>Define cómo se muestra el producto en la tienda y en los resultados de búsqueda.</p><label className={styles.campo}><span className={styles.etiqueta}>Título SEO</span><input className={styles.control} maxLength={60} value={form.tituloSeo} placeholder={form.nombre} onChange={(evento) => actualizar("tituloSeo", evento.target.value)} /></label><label className={styles.campo}><span className={styles.etiqueta}>Descripción SEO</span><textarea className={`${styles.control} ${styles.textarea}`} maxLength={160} value={form.descripcionSeo} placeholder={form.descripcionCorta || "Resumen para resultados de búsqueda"} onChange={(evento) => actualizar("descripcionSeo", evento.target.value)} /></label><div className={`${styles.campo} ${styles.checkbox}`}><button type="button" className={`${styles.switch} ${form.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={form.activo} onClick={() => actualizar("activo", !form.activo)}><span className={styles.switchPunto} aria-hidden="true" /></button><span className={styles.etiqueta}>Visible en la tienda</span></div><div className={`${styles.campo} ${styles.checkbox}`}><button type="button" className={`${styles.switch} ${form.destacado ? styles.switchActivo : ""}`} role="switch" aria-checked={form.destacado} onClick={() => actualizar("destacado", !form.destacado)}><span className={styles.switchPunto} aria-hidden="true" /></button><span className={styles.etiqueta}>Destacado en la portada</span></div></>}
           </div>
         </div>
 

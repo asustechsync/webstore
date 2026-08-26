@@ -10,7 +10,7 @@ export default async function AdminEditarProductoPage({
 }) {
   const { id } = await params;
 
-  const [producto, categorias, marcas] = await Promise.all([
+  const [producto, categorias, marcas, atributosCatalogo] = await Promise.all([
     db.producto.findUnique({
       where: { id },
       include: {
@@ -29,17 +29,32 @@ export default async function AdminEditarProductoPage({
     }),
     db.categoria.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
     db.marca.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
+    db.atributoCatalogo.findMany({
+      where: { activo: true },
+      orderBy: { nombre: "asc" },
+      include: { valores: { orderBy: { orden: "asc" }, select: { valor: true } } },
+    }),
   ]);
 
   if (!producto) notFound();
 
   return (
     <>
-      <PageHeader titulo="Editar producto" />
+      <PageHeader
+        titulo="Editar producto"
+        descripcion={producto.borrador ? "Borrador: completa la información antes de publicarlo." : undefined}
+      />
 
       <ProductoForm
         categorias={categorias}
         marcas={marcas}
+        atributosCatalogo={atributosCatalogo.map((atributo) => ({
+          id: atributo.id,
+          nombre: atributo.nombre,
+          clave: atributo.clave,
+          tipo: atributo.tipo === "COLOR" ? "COLOR" : "LISTA",
+          valores: atributo.valores.map((valor) => valor.valor),
+        }))}
         productoId={producto.id}
         valoresIniciales={{
           nombre: producto.nombre,
@@ -54,6 +69,8 @@ export default async function AdminEditarProductoPage({
           precioOferta: producto.precioOferta?.toString() ?? "",
           costo: producto.costo?.toString() ?? "",
           sku: producto.sku,
+          borrador: producto.borrador,
+          modoVariantes: producto.modoVariantes || producto.variantes.length > 1,
           tipoProducto: producto.tipoProducto ?? "GENERAL",
           perfilOpciones: producto.perfilOpciones ?? "personalizado",
           categoriaId: producto.categoriaId,
@@ -61,6 +78,12 @@ export default async function AdminEditarProductoPage({
           material: producto.material ?? "",
           cuidados: producto.cuidados ?? "",
           guiaTallas: producto.guiaTallas ?? "",
+          pesoKg: producto.pesoKg?.toString() ?? "",
+          anchoCm: producto.anchoCm?.toString() ?? "",
+          altoCm: producto.altoCm?.toString() ?? "",
+          largoCm: producto.largoCm?.toString() ?? "",
+          tituloSeo: producto.tituloSeo ?? "",
+          descripcionSeo: producto.descripcionSeo ?? "",
           activo: producto.activo,
           destacado: producto.destacado,
           opciones: producto.opciones.map((opcion) => ({

@@ -9,9 +9,9 @@ import styles from "../admin.module.css";
 export default async function AdminProductosPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; sku?: string; categoria?: string; estado?: string; stock?: string; oferta?: string }>;
+  searchParams: Promise<{ q?: string; sku?: string; categoria?: string; estado?: string; stock?: string; oferta?: string; destacado?: string }>;
 }) {
-  const { q, sku, categoria, estado, stock, oferta } = await searchParams;
+  const { q, sku, categoria, estado, stock, oferta, destacado } = await searchParams;
 
   const where: Prisma.ProductoWhereInput = {
     ...(q
@@ -28,6 +28,7 @@ export default async function AdminProductosPage({
     ...(estado === "inactivo" ? { activo: false } : {}),
     ...(oferta === "con" ? { precioOferta: { not: null } } : {}),
     ...(oferta === "sin" ? { precioOferta: null } : {}),
+    ...(destacado === "si" ? { destacado: true } : {}),
   };
 
   const [productos, categorias] = await Promise.all([
@@ -103,7 +104,7 @@ export default async function AdminProductosPage({
 
   return (
     <>
-      <PageHeader titulo="Productos" descripcion={`${visibles.length} producto(s) en la lista.`}>
+      <PageHeader titulo={destacado === "si" ? "Productos destacados" : "Productos"} descripcion={`${visibles.length} producto(s) en la lista.`}>
         <Link href="/admin/productos/nuevo" className={styles.boton}>
           Nuevo producto
         </Link>

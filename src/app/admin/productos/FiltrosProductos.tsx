@@ -2,7 +2,6 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { IconoBuscar, IconoCerrar } from "@/components/ui/ActionIcons";
-import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 import styles from "../admin.module.css";
 
 type Opcion = { id: string; nombre: string };
@@ -33,7 +32,7 @@ export function FiltrosProductos({ categorias }: { categorias: Opcion[] }) {
     router.push(`/admin/productos?${params.toString()}`);
   }
 
-  const hayFiltros = ["q", "sku", "categoria", "estado", "stock", "oferta"].some((campo) => searchParams.get(campo));
+  const hayFiltros = ["q", "sku", "categoria", "estado", "stock", "oferta", "destacado"].some((campo) => searchParams.get(campo));
 
   return (
     <form className={styles.filtros} onSubmit={onBuscar}>

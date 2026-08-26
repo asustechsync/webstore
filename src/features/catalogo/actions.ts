@@ -6,16 +6,23 @@ import { db } from "@/lib/db";
 import { requireAlgunPermiso, requirePermiso } from "@/lib/auth";
 import { ejecutar } from "@/lib/acciones";
 import { eliminarImagen, subirImagen } from "@/integrations/cloudinary/client";
+import { slugificar } from "@/lib/utils";
 import {
   ajusteStockSchema,
+  atributoCatalogoSchema,
   categoriaSchema,
   marcaSchema,
   productoSchema,
+  productoBorradorSchema,
+  valorAtributoCatalogoSchema,
   type AjusteStockInput,
+  type AtributoCatalogoInput,
   type CategoriaInput,
   type MarcaInput,
   type ProductoInput,
+  type ProductoBorradorInput,
   type ProductoValidado,
+  type ValorAtributoCatalogoInput,
 } from "./schemas";
 import {
   claveAtributos,
@@ -122,33 +129,31 @@ export async function subirImagenProducto(formData: FormData) {
  * completando el producto y sus variantes en una segunda pantalla.
  * El SKU se reserva desde el primer clic y no vuelve a cambiar.
  */
-export async function crearProductoBorrador() {
+export async function crearProductoBorrador(datos: ProductoBorradorInput) {
   return ejecutar(async () => {
     await requirePermiso("productos.crear");
-
-    const categoria = await db.categoria.findFirst({
-      where: { activo: true },
-      orderBy: { nombre: "asc" },
-      select: { id: true },
-    });
-    if (!categoria) throw new Error("Primero crea una categoría para registrar productos");
+    const validado = productoBorradorSchema.parse(datos);
+    const categoria = await db.categoria.findFirst({ where: { id: validado.categoriaId, activo: true }, select: { id: true } });
+    if (!categoria) throw new Error("Selecciona una categoría activa");
 
     const creado = await db.$transaction(async (tx) => {
       // El contador se calcula dentro de la transacción y se confirma contra
       // la restricción UNIQUE para que el SKU quede reservado inmediatamente.
-      let numero = (await tx.producto.count()) + 1;
+      let numero = (await tx.producto.count({ where: { sku: { startsWith: `${validado.codigoTipo}-` } } })) + 1;
       while (true) {
-        const sku = `PRD-${String(numero).padStart(3, "0")}`;
+        const sku = `${validado.codigoTipo}-${String(numero).padStart(3, "0")}`;
         const existente = await tx.producto.findUnique({ where: { sku }, select: { id: true } });
         if (!existente) {
           return tx.producto.create({
             data: {
-              nombre: "Nuevo producto",
-              slug: `nuevo-producto-${sku.toLowerCase()}`,
-              descripcion: "Completa la descripción del producto.",
+              nombre: validado.nombre,
+              slug: slugificar(validado.nombre),
+              descripcion: "",
               precio: 0,
               sku,
-              tipoProducto: "PERSONALIZADO",
+              borrador: true,
+              modoVariantes: validado.modoVariantes,
+              tipoProducto: validado.codigoTipo === "ME" ? "MEDIAS_MUJER" : validado.codigoTipo === "BO" ? "BOXER_ADULTO" : validado.codigoTipo === "PR" ? "ROPA_ADULTO" : validado.codigoTipo === "BR" ? "BRASIER" : "PERSONALIZADO",
               categoriaId: categoria.id,
               activo: false,
               destacado: false,
@@ -175,6 +180,7 @@ export async function crearProducto(datos: ProductoInput) {
         data: {
           ...producto,
           descripcionCorta: producto.descripcionCorta ?? null,
+          borrador: false,
           skuInterno: producto.skuInterno ?? null,
           codigoBarras: producto.codigoBarras ?? null,
           proveedor: producto.proveedor ?? null,
@@ -186,6 +192,12 @@ export async function crearProducto(datos: ProductoInput) {
           material: producto.material ?? null,
           cuidados: producto.cuidados ?? null,
           guiaTallas: producto.guiaTallas ?? null,
+          pesoKg: producto.pesoKg ?? null,
+          anchoCm: producto.anchoCm ?? null,
+          altoCm: producto.altoCm ?? null,
+          largoCm: producto.largoCm ?? null,
+          tituloSeo: producto.tituloSeo ?? null,
+          descripcionSeo: producto.descripcionSeo ?? null,
           imagenes: {
             create: imagenes.map((imagen, indice) => ({ ...imagen, orden: indice })),
           },
@@ -313,6 +325,13 @@ export async function actualizarProducto(id: string, datos: ProductoInput) {
           material: producto.material ?? null,
           cuidados: producto.cuidados ?? null,
           guiaTallas: producto.guiaTallas ?? null,
+          pesoKg: producto.pesoKg ?? null,
+          anchoCm: producto.anchoCm ?? null,
+          altoCm: producto.altoCm ?? null,
+          largoCm: producto.largoCm ?? null,
+          tituloSeo: producto.tituloSeo ?? null,
+          descripcionSeo: producto.descripcionSeo ?? null,
+          borrador: false,
         },
       });
     });
@@ -449,6 +468,16 @@ export async function alternarActivoProducto(id: string, activo: boolean) {
   return ejecutar(async () => {
     await requirePermiso("productos.editar");
 
+    if (activo) {
+      const productoActual = await db.producto.findUnique({
+        where: { id },
+        select: { borrador: true },
+      });
+      if (productoActual?.borrador) {
+        throw new Error("Completa y guarda el borrador antes de publicarlo en la tienda");
+      }
+    }
+
     const producto = await db.producto.update({
       where: { id },
       data: { activo },
@@ -489,15 +518,120 @@ export async function ajustarStock(varianteId: string, datos: AjusteStockInput) 
 
 // ── Categorías ────────────────────────────────────────────
 
+// ── Atributos reutilizables ────────────────────────────────
+
+export async function crearAtributoCatalogo(datos: AtributoCatalogoInput) {
+  return ejecutar(async () => {
+    await requirePermiso("productos.editar");
+    const validado = atributoCatalogoSchema.parse(datos);
+
+    await db.atributoCatalogo.create({
+      data: {
+        nombre: validado.nombre,
+        clave: validado.clave,
+        tipo: validado.tipo,
+        activo: validado.activo,
+        valores: { create: validado.valores.map((valor, orden) => ({ valor, orden })) },
+      },
+    });
+    revalidatePath("/admin/atributos");
+    revalidatePath("/admin/productos");
+  });
+}
+
+export async function actualizarAtributoCatalogo(id: string, datos: AtributoCatalogoInput) {
+  return ejecutar(async () => {
+    await requirePermiso("productos.editar");
+    const validado = atributoCatalogoSchema.parse(datos);
+
+    await db.atributoCatalogo.update({
+      where: { id },
+      data: {
+        nombre: validado.nombre,
+        clave: validado.clave,
+        tipo: validado.tipo,
+        activo: validado.activo,
+      },
+    });
+    revalidatePath("/admin/atributos");
+    revalidatePath("/admin/productos");
+  });
+}
+
+export async function eliminarAtributoCatalogo(id: string) {
+  return ejecutar(async () => {
+    await requirePermiso("productos.editar");
+    await db.atributoCatalogo.delete({ where: { id } });
+    revalidatePath("/admin/atributos");
+    revalidatePath("/admin/productos");
+  });
+}
+
+export async function crearValorAtributoCatalogo(atributoId: string, datos: ValorAtributoCatalogoInput) {
+  return ejecutar(async () => {
+    await requirePermiso("productos.editar");
+    const validado = valorAtributoCatalogoSchema.parse(datos);
+    const ultimo = await db.valorAtributoCatalogo.aggregate({ where: { atributoId }, _max: { orden: true } });
+    await db.valorAtributoCatalogo.create({ data: { atributoId, valor: validado.valor, colorHex: validado.colorHex ?? null, orden: (ultimo._max.orden ?? -1) + 1 } });
+    revalidatePath(`/admin/atributos/${atributoId}`);
+    revalidatePath("/admin/atributos");
+    revalidatePath("/admin/productos");
+  });
+}
+
+export async function actualizarValorAtributoCatalogo(atributoId: string, id: string, datos: ValorAtributoCatalogoInput) {
+  return ejecutar(async () => {
+    await requirePermiso("productos.editar");
+    const validado = valorAtributoCatalogoSchema.parse(datos);
+    const actualizado = await db.valorAtributoCatalogo.updateMany({ where: { id, atributoId }, data: { valor: validado.valor, colorHex: validado.colorHex ?? null } });
+    if (!actualizado.count) throw new Error("No se encontró el valor del atributo");
+    revalidatePath(`/admin/atributos/${atributoId}`);
+    revalidatePath("/admin/atributos");
+    revalidatePath("/admin/productos");
+  });
+}
+
+export async function eliminarValorAtributoCatalogo(atributoId: string, id: string) {
+  return ejecutar(async () => {
+    await requirePermiso("productos.editar");
+    const eliminado = await db.valorAtributoCatalogo.deleteMany({ where: { id, atributoId } });
+    if (!eliminado.count) throw new Error("No se encontró el valor del atributo");
+    revalidatePath(`/admin/atributos/${atributoId}`);
+    revalidatePath("/admin/atributos");
+    revalidatePath("/admin/productos");
+  });
+}
+
+export async function reordenarValoresAtributoCatalogo(atributoId: string, idsOrdenados: string[]) {
+  return ejecutar(async () => {
+    await requirePermiso("productos.editar");
+    await db.$transaction(async (tx) => {
+      const valores = await tx.valorAtributoCatalogo.findMany({ where: { atributoId }, select: { id: true } });
+      const idsExistentes = new Set(valores.map(({ id }) => id));
+      if (idsOrdenados.length !== valores.length || new Set(idsOrdenados).size !== valores.length || idsOrdenados.some((id) => !idsExistentes.has(id))) {
+        throw new Error("El orden de valores no es válido");
+      }
+      await Promise.all(idsOrdenados.map((id, orden) => tx.valorAtributoCatalogo.update({ where: { id }, data: { orden } })));
+    });
+    revalidatePath(`/admin/atributos/${atributoId}`);
+    revalidatePath("/admin/atributos");
+    revalidatePath("/admin/productos");
+  });
+}
+
 export async function crearCategoria(datos: CategoriaInput) {
   return ejecutar(async () => {
     await requirePermiso("categorias.crear");
     const validado = categoriaSchema.parse(datos);
 
-    await db.categoria.create({ data: validado });
+    await db.categoria.create({
+      // Una categoría oculta no debe ocupar una posición destacada en la portada.
+      data: { ...validado, destacada: validado.activo && validado.destacada },
+    });
 
     revalidatePath("/admin/categorias");
     revalidatePath("/categorias");
+    revalidatePath("/");
   });
 }
 
@@ -506,8 +640,18 @@ export async function actualizarCategoria(id: string, datos: CategoriaInput) {
     await requirePermiso("categorias.editar");
     const validado = categoriaSchema.parse(datos);
 
-    if (validado.padreId === id) {
-      throw new Error("Una categoría no puede ser su propia categoría padre");
+    // Recorremos los ancestros elegidos para impedir ciclos A → B → A.
+    // Sin esto, una categoría podría terminar siendo descendiente de sí misma.
+    let padreId = validado.padreId;
+    while (padreId) {
+      if (padreId === id) {
+        throw new Error("No puedes elegir una subcategoría como categoría padre");
+      }
+      const padre = await db.categoria.findUnique({
+        where: { id: padreId },
+        select: { padreId: true },
+      });
+      padreId = padre?.padreId ?? undefined;
     }
 
     await db.categoria.update({
@@ -518,12 +662,16 @@ export async function actualizarCategoria(id: string, datos: CategoriaInput) {
         ...validado,
         descripcion: validado.descripcion ?? null,
         imagenUrl: validado.imagenUrl ?? null,
+        tituloSeo: validado.tituloSeo ?? null,
+        descripcionSeo: validado.descripcionSeo ?? null,
         padreId: validado.padreId ?? null,
+        destacada: validado.activo && validado.destacada,
       },
     });
 
     revalidatePath("/admin/categorias");
     revalidatePath("/categorias");
+    revalidatePath("/");
   });
 }
 
@@ -537,6 +685,13 @@ export async function eliminarCategoria(id: string) {
     if (productos > 0) {
       throw new Error(
         `No se puede eliminar: la categoría tiene ${productos} producto(s) asociado(s)`,
+      );
+    }
+
+    const subcategorias = await db.categoria.count({ where: { padreId: id } });
+    if (subcategorias > 0) {
+      throw new Error(
+        `No se puede eliminar: la categoría tiene ${subcategorias} subcategoría(s). Reasígnalas primero`,
       );
     }
 

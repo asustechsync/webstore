@@ -42,6 +42,21 @@ export async function listarProductos(opciones: {
   };
 }
 
+export function listarCategorias(opciones: { soloDestacadas?: boolean } = {}) {
+  return db.categoria.findMany({
+    where: {
+      activo: true,
+      ...(opciones.soloDestacadas ? { destacada: true } : {}),
+    },
+    orderBy: [{ orden: "asc" }, { nombre: "asc" }],
+    include: { _count: { select: { productos: true } } },
+  });
+}
+
+export function obtenerCategoriaPorSlug(slug: string) {
+  return db.categoria.findUnique({ where: { slug, activo: true } });
+}
+
 export function obtenerProductoPorSlug(slug: string) {
   return db.producto.findUnique({
     where: { slug, activo: true },
