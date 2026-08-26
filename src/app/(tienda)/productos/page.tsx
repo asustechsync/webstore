@@ -1,4 +1,4 @@
-import { listarProductos } from "@/features/catalogo/queries";
+import { listarProductos } from "@/features/catalogo/queries/productos";
 import { Container } from "@/components/ui/Container";
 import { ProductosGrid } from "@/components/productos/ProductosGrid";
 import { aProductosCardData } from "@/components/productos/ProductoCard";

@@ -11,6 +11,7 @@ import {
 import { formatearPrecio } from "@/lib/utils";
 import styles from "../admin.module.css";
 import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
+import { CrudPanel } from "@/components/admin/CrudPanel";
 
 type Fila = {
   id: string;
@@ -61,11 +62,13 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [form, setForm] = useState<FormCupon>(VACIA);
   const [error, setError] = useState<string | null>(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   function limpiar() {
     setEditandoId(null);
     setForm(VACIA);
     setError(null);
+    setMostrarFormulario(false);
   }
 
   function editar(cupon: Fila) {
@@ -81,6 +84,12 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
       activo: cupon.activo,
     });
     setError(null);
+    setMostrarFormulario(true);
+  }
+
+  function nuevoCupon() {
+    limpiar();
+    setMostrarFormulario(true);
   }
 
   function onSubmit(evento: React.FormEvent) {
@@ -127,11 +136,14 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
   }
 
   return (
-    <>
-      <section className={styles.seccion}>
-        <h2 className={styles.titulo}>{editandoId ? "Editar cupón" : "Nuevo cupón"}</h2>
-
-        <form className={styles.form} onSubmit={onSubmit}>
+    <CrudPanel
+      mostrarFormulario={mostrarFormulario}
+      tituloFormulario={editandoId ? "Editar cupón" : "Nuevo cupón"}
+      tituloLista="Cupones existentes"
+      etiquetaCrear="Crear cupón"
+      onCrear={nuevoCupon}
+      onCancelar={limpiar}
+      formulario={<form className={styles.form} onSubmit={onSubmit}>
           {error && <p className={styles.mensajeError}>{error}</p>}
 
           <div className={styles.fila}>
@@ -248,19 +260,9 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
             <button type="submit" className={styles.boton} disabled={pendiente}>
               {pendiente ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear cupón"}
             </button>
-            {editandoId && (
-              <button type="button" className={styles.botonSecundario} onClick={limpiar}>
-                Cancelar
-              </button>
-            )}
           </div>
-        </form>
-      </section>
-
-      <section>
-        <h2 className={styles.titulo}>Cupones existentes</h2>
-
-        {cupones.length === 0 ? (
+        </form>}
+      lista={cupones.length === 0 ? (
           <p className={styles.vacio}>Todavía no hay cupones. Crea el primero arriba.</p>
         ) : (
           <div className={styles.tablaWrap}>
@@ -347,7 +349,6 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
             </table>
           </div>
         )}
-      </section>
-    </>
+    />
   );
 }

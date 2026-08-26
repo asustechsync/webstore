@@ -4,6 +4,9 @@ export type OpcionConfig = {
   clave: string;
   nombre: string;
   tipo?: "LISTA" | "COLOR";
+  /** Marca interna: esta opción proviene de Atributos del catálogo. */
+  catalogo?: boolean;
+  valoresHex?: Record<string, string>;
   /** Valores que se muestran como selección rápida, sin obligar a usarlos. */
   sugeridos?: string[];
   valores: string[];
@@ -12,6 +15,23 @@ export type OpcionConfig = {
 export type AtributoVariante = {
   clave: string;
   valor: string;
+};
+
+// Compatibilidad visual para valores de color antiguos que todavía no tienen
+// colorHex guardado. Los valores nuevos siguen usando siempre su hex de BD.
+export const COLORES_POR_NOMBRE: Record<string, string> = {
+  negro: "#171717",
+  blanco: "#FFFFFF",
+  gris: "#9CA3AF",
+  plomo: "#6B7280",
+  azul: "#2563EB",
+  rojo: "#DC2626",
+  rosado: "#EC4899",
+  verde: "#16A34A",
+  amarillo: "#FACC15",
+  beige: "#D6B98C",
+  marron: "#92400E",
+  morado: "#7C3AED",
 };
 
 export type PerfilOpciones = {

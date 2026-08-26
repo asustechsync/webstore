@@ -1,9 +1,9 @@
-import { db } from "@/lib/db";
+import { listarCuponesAdmin } from "@/features/cupones/queries";
 import { PageHeader } from "@/components/ui";
 import { CuponesPanel } from "./CuponesPanel";
 
 export default async function AdminCuponesPage() {
-  const cupones = await db.cupon.findMany({ orderBy: { creadoEn: "desc" } });
+  const cupones = await listarCuponesAdmin();
 
   return (
     <>

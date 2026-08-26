@@ -128,59 +128,11 @@ export const productoSchema = z.object({
   });
 });
 
-export const categoriaSchema = z.object({
-  nombre: z.string().min(2, "El nombre es muy corto"),
-  slug: z.string().min(2, "El slug es muy corto"),
-  descripcion: opcional(z.string()),
-  imagenUrl: opcional(z.url("La imagen debe ser una URL válida")),
-  orden: z.coerce.number().int().min(0, "El orden no puede ser negativo").default(0),
-  destacada: z.boolean().default(false),
-  tituloSeo: opcional(z.string().max(60, "El título SEO admite hasta 60 caracteres")),
-  descripcionSeo: opcional(z.string().max(160, "La descripción SEO admite hasta 160 caracteres")),
-  padreId: opcional(z.string().uuid("Selecciona una categoría padre válida")),
-  activo: z.boolean().default(true),
-});
-
-export const atributoCatalogoSchema = z.object({
-  nombre: z.string().trim().min(2, "El nombre es muy corto"),
-  clave: z.string().trim().min(2, "La clave es muy corta").regex(/^[a-z0-9_]+$/, "Usa solo letras, números o guion bajo"),
-  tipo: z.enum(["LISTA", "COLOR"]),
-  valores: z.array(z.string().trim().min(1, "Cada valor debe tener contenido")).default([]),
-  activo: z.boolean().default(true),
-}).superRefine((atributo, contexto) => {
-  const valores = new Set<string>();
-  atributo.valores.forEach((valor, indice) => {
-    const clave = valor.toLocaleLowerCase("es");
-    if (valores.has(clave)) {
-      contexto.addIssue({ code: "custom", path: ["valores", indice], message: "No repitas valores" });
-    }
-    valores.add(clave);
-  });
-});
-
-export const valorAtributoCatalogoSchema = z.object({
-  valor: z.string().trim().min(1, "Ingresa un valor").max(80, "El valor admite hasta 80 caracteres"),
-  colorHex: opcional(z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Selecciona un color válido")),
-});
-
 export const productoBorradorSchema = z.object({
   nombre: z.string().trim().min(3, "Ingresa un nombre de al menos 3 caracteres"),
   categoriaId: z.string().uuid("Selecciona una categoría"),
   modoVariantes: z.boolean(),
   codigoTipo: z.enum(["ME", "BO", "PR", "BR", "OT"], "Selecciona un tipo de producto"),
-});
-
-export const marcaSchema = z.object({
-  nombre: z.string().min(2, "El nombre es muy corto"),
-  slug: z.string().min(2, "El slug es muy corto"),
-  logoUrl: opcional(z.url("El logo debe ser una URL válida")),
-  activo: z.boolean().default(true),
-});
-
-// Edición rápida de inventario desde la pantalla de stock.
-export const ajusteStockSchema = z.object({
-  cantidad: z.coerce.number().int().min(0, "La cantidad no puede ser negativa"),
-  stockMinimo: z.coerce.number().int().min(0, "El mínimo no puede ser negativo"),
 });
 
 // z.input (no z.infer) porque los formularios mandan los números y opcionales
@@ -190,8 +142,3 @@ export type ProductoBorradorInput = z.input<typeof productoBorradorSchema>;
 export type ProductoValidado = z.output<typeof productoSchema>;
 export type VarianteInput = z.input<typeof varianteSchema>;
 export type ImagenInput = z.input<typeof imagenSchema>;
-export type CategoriaInput = z.input<typeof categoriaSchema>;
-export type AtributoCatalogoInput = z.input<typeof atributoCatalogoSchema>;
-export type ValorAtributoCatalogoInput = z.input<typeof valorAtributoCatalogoSchema>;
-export type MarcaInput = z.input<typeof marcaSchema>;
-export type AjusteStockInput = z.input<typeof ajusteStockSchema>;

@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { crearProductoBorrador } from "@/features/catalogo/actions";
+import { crearProductoBorrador } from "@/features/catalogo/actions/productos";
 import styles from "../../admin.module.css";
 
 type Categoria = { id: string; nombre: string };

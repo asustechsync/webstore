@@ -7,9 +7,10 @@ import {
   actualizarAtributoCatalogo,
   crearAtributoCatalogo,
   eliminarAtributoCatalogo,
-} from "@/features/catalogo/actions";
+} from "@/features/catalogo/actions/atributos";
 import { slugificar } from "@/lib/utils";
 import { IconoBuscar, IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
+import { CrudPanel } from "@/components/admin/CrudPanel";
 import styles from "../admin.module.css";
 
 type TipoAtributo = "LISTA" | "COLOR";
@@ -89,10 +90,14 @@ export function AtributosPanel({ atributos }: { atributos: Fila[] }) {
   }
 
   return (
-    <>
-      {mostrarFormulario && <section className={styles.seccion}>
-        <div className={styles.encabezadoSeccion}><h2 className={styles.titulo}>{editandoId ? "Editar atributo" : "Nuevo atributo"}</h2><button type="button" className={styles.botonSecundario} onClick={limpiar}>Cancelar</button></div>
-        <form className={styles.form} onSubmit={guardar}>
+    <CrudPanel
+      mostrarFormulario={mostrarFormulario}
+      tituloFormulario={editandoId ? "Editar atributo" : "Nuevo atributo"}
+      tituloLista="Atributos registrados"
+      etiquetaCrear="Crear atributo"
+      onCrear={() => { limpiar(); setMostrarFormulario(true); }}
+      onCancelar={limpiar}
+      formulario={<form className={styles.form} onSubmit={guardar}>
           {error && <p className={styles.mensajeError}>{error}</p>}
           <div className={styles.fila}>
             <label className={styles.campo}>
@@ -128,12 +133,8 @@ export function AtributosPanel({ atributos }: { atributos: Fila[] }) {
             <button type="submit" className={styles.boton} disabled={pendiente}>{pendiente ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear atributo"}</button>
             {editandoId && <button type="button" className={styles.botonSecundario} onClick={limpiar}>Cancelar</button>}
           </div>
-        </form>
-      </section>}
-
-      {!mostrarFormulario && <section className={styles.bloque}>
-        <div className={styles.encabezadoSeccion}><h2 className={styles.titulo}>Atributos registrados</h2><button type="button" className={styles.boton} onClick={() => { limpiar(); setMostrarFormulario(true); }}>Crear atributo</button></div>
-        {atributos.length === 0 ? <p className={styles.vacio}>Crea un atributo para reutilizarlo en tus productos.</p> : (
+        </form>}
+      lista={atributos.length === 0 ? <p className={styles.vacio}>Crea un atributo para reutilizarlo en tus productos.</p> : (
           <div className={styles.tablaWrap}>
             <table className={styles.tabla}>
               <thead><tr><th>Nombre</th><th>Valores</th><th>Estado</th><th /></tr></thead>
@@ -144,7 +145,6 @@ export function AtributosPanel({ atributos }: { atributos: Fila[] }) {
             </table>
           </div>
         )}
-      </section>}
-    </>
+    />
   );
 }

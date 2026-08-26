@@ -1,12 +1,9 @@
-import { db } from "@/lib/db";
+import { listarCategoriasAdmin } from "@/features/catalogo/queries/categorias";
 import { PageHeader } from "@/components/ui";
 import { CategoriasPanel } from "./CategoriasPanel";
 
 export default async function AdminCategoriasPage() {
-  const categorias = await db.categoria.findMany({
-    orderBy: [{ orden: "asc" }, { nombre: "asc" }],
-    include: { _count: { select: { productos: true } } },
-  });
+  const categorias = await listarCategoriasAdmin();
 
   return (
     <>

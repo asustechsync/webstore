@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { obtenerProductoPorSlug } from "@/features/catalogo/queries";
+import { obtenerProductoPorSlug } from "@/features/catalogo/queries/productos";
 import { Container } from "@/components/ui/Container";
 
 export const revalidate = 300;

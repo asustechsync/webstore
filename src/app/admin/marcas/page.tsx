@@ -1,12 +1,9 @@
-import { db } from "@/lib/db";
+import { listarMarcasAdmin } from "@/features/catalogo/queries/marcas";
 import { PageHeader } from "@/components/ui";
 import { MarcasPanel } from "./MarcasPanel";
 
 export default async function AdminMarcasPage() {
-  const marcas = await db.marca.findMany({
-    orderBy: { nombre: "asc" },
-    include: { _count: { select: { productos: true } } },
-  });
+  const marcas = await listarMarcasAdmin();
 
   return (
     <>

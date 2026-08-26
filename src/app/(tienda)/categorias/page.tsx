@@ -1,6 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { Container } from "@/components/ui/Container";
-import { listarCategorias } from "@/features/catalogo/queries";
+import { listarCategorias } from "@/features/catalogo/queries/categorias";
 import styles from "./page.module.css";
 
 export default async function CategoriasPage() {
@@ -16,7 +17,7 @@ export default async function CategoriasPage() {
           <div className={styles.grid}>
             {categorias.map((categoria) => (
               <Link key={categoria.id} href={`/categorias/${categoria.slug}`} className={styles.tarjeta}>
-                {categoria.imagenUrl ? <img src={categoria.imagenUrl} alt="" className={styles.imagen} /> : <div className={styles.imagenVacia} />}
+                {categoria.imagenUrl ? <Image src={categoria.imagenUrl} alt="" className={styles.imagen} width={640} height={320} sizes="(max-width: 640px) 100vw, 320px" /> : <div className={styles.imagenVacia} />}
                 <div className={styles.contenido}>
                   <h2>{categoria.nombre}</h2>
                   {categoria.descripcion && <p>{categoria.descripcion}</p>}

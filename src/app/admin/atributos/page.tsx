@@ -1,12 +1,9 @@
-import { db } from "@/lib/db";
+import { listarAtributosAdmin } from "@/features/catalogo/queries/atributos";
 import { PageHeader } from "@/components/ui";
 import { CatalogoCamposPanel } from "./CatalogoCamposPanel";
 
 export default async function AdminAtributosPage() {
-  const atributos = await db.atributoCatalogo.findMany({
-    orderBy: { nombre: "asc" },
-    include: { valores: { orderBy: { orden: "asc" } } },
-  });
+  const atributos = await listarAtributosAdmin();
 
   return (
     <>

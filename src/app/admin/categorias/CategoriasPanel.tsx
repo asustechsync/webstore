@@ -6,10 +6,11 @@ import {
   actualizarCategoria,
   crearCategoria,
   eliminarCategoria,
-} from "@/features/catalogo/actions";
+} from "@/features/catalogo/actions/categorias";
 import { slugificar } from "@/lib/utils";
 import styles from "../admin.module.css";
 import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
+import { CrudPanel } from "@/components/admin/CrudPanel";
 
 type Fila = {
   id: string;
@@ -46,12 +47,14 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
   const [form, setForm] = useState(VACIA);
   const [slugManual, setSlugManual] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
 
   function limpiar() {
     setEditandoId(null);
     setForm(VACIA);
     setSlugManual(false);
     setError(null);
+    setMostrarFormulario(false);
   }
 
   function editar(categoria: Fila) {
@@ -70,6 +73,12 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
     });
     setSlugManual(true);
     setError(null);
+    setMostrarFormulario(true);
+  }
+
+  function nuevaCategoria() {
+    limpiar();
+    setMostrarFormulario(true);
   }
 
   function onSubmit(evento: React.FormEvent) {
@@ -110,11 +119,14 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
   const posiblesPadres = categorias.filter((categoria) => categoria.id !== editandoId);
 
   return (
-    <>
-      <section className={styles.seccion}>
-        <h2 className={styles.titulo}>{editandoId ? "Editar categoría" : "Nueva categoría"}</h2>
-
-        <form className={styles.form} onSubmit={onSubmit}>
+    <CrudPanel
+      mostrarFormulario={mostrarFormulario}
+      tituloFormulario={editandoId ? "Editar categoría" : "Nueva categoría"}
+      tituloLista="Categorías existentes"
+      etiquetaCrear="Crear categoría"
+      onCrear={nuevaCategoria}
+      onCancelar={limpiar}
+      formulario={<form className={styles.form} onSubmit={onSubmit}>
           {error && <p className={styles.mensajeError}>{error}</p>}
 
           <div className={styles.fila}>
@@ -231,19 +243,9 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
             <button type="submit" className={styles.boton} disabled={pendiente}>
               {pendiente ? "Guardando..." : editandoId ? "Guardar cambios" : "Crear categoría"}
             </button>
-            {editandoId && (
-              <button type="button" className={styles.botonSecundario} onClick={limpiar}>
-                Cancelar
-              </button>
-            )}
           </div>
-        </form>
-      </section>
-
-      <section>
-        <h2 className={styles.titulo}>Categorías existentes</h2>
-
-        {categorias.length === 0 ? (
+        </form>}
+      lista={categorias.length === 0 ? (
           <p className={styles.vacio}>Todavía no hay categorías. Crea la primera arriba.</p>
         ) : (
           <div className={styles.tablaWrap}>
@@ -305,7 +307,6 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
             </table>
           </div>
         )}
-      </section>
-    </>
+    />
   );
 }

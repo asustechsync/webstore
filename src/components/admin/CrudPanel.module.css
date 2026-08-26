@@ -1,0 +1,27 @@
+.seccion {
+  composes: seccion from "../../styles/ui.module.css";
+}
+
+.bloque {
+  composes: tarjeta from "../../styles/ui.module.css";
+  margin-bottom: 0;
+}
+
+.titulo {
+  composes: titulo from "../../styles/ui.module.css";
+}
+
+.boton {
+  composes: botonPrimario from "../../styles/ui.module.css";
+}
+
+.botonSecundario {
+  composes: botonSecundario from "../../styles/ui.module.css";
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}

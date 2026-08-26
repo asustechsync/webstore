@@ -1,5 +1,7 @@
 import Link from "next/link";
-import { listarCategorias, listarProductos } from "@/features/catalogo/queries";
+import Image from "next/image";
+import { listarCategorias } from "@/features/catalogo/queries/categorias";
+import { listarProductos } from "@/features/catalogo/queries/productos";
 import { Container } from "@/components/ui/Container";
 import { ProductosDestacados } from "@/components/productos/ProductosDestacados";
 import { aProductosCardData } from "@/components/productos/ProductoCard";
@@ -28,7 +30,7 @@ export default async function HomePage() {
             <div className={styles.categoriasGrid}>
               {categorias.map((categoria) => (
                 <Link key={categoria.id} href={`/categorias/${categoria.slug}`} className={styles.categoria}>
-                  {categoria.imagenUrl && <img src={categoria.imagenUrl} alt="" />}
+                  {categoria.imagenUrl && <Image src={categoria.imagenUrl} alt="" fill sizes="(max-width: 640px) 50vw, 240px" />}
                   <span>{categoria.nombre}</span>
                 </Link>
               ))}

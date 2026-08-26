@@ -6,6 +6,8 @@ export type ResultadoPagoIzipay = {
   referencia: string;
 };
 
-export async function crearFormToken(_montoEnCentimos: number, _pedidoId: string): Promise<string> {
+export async function crearFormToken(montoEnCentimos: number, pedidoId: string): Promise<string> {
+  void montoEnCentimos;
+  void pedidoId;
   throw new Error("Izipay no implementado todavía (fase 3)");
 }

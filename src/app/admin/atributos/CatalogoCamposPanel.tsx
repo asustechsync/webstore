@@ -11,9 +11,9 @@ export function CatalogoCamposPanel({ atributos }: { atributos: Fila }) {
 
   return (
     <>
-      <nav className={styles.tabs} aria-label="Configuración del catálogo">
-        <button type="button" className={`${styles.tab} ${pestaña === "atributos" ? styles.tabActivo : ""}`} onClick={() => setPestaña("atributos")} aria-selected={pestaña === "atributos"}>Atributos</button>
-        <button type="button" className={`${styles.tab} ${pestaña === "caracteristicas" ? styles.tabActivo : ""}`} onClick={() => setPestaña("caracteristicas")} aria-selected={pestaña === "caracteristicas"}>Características</button>
+      <nav className={styles.tabs} aria-label="Configuración del catálogo" role="tablist">
+        <button type="button" role="tab" className={`${styles.tab} ${pestaña === "atributos" ? styles.tabActivo : ""}`} onClick={() => setPestaña("atributos")} aria-selected={pestaña === "atributos"}>Atributos</button>
+        <button type="button" role="tab" className={`${styles.tab} ${pestaña === "caracteristicas" ? styles.tabActivo : ""}`} onClick={() => setPestaña("caracteristicas")} aria-selected={pestaña === "caracteristicas"}>Características</button>
       </nav>
       {pestaña === "atributos" ? <AtributosPanel atributos={atributos} /> : (
         <section className={styles.seccion}>

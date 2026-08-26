@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { actualizarValorAtributoCatalogo, crearValorAtributoCatalogo } from "@/features/catalogo/actions";
+import { actualizarValorAtributoCatalogo, crearValorAtributoCatalogo } from "@/features/catalogo/actions/atributos";
 import styles from "../../../admin.module.css";
 
 export function ValorForm({ atributoId, valorId, valorInicial = "", colorHexInicial = "", esColor = false }: { atributoId: string; valorId?: string; valorInicial?: string; colorHexInicial?: string; esColor?: boolean }) {

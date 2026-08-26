@@ -298,6 +298,9 @@ model Pedido {
   creadoEn      DateTime     @default(now())
   actualizadoEn DateTime     @updatedAt
 
+  @@index([usuarioId])
+  @@index([estado, creadoEn])
+  @@index([cuponId])
   @@map("pedidos")
 }
 
@@ -311,6 +314,8 @@ model ItemPedido {
   precioUnit Decimal  @db.Decimal(10, 2)
   costoUnit  Decimal? @db.Decimal(10, 2) // snapshot del costo al confirmar la venta
 
+  @@index([pedidoId])
+  @@index([varianteId])
   @@map("items_pedido")
 }
 
@@ -340,6 +345,7 @@ model Cupon {
   creadoEn      DateTime  @default(now())
   actualizadoEn DateTime  @updatedAt
 
+  @@index([activo, fechaFin])
   @@map("cupones")
 }
 

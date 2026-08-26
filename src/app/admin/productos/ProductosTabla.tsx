@@ -9,7 +9,7 @@ import {
   alternarActivoVariante,
   duplicarProducto,
   eliminarProducto,
-} from "@/features/catalogo/actions";
+} from "@/features/catalogo/actions/productos";
 import styles from "../admin.module.css";
 import { IconoEditar, IconoClonar, IconoEliminar } from "@/components/ui/ActionIcons";
 
@@ -77,8 +77,9 @@ export function ProductosTabla({
       setError("No se pudo conectar para actualizar la visibilidad");
     } finally {
       setGuardandoVisibilidad((actual) => {
-        const { [id]: _, ...resto } = actual;
-        return resto;
+        const siguiente = { ...actual };
+        delete siguiente[id];
+        return siguiente;
       });
     }
   }
@@ -98,8 +99,9 @@ export function ProductosTabla({
       setError("No se pudo conectar para actualizar la visibilidad");
     } finally {
       setGuardandoVisibilidad((actual) => {
-        const { [id]: _, ...resto } = actual;
-        return resto;
+        const siguiente = { ...actual };
+        delete siguiente[id];
+        return siguiente;
       });
     }
   }

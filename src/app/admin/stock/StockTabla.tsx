@@ -4,7 +4,7 @@ import Image from "next/image";
 import { IconoDisponible, IconoInactiva, IconoSinStock, IconoStockBajo } from "@/components/ui/ActionIcons";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ajustarStock } from "@/features/catalogo/actions";
+import { ajustarStock } from "@/features/catalogo/actions/stock";
 import styles from "../admin.module.css";
 
 type Fila = {

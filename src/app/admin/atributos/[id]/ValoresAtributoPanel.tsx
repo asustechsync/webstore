@@ -2,14 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
-import { eliminarValorAtributoCatalogo, reordenarValoresAtributoCatalogo } from "@/features/catalogo/actions";
+import { useState, useTransition } from "react";
+import { eliminarValorAtributoCatalogo, reordenarValoresAtributoCatalogo } from "@/features/catalogo/actions/atributos";
+import { COLORES_POR_NOMBRE } from "@/features/catalogo/opciones";
 import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
 import styles from "../../admin.module.css";
 
 type Valor = { id: string; valor: string; orden: number; colorHex: string | null };
-
-const COLORES_POR_NOMBRE: Record<string, string> = { negro: "#171717", blanco: "#FFFFFF", gris: "#9CA3AF", plomo: "#6B7280", azul: "#2563EB", rojo: "#DC2626", rosado: "#EC4899", verde: "#16A34A", amarillo: "#FACC15", beige: "#D6B98C", marron: "#92400E", morado: "#7C3AED" };
 
 export function ValoresAtributoPanel({ atributoId, nombre, valores, esColor }: { atributoId: string; nombre: string; valores: Valor[]; esColor: boolean }) {
   const router = useRouter();
@@ -19,13 +18,12 @@ export function ValoresAtributoPanel({ atributoId, nombre, valores, esColor }: {
   const [arrastrandoId, setArrastrandoId] = useState<string | null>(null);
   const [destinoId, setDestinoId] = useState<string | null>(null);
 
-  useEffect(() => setOrdenLocal(valores), [valores]);
-
   function eliminar(id: string, valor: string) {
     if (!confirm(`¿Eliminar el valor "${valor}"?`)) return;
     iniciarTransicion(async () => {
       const resultado = await eliminarValorAtributoCatalogo(atributoId, id);
       if (!resultado.ok) return setError(resultado.error);
+      setOrdenLocal((actual) => actual.filter((item) => item.id !== id));
       router.refresh();
     });
   }

@@ -32,7 +32,7 @@ export default async function AdminEditarProductoPage({
     db.atributoCatalogo.findMany({
       where: { activo: true },
       orderBy: { nombre: "asc" },
-      include: { valores: { orderBy: { orden: "asc" }, select: { valor: true } } },
+      include: { valores: { orderBy: { orden: "asc" }, select: { valor: true, colorHex: true } } },
     }),
   ]);
 
@@ -54,6 +54,11 @@ export default async function AdminEditarProductoPage({
           clave: atributo.clave,
           tipo: atributo.tipo === "COLOR" ? "COLOR" : "LISTA",
           valores: atributo.valores.map((valor) => valor.valor),
+          valoresHex: Object.fromEntries(
+            atributo.valores
+              .filter((valor) => valor.colorHex)
+              .map((valor) => [valor.valor, valor.colorHex as string]),
+          ),
         }))}
         productoId={producto.id}
         valoresIniciales={{

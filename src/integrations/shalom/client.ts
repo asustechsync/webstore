@@ -7,6 +7,7 @@ export type EstadoEnvioShalom = {
   actualizadoEn: string;
 };
 
-export async function consultarEstadoEnvio(_guia: string): Promise<EstadoEnvioShalom> {
+export async function consultarEstadoEnvio(guia: string): Promise<EstadoEnvioShalom> {
+  void guia;
   throw new Error("Shalom no implementado todavía (fase 3)");
 }

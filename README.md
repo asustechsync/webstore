@@ -1,36 +1,64 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Webstore
 
-## Getting Started
+Tienda y panel administrativo construidos con Next.js, React, Prisma, PostgreSQL y Supabase Auth.
 
-First, run the development server:
+## Inicio rápido
 
 ```bash
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Copia `.env.example` a `.env.local` y completa sus valores. Antes de entregar un cambio ejecuta:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run check
+npm run build
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+`check` ejecuta lint, comprobación de tipos y pruebas sin levantar la aplicación.
 
-## Learn More
+## Dónde encontrar cada cosa
 
-To learn more about Next.js, take a look at the following resources:
+- `src/app`: rutas y composición de pantallas. Las páginas obtienen datos y entregan props serializables.
+- `src/features/<dominio>/actions`: escrituras, permisos y transacciones del dominio.
+- `src/features/<dominio>/queries`: lecturas reutilizables del dominio.
+- `src/features/<dominio>/schemas`: validaciones Zod y tipos de entrada.
+- `src/components/ui`: controles visuales genéricos.
+- `src/components/admin`: patrones reutilizables exclusivos del panel administrativo.
+- `src/integrations`: clientes de servicios externos.
+- `src/lib`: infraestructura compartida, como base de datos, autenticación y resultados de acciones.
+- `src/styles`: tokens y patrones visuales globales.
+- `prisma`: modelo, migraciones SQL y datos iniciales.
+- `tests`: pruebas rápidas de reglas puras y validaciones.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Convención por dominio
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Una funcionalidad nueva debe vivir en su dominio, no en un archivo general. Por ejemplo:
 
-## Deploy on Vercel
+```text
+src/features/catalogo/
+├── actions/
+│   ├── productos.ts
+│   ├── categorias.ts
+│   ├── marcas.ts
+│   ├── atributos.ts
+│   └── stock.ts
+├── queries/
+└── schemas/
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Reglas prácticas:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Una página no contiene reglas de negocio; solo obtiene datos y compone componentes.
+2. Toda entrada externa se valida con un schema del mismo dominio.
+3. Toda escritura comprueba permisos dentro de la Server Action.
+4. Si una interfaz aparece en dos CRUD del administrador, se mueve a `components/admin`.
+5. Los valores visuales nuevos empiezan en `styles/tokens.css`; no se duplican colores o medidas.
+6. No crear archivos generales que mezclen dominios sin relación.
+
+## Base de datos
+
+El modelo está en `prisma/schema.prisma`. Los cambios desplegables se conservan como SQL numerado en `prisma/`. Después de modificar el modelo, añade su migración SQL correspondiente y valida el cliente de Prisma.
+
+Izipay y Shalom siguen siendo integraciones preparadas para una fase posterior; sus clientes y webhooks todavía no representan una conexión operativa.

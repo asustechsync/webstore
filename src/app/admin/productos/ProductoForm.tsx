@@ -1,32 +1,25 @@
 "use client";
 
 import Image from "next/image";
-import { IconoAgregar, IconoEliminar, IconoFlecha } from "@/components/ui/ActionIcons";
+import { IconoEliminar, IconoFlecha } from "@/components/ui/ActionIcons";
 import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 import { useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { actualizarProducto, crearProducto, subirImagenProducto } from "@/features/catalogo/actions";
+import { actualizarProducto, crearProducto, subirImagenProducto } from "@/features/catalogo/actions/productos";
 import {
   claveAtributos,
-  COLORES_BASICOS,
+  COLORES_POR_NOMBRE,
   combinacionesOpciones,
-  contextoDesdePerfil,
   etiquetaAtributos,
   normalizarClaveOpcion,
-  PERFILES_OPCIONES,
-  perfilParaTipo,
-  NOMBRES_PUBLICO,
-  TIPOS_EDITOR,
   type AtributoVariante,
   type OpcionConfig,
-  type PublicoEditor,
-  type TipoEditor,
 } from "@/features/catalogo/opciones";
 import { formatearPrecio, slugificar } from "@/lib/utils";
 import styles from "../admin.module.css";
 
 type Opcion = { id: string; nombre: string };
-type AtributoCatalogo = { id: string; nombre: string; clave: string; tipo: "LISTA" | "COLOR"; valores: string[] };
+type AtributoCatalogo = { id: string; nombre: string; clave: string; tipo: "LISTA" | "COLOR"; valores: string[]; valoresHex: Record<string, string> };
 export type ImagenForm = { url: string; publicId: string };
 export type VarianteForm = {
   clave: string;
@@ -91,15 +84,11 @@ function nuevaClave() {
 function varianteVacia(atributos: AtributoVariante[] = []): VarianteForm {
   return { clave: nuevaClave(), atributos, sku: "", precio: "", costo: "", cantidad: "0", stockMinimo: "0", activo: true };
 }
-function copiarOpciones(opciones: OpcionConfig[]) {
-  return opciones.map((opcion) => ({ ...opcion, valores: [...opcion.valores] }));
-}
-const PERFIL_INICIAL = PERFILES_OPCIONES[0];
 const VACIO: ProductoFormValores = {
   nombre: "", slug: "", descripcion: "", descripcionCorta: "", skuInterno: "", codigoBarras: "", proveedor: "", precio: "", precioOferta: "", costo: "", sku: "",
-  categoriaId: "", marcaId: "", tipoProducto: PERFIL_INICIAL.tipoProducto, modoVariantes: true,
-  perfilOpciones: PERFIL_INICIAL.clave, material: "", cuidados: "", guiaTallas: "", pesoKg: "", anchoCm: "", altoCm: "", largoCm: "", tituloSeo: "", descripcionSeo: "",
-  activo: true, destacado: false, opciones: copiarOpciones(PERFIL_INICIAL.opciones),
+  categoriaId: "", marcaId: "", tipoProducto: "", modoVariantes: true,
+  perfilOpciones: "personalizado", material: "", cuidados: "", guiaTallas: "", pesoKg: "", anchoCm: "", altoCm: "", largoCm: "", tituloSeo: "", descripcionSeo: "",
+  activo: true, destacado: false, opciones: [],
   variantes: [], imagenes: [],
 };
 
@@ -150,6 +139,20 @@ function calcularMargen(precio: string | number, costo: string | number) {
   return ((precioNumero - costoNumero) / precioNumero) * 100;
 }
 
+function etiquetaValorOpcion(opcion: OpcionConfig, valor: string) {
+  const esColor = opcion.tipo === "COLOR" || opcion.clave === "color";
+  return esColor ? opcion.valoresHex?.[valor] ?? valor : valor;
+}
+
+function esOpcionColor(opcion: OpcionConfig) {
+  return opcion.tipo === "COLOR" || opcion.clave === "color";
+}
+
+function colorDeValor(opcion: OpcionConfig, valor: string) {
+  const hexadecimal = opcion.valoresHex?.[valor] ?? (/^#[0-9A-Fa-f]{6}$/.test(valor) ? valor : COLORES_POR_NOMBRE[valor.toLocaleLowerCase("es")]);
+  return /^#[0-9A-Fa-f]{6}$/.test(hexadecimal) ? hexadecimal : "#6B7280";
+}
+
 export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId, valoresIniciales }: {
   categorias: Opcion[]; marcas: Opcion[]; atributosCatalogo: AtributoCatalogo[]; productoId?: string; valoresIniciales?: ProductoFormValores;
 }) {
@@ -162,46 +165,36 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
       ...valoresIniciales,
       sku: valoresIniciales.sku,
       slug: valoresIniciales.borrador ? slugificar(valoresIniciales.nombre) : valoresIniciales.slug,
+      opciones: valoresIniciales.opciones.map((opcion) => {
+        const atributoCatalogo = atributosCatalogo.find((atributo) => atributo.clave === opcion.clave);
+        return {
+          ...opcion,
+          tipo: atributoCatalogo?.tipo ?? opcion.tipo,
+          catalogo: Boolean(atributoCatalogo),
+          sugeridos: atributoCatalogo?.valores ?? opcion.sugeridos ?? opcion.valores,
+          valoresHex: atributoCatalogo?.valoresHex ?? opcion.valoresHex,
+        };
+      }),
       variantes: valoresIniciales.variantes.map((variante) => ({
         ...variante,
         sku: skuParaVariante(valoresIniciales.sku, variante.atributos),
       })),
     };
-    if (!base.modoVariantes && base.variantes.length === 0) {
-      const atributos = [{ clave: "presentacion", valor: "Única" }];
-      return { ...base, opciones: [{ clave: "presentacion", nombre: "Presentación", valores: ["Única"] }], variantes: [{ ...varianteVacia(atributos), sku: skuParaVariante(base.sku, atributos) }] };
-    }
     return base;
   });
   const [pestaña, setPestaña] = useState<Pestaña>("informacion");
   const [slugManual, setSlugManual] = useState(Boolean(valoresIniciales) && !esBorradorInicial);
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [valorPersonalizado, setValorPersonalizado] = useState<Record<number, string>>({});
   const [atributoSeleccionado, setAtributoSeleccionado] = useState("");
   const [opcionAbierta, setOpcionAbierta] = useState<number | null>(null);
   const inputArchivo = useRef<HTMLInputElement>(null);
   const combinacionesPosibles = useMemo(() => combinacionesOpciones(form.opciones).length, [form.opciones]);
   const margenBase = calcularMargen(form.precioOferta || form.precio, form.costo);
-  const contextoTipo = contextoDesdePerfil(form.perfilOpciones);
   const stockTotal = form.variantes.reduce((total, variante) => total + Number(variante.cantidad || 0), 0);
 
   function actualizar<C extends keyof ProductoFormValores>(campo: C, valor: ProductoFormValores[C]) {
     setForm((previo) => ({ ...previo, [campo]: valor }));
-  }
-  function aplicarPerfil(clavePerfil: string) {
-    const perfil = PERFILES_OPCIONES.find((opcion) => opcion.clave === clavePerfil);
-    if (!perfil) return;
-    setForm((previo) => ({
-      ...previo,
-      perfilOpciones: perfil.clave,
-      tipoProducto: perfil.tipoProducto,
-      opciones: copiarOpciones(perfil.opciones),
-      variantes: [],
-    }));
-  }
-  function aplicarTipo(tipo: TipoEditor, publico?: PublicoEditor) {
-    aplicarPerfil(perfilParaTipo(tipo, publico));
   }
   function alternarValor(indice: number, valor: string) {
     setForm((previo) => ({
@@ -214,17 +207,6 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
       }),
     }));
   }
-  function agregarValorPersonalizado(indice: number) {
-    const valor = valorPersonalizado[indice]?.trim();
-    if (!valor) return;
-    setForm((previo) => ({
-      ...previo,
-      opciones: previo.opciones.map((opcion, posicion) => posicion === indice && !opcion.valores.includes(valor)
-        ? { ...opcion, valores: [...opcion.valores, valor] }
-        : opcion),
-    }));
-    setValorPersonalizado((previo) => ({ ...previo, [indice]: "" }));
-  }
   function actualizarNombreOpcion(indice: number, nombre: string) {
     const claveAnterior = form.opciones[indice].clave;
     const clave = normalizarClaveOpcion(nombre);
@@ -233,9 +215,6 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
       opciones: previo.opciones.map((opcion, posicion) => posicion === indice ? { ...opcion, nombre, clave } : opcion),
       variantes: previo.variantes.map((variante) => ({ ...variante, atributos: variante.atributos.map((atributo) => atributo.clave === claveAnterior ? { ...atributo, clave } : atributo) })),
     }));
-  }
-  function agregarOpcion() {
-    setForm((previo) => ({ ...previo, perfilOpciones: "personalizado", opciones: [...previo.opciones, { clave: `opcion_${previo.opciones.length + 1}`, nombre: `Opción ${previo.opciones.length + 1}`, valores: [] }] }));
   }
   function agregarAtributoCatalogo() {
     const atributo = atributosCatalogo.find((actual) => actual.id === atributoSeleccionado);
@@ -248,7 +227,7 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
     setForm((previo) => ({
       ...previo,
       perfilOpciones: "personalizado",
-      opciones: [...previo.opciones, { clave: atributo.clave, nombre: atributo.nombre, tipo: atributo.tipo, sugeridos: atributo.valores, valores: [] }],
+      opciones: [...previo.opciones, { clave: atributo.clave, nombre: atributo.nombre, tipo: atributo.tipo, catalogo: true, sugeridos: atributo.valores, valoresHex: atributo.valoresHex, valores: [] }],
       variantes: [],
     }));
     setOpcionAbierta(form.opciones.length);
@@ -402,11 +381,8 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
             </>}
 
             {pestaña === "variantes" && <>
-              <p className={styles.bloqueAyuda}>{form.modoVariantes ? "Configura atributos y valores antes de crear las combinaciones." : "Producto de una sola presentación: puedes ajustar su SKU y stock sin crear combinaciones."}</p>
-              <div className={styles.fila}>
-                <label className={styles.campo}><span className={styles.etiqueta}>Tipo de producto</span><SelectConFlecha className={styles.control} value={contextoTipo.tipo} onChange={(evento) => aplicarTipo(evento.target.value as TipoEditor, TIPOS_EDITOR.find((tipo) => tipo.clave === evento.target.value)?.publicos?.[0])}>{TIPOS_EDITOR.map((tipo) => <option key={tipo.clave} value={tipo.clave}>{tipo.nombre}</option>)}</SelectConFlecha></label>
-                {TIPOS_EDITOR.find((tipo) => tipo.clave === contextoTipo.tipo)?.publicos && <label className={styles.campo}><span className={styles.etiqueta}>Para</span><SelectConFlecha className={styles.control} value={contextoTipo.publico ?? ""} onChange={(evento) => aplicarTipo(contextoTipo.tipo, evento.target.value as PublicoEditor)}>{TIPOS_EDITOR.find((tipo) => tipo.clave === contextoTipo.tipo)?.publicos?.map((publico) => <option key={publico} value={publico}>{NOMBRES_PUBLICO[publico]}</option>)}</SelectConFlecha></label>}
-              </div>
+              <p className={styles.bloqueAyuda}>Selecciona atributos registrados en el catálogo y agrega sus valores antes de crear las combinaciones.</p>
+              {atributosCatalogo.length === 0 && <p className={styles.mensajeError}>Primero crea al menos un atributo desde la sección Atributos.</p>}
               {atributosCatalogo.length > 0 && <div className={styles.fila}>
                 <label className={styles.campo}><span className={styles.etiqueta}>Atributo registrado</span><SelectConFlecha className={styles.control} value={atributoSeleccionado} onChange={(evento) => setAtributoSeleccionado(evento.target.value)}><option value="">Seleccionar atributo</option>{atributosCatalogo.map((atributo) => <option key={atributo.id} value={atributo.id}>{atributo.nombre}</option>)}</SelectConFlecha></label>
                 <div className={styles.campo}><span className={styles.etiqueta}> </span><button type="button" className={styles.botonSecundario} disabled={!atributoSeleccionado} onClick={agregarAtributoCatalogo}>Usar atributo</button></div>
@@ -415,29 +391,26 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
                 {form.opciones.map((opcion, indice) => <details key={indice} className={styles.opcionEditor} open={opcionAbierta === indice}>
                   <summary className={styles.opcionResumen} onClick={(evento) => { evento.preventDefault(); setOpcionAbierta((actual) => actual === indice ? null : indice); }}>
                     <span className={styles.opcionResumenNombre}>{opcion.nombre}</span>
-                    <span className={styles.opcionResumenValores}>{opcion.valores.length > 0 ? opcion.valores.join(", ") : "Sin valores"}</span>
+                    <span className={styles.opcionResumenValores}>{opcion.valores.length > 0 ? esOpcionColor(opcion) ? <span className={styles.resumenColores}>{opcion.valores.map((valor) => <span key={valor} className={styles.puntoColor} style={{ backgroundColor: colorDeValor(opcion, valor) }} title={`${valor} · ${colorDeValor(opcion, valor)}`} aria-label={`${valor} · ${colorDeValor(opcion, valor)}`} />)}</span> : opcion.valores.join(", ") : "Sin valores"}</span>
                     <span className={styles.opcionResumenFlecha} aria-hidden="true"><IconoFlecha /></span>
                   </summary>
                   <div className={styles.opcionContenido}>
                     <div className={styles.opcionCabecera}>
-                      <label className={styles.campo}><span className={styles.etiqueta}>Nombre de la opción</span><input className={styles.control} value={opcion.nombre} onChange={(evento) => actualizarNombreOpcion(indice, evento.target.value)} placeholder="Talla" /></label>
-                      {(opcion.tipo === "COLOR" || opcion.clave === "color") ? <div className={styles.campo}><span className={styles.etiqueta}>Paleta básica</span><span className={styles.colorSeleccionResumen}>{opcion.valores.length ? `${opcion.valores.length} seleccionado(s)` : "Selecciona colores"}</span></div> : <label className={styles.campo}><span className={styles.etiqueta}>Agregar {opcion.nombre.toLocaleLowerCase("es")}</span><SelectConFlecha className={styles.control} value="" onChange={(evento) => { if (evento.target.value) alternarValor(indice, evento.target.value); }} aria-label={`Agregar ${opcion.nombre}`}><option value="">Seleccionar valor</option>{[...new Set([...(opcion.sugeridos ?? []), ...opcion.valores])].map((valor) => <option key={valor} value={valor}>{opcion.valores.includes(valor) ? `Quitar ${valor}` : valor}</option>)}</SelectConFlecha></label>}
+                      <label className={styles.campo}><span className={styles.etiqueta}>Nombre de la opción</span><input className={styles.control} value={opcion.nombre} readOnly={opcion.catalogo} onChange={(evento) => actualizarNombreOpcion(indice, evento.target.value)} placeholder="Talla" /></label>
+                      {(opcion.tipo === "COLOR" || opcion.clave === "color") ? <div className={styles.campo}><span className={styles.etiqueta}>Valores registrados</span><span className={styles.colorSeleccionResumen}>{opcion.valores.length ? `${opcion.valores.length} seleccionado(s)` : "Selecciona colores"}</span></div> : <label className={styles.campo}><span className={styles.etiqueta}>Agregar {opcion.nombre.toLocaleLowerCase("es")}</span><SelectConFlecha className={styles.control} value="" onChange={(evento) => { if (evento.target.value) alternarValor(indice, evento.target.value); }} aria-label={`Agregar valor registrado de ${opcion.nombre}`}><option value="">Seleccionar valor</option>{[...new Set([...(opcion.sugeridos ?? []), ...opcion.valores])].map((valor) => <option key={valor} value={valor}>{opcion.valores.includes(valor) ? `Quitar ${valor}` : valor}</option>)}</SelectConFlecha></label>}
                       {form.opciones.length > 1 && <button type="button" className={styles.botonIcono} onClick={() => quitarOpcion(indice)} aria-label={`Quitar opción ${opcion.nombre}`} title="Quitar opción"><IconoEliminar /></button>}
                     </div>
                     <div className={styles.opcionValores}>
-                      <label className={styles.campo}><span className={styles.etiqueta}>Valores seleccionados</span><input className={styles.control} readOnly value={opcion.valores.join(", ")} placeholder="Ninguno seleccionado" /></label>
-                      {(opcion.tipo === "COLOR" || opcion.clave === "color") ? <div className={styles.paletaColores} aria-label="Colores básicos">
-                        {COLORES_BASICOS.map((color) => <button key={color.nombre} type="button" className={opcion.valores.includes(color.nombre) ? `${styles.muestraColor} ${styles.muestraColorActiva}` : styles.muestraColor} style={{ "--color-muestra": color.hex } as React.CSSProperties} onClick={() => alternarValor(indice, color.nombre)} aria-pressed={opcion.valores.includes(color.nombre)} title={color.nombre} aria-label={color.nombre} />)}
-                        {(opcion.sugeridos ?? []).filter((valor) => !COLORES_BASICOS.some((color) => color.nombre === valor)).map((valor) => <button key={valor} type="button" className={opcion.valores.includes(valor) ? `${styles.valorRapido} ${styles.valorRapidoSeleccionado}` : styles.valorRapido} onClick={() => alternarValor(indice, valor)}>{valor}</button>)}
-                      </div> : <div className={styles.agregarValor}>
-                        <input className={styles.control} value={valorPersonalizado[indice] ?? ""} onChange={(evento) => setValorPersonalizado((previo) => ({ ...previo, [indice]: evento.target.value }))} onKeyDown={(evento) => { if (evento.key === "Enter") { evento.preventDefault(); agregarValorPersonalizado(indice); } }} placeholder={`Escribir ${opcion.nombre.toLocaleLowerCase("es")}`} aria-label={`Escribir ${opcion.nombre.toLocaleLowerCase("es")}`} />
-                        <button type="button" className={styles.botonIcono} onClick={() => agregarValorPersonalizado(indice)} aria-label={`Agregar ${opcion.nombre} personalizado`} title="Agregar valor"><IconoAgregar /></button>
-                      </div>}
+                      <div className={styles.campo}><span className={styles.etiqueta}>Valores seleccionados</span><div className={styles.valoresSeleccionados}>
+                        {opcion.valores.length === 0 ? <span className={styles.valoresVacios}>Ninguno seleccionado</span> : opcion.valores.map((valor) => <button key={valor} type="button" className={esOpcionColor(opcion) ? styles.valorColorSeleccionado : styles.valorSeleccionado} onClick={() => alternarValor(indice, valor)} aria-label={`Quitar ${valor}`} title={`Quitar ${valor} · ${colorDeValor(opcion, valor)}`}>{esOpcionColor(opcion) ? <span className={styles.muestraSeleccionada} style={{ backgroundColor: colorDeValor(opcion, valor) }} aria-hidden="true" /> : etiquetaValorOpcion(opcion, valor)}<span aria-hidden="true">×</span></button>)}
+                      </div></div>
+                      {(opcion.tipo === "COLOR" || opcion.clave === "color") ? <div className={styles.paletaColores} aria-label="Colores registrados">
+                        {(opcion.sugeridos ?? []).map((valor) => { const hex = colorDeValor(opcion, valor); return <button key={valor} type="button" className={opcion.valores.includes(valor) ? `${styles.muestraColorHex} ${styles.muestraColorHexActiva}` : styles.muestraColorHex} style={{ "--color-muestra": hex } as React.CSSProperties} onClick={() => alternarValor(indice, valor)} aria-pressed={opcion.valores.includes(valor)} title={`${valor} · ${hex}`} aria-label={`${hex} (${valor})`} />; })}
+                      </div> : <p className={styles.ayudaValores}>Selecciona únicamente valores registrados en Atributos.</p>}
                     </div>
                   </div>
                 </details>)}
               </div>
-              <div className={styles.botones}><button type="button" className={styles.botonSecundario} onClick={agregarOpcion}>Agregar opción</button></div>
             </>}
 
             {pestaña === "variantes" && <>
@@ -503,11 +476,11 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
             <h2 className={styles.bloqueTitulo}>Variantes del producto</h2>
             <p className={styles.bloqueAyuda}>{form.variantes.length} variante(s) configurada(s). Ajusta aquí SKU, stock y estado.</p>
           </div>
-          <div className={styles.tablaWrap}><table className={styles.variantes}><thead><tr>{form.opciones.map((opcion) => <th key={opcion.clave}>{opcion.nombre}</th>)}<th>SKU</th><th>Stock</th><th>Mínimo</th><th>Activa</th><th /></tr></thead><tbody>
+          <div className={styles.tablaWrap}><table className={styles.variantes}><thead><tr>{form.opciones.map((opcion) => <th key={opcion.clave} className={opcion.clave === "color" ? styles.columnaColor : opcion.clave === "diseno" ? styles.columnaDiseno : undefined}>{opcion.nombre}</th>)}<th className={styles.columnaSku}>SKU</th><th className={styles.columnaStock}>Stock</th><th>Mínimo</th><th>Activa</th><th /></tr></thead><tbody>
             {form.variantes.map((variante) => <tr key={variante.clave}>
-              {form.opciones.map((opcion) => <td key={opcion.clave}><SelectConFlecha className={styles.control} value={variante.atributos.find((atributo) => atributo.clave === opcion.clave)?.valor ?? ""} onChange={(evento) => actualizarAtributoVariante(variante.clave, opcion.clave, evento.target.value)}>{opcion.valores.map((valor) => <option key={valor} value={valor}>{valor}</option>)}</SelectConFlecha></td>)}
-              <td><input className={styles.control} value={variante.sku} required onChange={(evento) => actualizarVariante(variante.clave, "sku", evento.target.value)} /></td>
-              <td><input className={styles.control} type="number" min="0" value={variante.cantidad} required onChange={(evento) => actualizarVariante(variante.clave, "cantidad", evento.target.value)} /></td>
+              {form.opciones.map((opcion) => <td key={opcion.clave} className={opcion.clave === "color" ? styles.columnaColor : opcion.clave === "diseno" ? styles.columnaDiseno : undefined}><SelectConFlecha className={styles.control} value={variante.atributos.find((atributo) => atributo.clave === opcion.clave)?.valor ?? ""} onChange={(evento) => actualizarAtributoVariante(variante.clave, opcion.clave, evento.target.value)}>{opcion.valores.map((valor) => <option key={valor} value={valor}>{valor}</option>)}</SelectConFlecha></td>)}
+              <td className={styles.columnaSku}><input className={styles.control} value={variante.sku} required onChange={(evento) => actualizarVariante(variante.clave, "sku", evento.target.value)} /></td>
+              <td className={styles.columnaStock}><input className={styles.control} type="number" min="0" value={variante.cantidad} required onChange={(evento) => actualizarVariante(variante.clave, "cantidad", evento.target.value)} /></td>
               <td><input className={styles.control} type="number" min="0" value={variante.stockMinimo} required onChange={(evento) => actualizarVariante(variante.clave, "stockMinimo", evento.target.value)} /></td>
               <td><button type="button" className={`${styles.switch} ${variante.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={variante.activo} onClick={() => actualizarVariante(variante.clave, "activo", !variante.activo)}><span className={styles.switchPunto} aria-hidden="true" /></button></td>
               <td><button type="button" className={styles.miniaturaBoton} disabled={form.variantes.length === 1} onClick={() => quitarVariante(variante.clave)} aria-label="Quitar variante">✕</button></td>
