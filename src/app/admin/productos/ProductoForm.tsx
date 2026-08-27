@@ -122,6 +122,10 @@ function codigoSkuAtributo(clave: string, valor: string) {
   return normalizado.toUpperCase().slice(0, 2) || "XX";
 }
 
+function compactarSku(sku: string) {
+  return sku.trim().toUpperCase().replaceAll("-", "");
+}
+
 function skuParaVariante(skuBase: string, atributos: AtributoVariante[]) {
   const prioridad = ["talla", "edad", "contorno", "copa", "color", "diseno"];
   const ordenados = [...atributos].sort((a, b) => {
@@ -130,7 +134,10 @@ function skuParaVariante(skuBase: string, atributos: AtributoVariante[]) {
     return (posicionA === -1 ? 99 : posicionA) - (posicionB === -1 ? 99 : posicionB);
   });
   const codigos = ordenados.map(({ clave, valor }) => codigoSkuAtributo(clave, valor));
-  return [skuBase, ...codigos].join("-");
+  const base = compactarSku(skuBase);
+  const primerosAtributos = codigos.slice(0, 2).join("");
+  const atributosRestantes = codigos.slice(2);
+  return [compactarSku(`${base}${primerosAtributos}`), ...atributosRestantes].join("-");
 }
 function calcularMargen(precio: string | number, costo: string | number) {
   const precioNumero = Number(precio);
@@ -432,7 +439,7 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
               <label className={styles.campo}><span className={styles.etiqueta}>Precio de oferta (opcional)</span><input className={styles.control} type="number" step="0.01" min="0" value={form.precioOferta} onChange={(evento) => actualizar("precioOferta", evento.target.value)} /></label>
               {margenBase !== null && <div className={styles.resumenMargen}><span>Ganancia base: {formatearPrecio(Number(form.precioOferta || form.precio) - Number(form.costo))}</span><strong className={margenBase >= 0 ? styles.margenPositivo : styles.margenNegativo}>Margen {margenBase.toFixed(1)}%</strong></div>}
               <h3 className={styles.bloqueTitulo}>Ajustes por variante</h3>
-              <div className={styles.tablaWrap}><table className={styles.variantes}><thead><tr><th>Variante</th><th>Precio propio</th><th>Costo propio</th><th>Margen</th></tr></thead><tbody>
+              <div className={styles.tablaWrap}><table className={`${styles.variantes} ${styles.variantesPrecios}`}><thead><tr><th>Variante</th><th>Precio propio</th><th>Costo propio</th><th>Margen</th></tr></thead><tbody>
                 {form.variantes.map((variante) => { const precio = variante.precio || form.precioOferta || form.precio; const costo = variante.costo || form.costo; const margen = calcularMargen(precio, costo); return <tr key={variante.clave}><td>{etiquetaAtributos(variante.atributos)}</td><td><input className={styles.control} type="number" step="0.01" min="0" placeholder={form.precio || "—"} value={variante.precio} onChange={(evento) => actualizarVariante(variante.clave, "precio", evento.target.value)} /></td><td><input className={styles.control} type="number" step="0.01" min="0" placeholder={form.costo || "—"} value={variante.costo} onChange={(evento) => actualizarVariante(variante.clave, "costo", evento.target.value)} /></td><td className={margen !== null && margen < 0 ? styles.margenNegativo : styles.margenPositivo}>{margen === null ? "—" : `${margen.toFixed(1)}%`}</td></tr>; })}
               </tbody></table></div>
             </>}

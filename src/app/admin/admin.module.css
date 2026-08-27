@@ -1475,6 +1475,25 @@
   min-width: 0;
 }
 
+/* La tabla de precios necesita distribuir mejor el espacio entre los
+   campos editables; no debe heredar los anchos de la tabla de inventario. */
+.variantes.variantesPrecios th:nth-child(1),
+.variantes.variantesPrecios td:nth-child(1) {
+  width: 38%;
+}
+
+.variantes.variantesPrecios th:nth-child(2),
+.variantes.variantesPrecios td:nth-child(2),
+.variantes.variantesPrecios th:nth-child(3),
+.variantes.variantesPrecios td:nth-child(3) {
+  width: 24%;
+}
+
+.variantes.variantesPrecios th:nth-child(4),
+.variantes.variantesPrecios td:nth-child(4) {
+  width: 14%;
+}
+
 .variantes th:nth-child(1),
 .variantes td:nth-child(1),
 .variantes th:nth-child(2),

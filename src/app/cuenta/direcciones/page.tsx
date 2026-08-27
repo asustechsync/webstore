@@ -1,11 +1,16 @@
-import { Container } from "@/components/ui/Container";
+import { getUsuarioActual } from "@/lib/auth";
+import { db } from "@/lib/db";
+import { DireccionesPanel } from "./DireccionesPanel";
+import styles from "../cuenta.module.css";
 
-export default function CuentaDireccionesPage() {
+export default async function CuentaDireccionesPage() {
+  const usuario = await getUsuarioActual();
+  if (!usuario) return null;
+  const direcciones = await db.direccion.findMany({ where: { usuarioId: usuario.id }, orderBy: [{ predeterminada: "desc" }, { creadoEn: "desc" }] });
+
   return (
-    <main>
-      <Container>
-        <h1>Mis direcciones</h1>
-      </Container>
-    </main>
+    <section className={styles.tarjeta}>
+      <DireccionesPanel direcciones={direcciones.map((direccion) => ({ ...direccion, referencia: direccion.referencia ?? "" }))} />
+    </section>
   );
 }
