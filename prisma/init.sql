@@ -54,6 +54,7 @@ CREATE TABLE "direcciones" (
     "provincia" TEXT NOT NULL,
     "distrito" TEXT NOT NULL,
     "direccion" TEXT NOT NULL,
+    "codigoPostal" TEXT,
     "referencia" TEXT,
     "predeterminada" BOOLEAN NOT NULL DEFAULT false,
     "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,

@@ -2,6 +2,7 @@
   composes: tarjeta from "@/styles/ui.module.css";
   display: flex;
   flex-direction: column;
+  min-width: 0;
   padding: 0;
   overflow: hidden;
   color: inherit;
@@ -37,6 +38,7 @@
 .info {
   display: flex;
   flex-direction: column;
+  min-width: 0;
   gap: var(--espacio-1);
   padding: var(--espacio-3);
 }

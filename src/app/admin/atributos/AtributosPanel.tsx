@@ -10,6 +10,7 @@ import {
 } from "@/features/catalogo/actions/atributos";
 import { slugificar } from "@/lib/utils";
 import { IconoBuscar, IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 import { CrudPanel } from "@/components/admin/CrudPanel";
 import styles from "../admin.module.css";
 
@@ -118,10 +119,10 @@ export function AtributosPanel({ atributos }: { atributos: Fila[] }) {
           <div className={styles.fila}>
             <label className={styles.campo}>
               <span className={styles.etiqueta}>Tipo</span>
-              <select className={styles.control} value={form.tipo} onChange={(evento) => setForm((previo) => ({ ...previo, tipo: evento.target.value as TipoAtributo }))}>
+              <SelectConFlecha className={styles.control} value={form.tipo} onChange={(evento) => setForm((previo) => ({ ...previo, tipo: evento.target.value as TipoAtributo }))}>
                 <option value="LISTA">Lista de valores</option>
                 <option value="COLOR">Color</option>
-              </select>
+              </SelectConFlecha>
             </label>
             <div className={`${styles.campo} ${styles.checkbox}`}>
               <button type="button" className={`${styles.switch} ${form.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={form.activo} onClick={() => setForm((previo) => ({ ...previo, activo: !previo.activo }))}><span className={styles.switchPunto} aria-hidden="true" /></button>

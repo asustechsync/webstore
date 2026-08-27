@@ -10,6 +10,7 @@ import {
 import { slugificar } from "@/lib/utils";
 import styles from "../admin.module.css";
 import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 import { CrudPanel } from "@/components/admin/CrudPanel";
 
 type Fila = {
@@ -187,7 +188,7 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
 
             <label className={styles.campo}>
               <span className={styles.etiqueta}>Categoría padre</span>
-              <select
+              <SelectConFlecha
                 className={styles.control}
                 value={form.padreId}
                 onChange={(evento) =>
@@ -200,7 +201,7 @@ export function CategoriasPanel({ categorias }: { categorias: Fila[] }) {
                     {categoria.nombre}
                   </option>
                 ))}
-              </select>
+              </SelectConFlecha>
             </label>
           </div>
 

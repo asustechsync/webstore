@@ -42,16 +42,17 @@
   /* Tipografía */
   --fuente-base: var(--font-poppins), system-ui, sans-serif;
   --fuente-mono: var(--font-geist-mono), monospace;
-  --texto-2xs: 0.6875rem;
-  --texto-xs: 0.75rem;
-  --texto-caption: 0.8125rem;
-  --texto-sm: 0.875rem;
-  --texto-base: 1rem;
-  --texto-marca: 1.125rem;
-  --texto-lg: 1.25rem;
-  --texto-2xl: 1.5rem;
-  --texto-xl: 1.75rem;
-  --texto-titulo-pagina: 2rem;
+  /* Escala cómoda en móvil; se compacta al tamaño original desde 640 px. */
+  --texto-2xs: 0.75rem;
+  --texto-xs: 0.8125rem;
+  --texto-caption: 0.875rem;
+  --texto-sm: 0.9375rem;
+  --texto-base: 1.0625rem;
+  --texto-marca: 1.25rem;
+  --texto-lg: 1.375rem;
+  --texto-2xl: 1.625rem;
+  --texto-xl: 1.875rem;
+  --texto-titulo-pagina: 2.25rem;
   --peso-normal: 400;
   --peso-ligero: 300;
   --peso-medio: 500;
@@ -83,15 +84,21 @@
   /* Layout */
   --ancho-maximo: 84rem;
   --ancho-formulario: 34rem;
+  --pagina-padding: var(--espacio-3);
+  --contenido-padding: var(--espacio-3);
 
   /* Controles y componentes */
   --control-alto-sm: 2rem;
-  --control-alto: 2.5rem;
+  /* En móvil los controles alcanzan 44 px para ser cómodos al tocar. */
+  --control-alto: 2.75rem;
   --control-padding-x: var(--espacio-3);
   --control-radio: var(--radio-borde);
   --control-fondo: var(--superficie-elevada);
   --control-borde: var(--borde-sutil);
-  --control-focus: var(--marca-primario);
+  --control-borde-hover: color-mix(in srgb, var(--texto-secundario) 24%, var(--borde-sutil));
+  --control-placeholder: color-mix(in srgb, var(--texto-secundario) 72%, transparent);
+  --control-focus: color-mix(in srgb, var(--texto-secundario) 58%, var(--borde-sutil));
+  --control-sombra-focus: 0 0 0 2px color-mix(in srgb, var(--control-focus) 7%, transparent);
 
   --boton-padding-x: var(--espacio-4);
   --boton-primario-fondo: var(--marca-primario);
@@ -106,6 +113,48 @@
 
   /* Movimiento */
   --transicion-rapida: 150ms ease;
+}
+
+/*
+ * Escala responsive global (mobile first).
+ * Los componentes deben consumir los tokens de layout, no repetir valores
+ * de padding por dispositivo. Los puntos de corte cubren móvil pequeño,
+ * móvil grande, tableta, portátil, escritorio y pantallas amplias.
+ */
+@media (min-width: 30rem) { /* 480 px: móvil grande */
+  :root { --pagina-padding: var(--espacio-4); --contenido-padding: var(--espacio-4); }
+}
+
+@media (min-width: 40rem) { /* 640 px: tableta compacta */
+  :root {
+    --texto-2xs: 0.6875rem;
+    --texto-xs: 0.75rem;
+    --texto-caption: 0.8125rem;
+    --texto-sm: 0.875rem;
+    --texto-base: 1rem;
+    --texto-marca: 1.125rem;
+    --texto-lg: 1.25rem;
+    --texto-2xl: 1.5rem;
+    --texto-xl: 1.75rem;
+    --texto-titulo-pagina: 2rem;
+    --control-alto: 2.5rem;
+  }
+}
+
+@media (min-width: 48rem) { /* 768 px: tableta */
+  :root { --pagina-padding: var(--espacio-6); --contenido-padding: var(--espacio-6); }
+}
+
+@media (min-width: 64rem) { /* 1024 px: portátil */
+  :root { --pagina-padding: var(--espacio-8); --contenido-padding: var(--espacio-8); }
+}
+
+@media (min-width: 80rem) { /* 1280 px: escritorio */
+  :root { --pagina-padding: var(--espacio-12); }
+}
+
+@media (min-width: 96rem) { /* 1536 px: escritorio amplio */
+  :root { --pagina-padding: var(--espacio-16); }
 }
 
 /* ── Modo oscuro ──────────────────────────────────────────

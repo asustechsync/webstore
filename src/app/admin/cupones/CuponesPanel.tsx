@@ -11,6 +11,8 @@ import {
 import { formatearPrecio } from "@/lib/utils";
 import styles from "../admin.module.css";
 import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
+import { DatePicker } from "@/components/ui/DatePicker";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 import { CrudPanel } from "@/components/admin/CrudPanel";
 
 type Fila = {
@@ -162,7 +164,7 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
 
             <label className={styles.campo}>
               <span className={styles.etiqueta}>Tipo</span>
-              <select
+              <SelectConFlecha
                 className={styles.control}
                 value={form.tipo}
                 onChange={(evento) =>
@@ -174,7 +176,7 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
               >
                 <option value="PORCENTAJE">Porcentaje (%)</option>
                 <option value="MONTO_FIJO">Monto fijo (S/)</option>
-              </select>
+              </SelectConFlecha>
             </label>
           </div>
 
@@ -231,24 +233,22 @@ export function CuponesPanel({ cupones }: { cupones: Fila[] }) {
           <div className={styles.fila}>
             <label className={styles.campo}>
               <span className={styles.etiqueta}>Vigente desde (opcional)</span>
-              <input
-                className={styles.control}
-                type="date"
+              <DatePicker
                 value={form.fechaInicio}
-                onChange={(evento) =>
-                  setForm((previo) => ({ ...previo, fechaInicio: evento.target.value }))
+                ariaLabel="Vigente desde"
+                onChange={(fechaInicio) =>
+                  setForm((previo) => ({ ...previo, fechaInicio }))
                 }
               />
             </label>
 
             <label className={styles.campo}>
               <span className={styles.etiqueta}>Vigente hasta (opcional)</span>
-              <input
-                className={styles.control}
-                type="date"
+              <DatePicker
                 value={form.fechaFin}
-                onChange={(evento) =>
-                  setForm((previo) => ({ ...previo, fechaFin: evento.target.value }))
+                ariaLabel="Vigente hasta"
+                onChange={(fechaFin) =>
+                  setForm((previo) => ({ ...previo, fechaFin }))
                 }
               />
             </label>

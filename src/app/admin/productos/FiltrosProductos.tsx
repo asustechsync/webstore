@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { IconoBuscar, IconoCerrar } from "@/components/ui/ActionIcons";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 import styles from "../admin.module.css";
 
 type Opcion = { id: string; nombre: string };
@@ -51,10 +52,10 @@ export function FiltrosProductos({ categorias }: { categorias: Opcion[] }) {
         </div>
       </div>
       <div className={styles.filtrosSegundaLinea}>
-        <label className={styles.campo}><span className={styles.etiqueta}>Categoría</span><select className={styles.control} value={searchParams.get("categoria") ?? ""} onChange={(evento) => aplicar("categoria", evento.target.value)}><option value="">Todas</option>{categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}</select></label>
-        <label className={styles.campo}><span className={styles.etiqueta}>Estado</span><select className={styles.control} value={searchParams.get("estado") ?? ""} onChange={(evento) => aplicar("estado", evento.target.value)}><option value="">Todos</option><option value="activo">Visibles</option><option value="inactivo">Ocultos</option></select></label>
-        <label className={styles.campo}><span className={styles.etiqueta}>Stock</span><select className={styles.control} value={searchParams.get("stock") ?? ""} onChange={(evento) => aplicar("stock", evento.target.value)}><option value="">Todos</option><option value="disponible">Disponible</option><option value="bajo">Stock bajo</option><option value="agotado">Agotado</option></select></label>
-        <label className={styles.campo}><span className={styles.etiqueta}>Oferta</span><select className={styles.control} value={searchParams.get("oferta") ?? ""} onChange={(evento) => aplicar("oferta", evento.target.value)}><option value="">Todos</option><option value="con">Con oferta</option><option value="sin">Sin oferta</option></select></label>
+        <label className={styles.campo}><span className={styles.etiqueta}>Categoría</span><SelectConFlecha className={styles.control} value={searchParams.get("categoria") ?? ""} onChange={(evento) => aplicar("categoria", evento.target.value)}><option value="">Todas</option>{categorias.map((categoria) => <option key={categoria.id} value={categoria.id}>{categoria.nombre}</option>)}</SelectConFlecha></label>
+        <label className={styles.campo}><span className={styles.etiqueta}>Estado</span><SelectConFlecha className={styles.control} value={searchParams.get("estado") ?? ""} onChange={(evento) => aplicar("estado", evento.target.value)}><option value="">Todos</option><option value="activo">Visibles</option><option value="inactivo">Ocultos</option></SelectConFlecha></label>
+        <label className={styles.campo}><span className={styles.etiqueta}>Stock</span><SelectConFlecha className={styles.control} value={searchParams.get("stock") ?? ""} onChange={(evento) => aplicar("stock", evento.target.value)}><option value="">Todos</option><option value="disponible">Disponible</option><option value="bajo">Stock bajo</option><option value="agotado">Agotado</option></SelectConFlecha></label>
+        <label className={styles.campo}><span className={styles.etiqueta}>Oferta</span><SelectConFlecha className={styles.control} value={searchParams.get("oferta") ?? ""} onChange={(evento) => aplicar("oferta", evento.target.value)}><option value="">Todos</option><option value="con">Con oferta</option><option value="sin">Sin oferta</option></SelectConFlecha></label>
       </div>
     </form>
   );

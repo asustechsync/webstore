@@ -1,26 +1,27 @@
 import Link from "next/link";
 import { getUsuarioActual } from "@/lib/auth";
-import { db } from "@/lib/db";
+import { NOMBRES_ESTADO_PEDIDO } from "@/features/pedidos/estado";
+import { calcularPorcentajePerfil, obtenerPedidosRecientes, obtenerResumenCuenta } from "@/features/usuarios/queries";
 import styles from "./cuenta.module.css";
-
-const NOMBRES_ESTADO: Record<string, string> = {
-  PENDIENTE: "Pendiente", PAGADO: "Pagado", EN_PREPARACION: "En preparación",
-  ENVIADO: "Enviado", ENTREGADO: "Entregado", CANCELADO: "Cancelado",
-};
 
 export default async function CuentaPage() {
   const usuario = await getUsuarioActual();
   if (!usuario) return null;
-  const cuenta = await db.usuario.findUnique({
-    where: { id: usuario.id },
-    select: {
-      _count: { select: { pedidos: true, direcciones: true } },
-      pedidos: { orderBy: { creadoEn: "desc" }, take: 3, select: { id: true, estado: true, creadoEn: true } },
-    },
+  const [cuenta, pedidos] = await Promise.all([
+    obtenerResumenCuenta(usuario.id),
+    obtenerPedidosRecientes(usuario.id),
+  ]);
+  const porcentajePerfil = calcularPorcentajePerfil({
+    nombre: usuario.nombre,
+    email: usuario.email,
+    apellidoPaterno: cuenta?.apellidoPaterno ?? null,
+    apellidoMaterno: cuenta?.apellidoMaterno ?? null,
+    telefono: cuenta?.telefono ?? null,
+    fechaNacimiento: cuenta?.fechaNacimiento ?? null,
+    genero: cuenta?.genero ?? null,
+    tipoDocumento: cuenta?.tipoDocumento ?? null,
+    documento: cuenta?.documento ?? null,
   });
-  const perfilCompleto = await db.usuario.findUnique({ where: { id: usuario.id }, select: { apellidos: true, telefono: true } });
-  const camposCompletos = [usuario.nombre, usuario.email, perfilCompleto?.apellidos, perfilCompleto?.telefono].filter(Boolean).length;
-  const porcentajePerfil = camposCompletos * 25;
 
   return (
     <>
@@ -34,7 +35,7 @@ export default async function CuentaPage() {
       </section>
       <section className={styles.tarjeta}>
         <div className={styles.seccionCabecera}><div><h2>Pedidos recientes</h2><p className={styles.descripcion}>Consulta el estado de tus compras.</p></div><Link className={styles.enlaceTexto} href="/cuenta/pedidos">Ver todos</Link></div>
-        {cuenta?.pedidos.length ? <div className={styles.lista}>{cuenta.pedidos.map((pedido) => <Link className={styles.filaPedido} href={`/pedido/${pedido.id}`} key={pedido.id}><div><strong>Pedido #{pedido.id.slice(0, 8).toUpperCase()}</strong><span>{pedido.creadoEn.toLocaleDateString("es-PE", { dateStyle: "medium" })}</span></div><span className={styles.estado}>{NOMBRES_ESTADO[pedido.estado]}</span></Link>)}</div> : <p className={styles.vacio}>Aún no tienes pedidos. Cuando compres, podrás seguirlos aquí.</p>}
+        {pedidos.length ? <div className={styles.lista}>{pedidos.map((pedido) => <Link className={styles.filaPedido} href={`/pedido/${pedido.id}`} key={pedido.id}><div><strong>Pedido #{pedido.id.slice(0, 8).toUpperCase()}</strong><span>{pedido.creadoEn.toLocaleDateString("es-PE", { dateStyle: "medium" })}</span></div><span className={styles.estado}>{NOMBRES_ESTADO_PEDIDO[pedido.estado]}</span></Link>)}</div> : <p className={styles.vacio}>Aún no tienes pedidos. Cuando compres, podrás seguirlos aquí.</p>}
       </section>
       <section className={styles.accesos} aria-label="Accesos rápidos">
         <Link href="/cuenta/pedidos" className={styles.acceso}><h2>Mis pedidos</h2><p>Revisa compras y su estado de entrega.</p></Link>

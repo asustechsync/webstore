@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { Geist_Mono, Poppins } from "next/font/google";
+import "flag-icons/css/flag-icons.min.css";
 import "@/styles/index.css";
 
 const poppins = Poppins({

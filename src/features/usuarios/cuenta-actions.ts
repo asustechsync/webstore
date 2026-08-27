@@ -18,8 +18,14 @@ export async function actualizarMiPerfil(datos: EditarPerfilInput) {
     const validado = editarPerfilSchema.parse(datos);
     await db.usuario.update({ where: { id: usuario.id }, data: {
       nombre: validado.nombre,
-      apellidos: validado.apellidos || null,
+      apellidoPaterno: validado.apellidoPaterno || null,
+      apellidoMaterno: validado.apellidoMaterno || null,
       telefono: validado.telefono || null,
+      codigoPais: validado.codigoPais,
+      fechaNacimiento: validado.fechaNacimiento ? new Date(`${validado.fechaNacimiento}T00:00:00.000Z`) : null,
+      genero: validado.genero || null,
+      tipoDocumento: validado.tipoDocumento || null,
+      documento: validado.documento.toUpperCase() || null,
     } });
     revalidatePath("/cuenta", "layout");
   });
@@ -42,9 +48,9 @@ export async function guardarMiDireccion(id: string | null, datos: DireccionInpu
         await tx.direccion.updateMany({ where: { usuarioId: usuario.id }, data: { predeterminada: false } });
       }
       if (id) {
-        await tx.direccion.update({ where: { id }, data: { ...validado, predeterminada } });
+        await tx.direccion.update({ where: { id }, data: { ...validado, telefono: "", destinatario: "", predeterminada } });
       } else {
-        await tx.direccion.create({ data: { ...validado, predeterminada, usuarioId: usuario.id } });
+        await tx.direccion.create({ data: { ...validado, telefono: "", destinatario: "", predeterminada, usuarioId: usuario.id } });
       }
     });
 

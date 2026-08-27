@@ -4,10 +4,12 @@
 
 .nav {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: var(--espacio-4);
-  padding-bottom: var(--espacio-4);
+  align-items: flex-start;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  min-width: 0;
+  padding-top: var(--espacio-3);
+  padding-bottom: var(--espacio-3);
 }
 
 .marca {
@@ -17,6 +19,34 @@
 
 .enlaces {
   display: flex;
-  gap: var(--espacio-6);
+  flex-wrap: wrap;
+  align-items: center;
+  min-width: 0;
+  width: 100%;
+  gap: var(--espacio-2) var(--espacio-4);
   font-size: var(--texto-sm);
+}
+
+.enlaces > a {
+  display: inline-flex;
+  min-height: var(--control-alto);
+  align-items: center;
+}
+
+@media (min-width: 64rem) {
+  .nav {
+    align-items: center;
+    flex-direction: row;
+    justify-content: space-between;
+    gap: var(--espacio-6);
+    padding-top: var(--espacio-4);
+    padding-bottom: var(--espacio-4);
+  }
+
+  .enlaces {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    width: auto;
+    gap: var(--espacio-6);
+  }
 }

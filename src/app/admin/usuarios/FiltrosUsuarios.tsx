@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "../admin.module.css";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 
 type Rol = { id: string; nombre: string };
 
@@ -41,7 +42,7 @@ export function FiltrosUsuarios({ roles }: { roles: Rol[] }) {
 
       <label className={styles.campo}>
         <span className={styles.etiqueta}>Rol</span>
-        <select
+        <SelectConFlecha
           className={styles.control}
           value={searchParams.get("rol") ?? ""}
           onChange={(evento) => aplicar("rol", evento.target.value)}
@@ -52,7 +53,7 @@ export function FiltrosUsuarios({ roles }: { roles: Rol[] }) {
               {rol.nombre}
             </option>
           ))}
-        </select>
+        </SelectConFlecha>
       </label>
 
       <div className={styles.botones}>

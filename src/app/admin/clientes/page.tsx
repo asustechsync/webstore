@@ -30,7 +30,7 @@ export default async function AdminClientesPage() {
             <tbody>
               {clientes.map((cliente) => (
                 <tr key={cliente.id}>
-                  <td>{[cliente.nombre, cliente.apellidos].filter(Boolean).join(" ")}</td>
+                  <td>{[cliente.nombre, cliente.apellidoPaterno, cliente.apellidoMaterno].filter(Boolean).join(" ")}</td>
                   <td>{cliente.email}</td>
                   <td>{cliente._count.pedidos}</td>
                   <td>{cliente._count.direcciones}</td>

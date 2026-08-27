@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { EstadoPedido } from "@prisma/client";
 import { cambiarEstadoPedido } from "@/features/pedidos/actions";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 import styles from "../admin.module.css";
 
 type Fila = {
@@ -67,7 +68,7 @@ export function PedidosTabla({ pedidos }: { pedidos: Fila[] }) {
                 <td>{pedido.total}</td>
                 <td>{pedido.creadoEn}</td>
                 <td>
-                  <select
+                  <SelectConFlecha
                     className={styles.control}
                     value={pedido.estado}
                     disabled={pendiente}
@@ -80,7 +81,7 @@ export function PedidosTabla({ pedidos }: { pedidos: Fila[] }) {
                         {estado.replace("_", " ")}
                       </option>
                     ))}
-                  </select>
+                  </SelectConFlecha>
                 </td>
               </tr>
             ))}

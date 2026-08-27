@@ -15,6 +15,7 @@ html {
   /* Reserva el ancho de la barra vertical para evitar saltos de diseño. */
   background: var(--superficie-pagina);
   scrollbar-gutter: stable;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
@@ -28,11 +29,17 @@ body {
   flex-direction: column;
 }
 
+main {
+  width: 100%;
+  min-width: 0;
+}
+
 h1,
 h2,
 h3,
 p {
   text-wrap: pretty;
+  overflow-wrap: break-word;
 }
 
 a {
@@ -54,6 +61,71 @@ select {
   color: inherit;
 }
 
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]):not([type="range"]):not([type="color"]),
+textarea,
+select {
+  width: 100%;
+  padding: var(--espacio-2) var(--control-padding-x);
+  border: 1px solid var(--control-borde);
+  border-radius: var(--control-radio);
+  background-color: var(--control-fondo);
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="hidden"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="image"]):not([type="range"]):not([type="color"]),
+select {
+  height: var(--control-alto);
+}
+
+input,
+textarea,
+select {
+  transition:
+    border-color var(--transicion-rapida),
+    box-shadow var(--transicion-rapida),
+    background-color var(--transicion-rapida);
+}
+
+select {
+  padding-right: 2.25rem;
+  color: var(--texto-principal);
+  cursor: pointer;
+}
+
+select:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+option {
+  background: var(--control-fondo);
+  color: var(--texto-principal);
+}
+
+option:hover,
+option:focus,
+option:checked {
+  background: var(--superficie-suave);
+  color: var(--texto-principal);
+}
+
+html :is(input, textarea, select):hover {
+  border-color: var(--control-borde-hover);
+}
+
+html :is(input, textarea, select):focus {
+  border-color: color-mix(in srgb, var(--control-focus) 68%, var(--control-borde));
+  box-shadow: var(--control-sombra-focus);
+}
+
+html :is(input, textarea, select):focus-visible {
+  outline: none;
+}
+
+::placeholder {
+  color: var(--control-placeholder);
+  opacity: 1;
+}
+
 button,
 a {
   -webkit-tap-highlight-color: transparent;
@@ -69,6 +141,13 @@ svg {
   max-width: 100%;
 }
 
+img,
+svg,
+video,
+canvas {
+  height: auto;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -82,7 +161,6 @@ svg {
 select {
   appearance: none;
   -webkit-appearance: none;
-  padding-right: 2.25rem;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 640 640'%3E%3Cpath fill='%2367757c' d='M297.4 470.6C309.9 483.1 330.2 483.1 342.7 470.6L534.7 278.6C547.2 266.1 547.2 245.8 534.7 233.3C522.2 220.8 501.9 220.8 489.4 233.3L320 402.7L150.6 233.4C138.1 220.9 117.8 220.9 105.3 233.4C92.8 245.9 92.8 266.2 105.3 278.7L297.3 470.7z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right .75rem center;

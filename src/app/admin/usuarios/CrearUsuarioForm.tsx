@@ -4,6 +4,7 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { crearUsuario } from "@/features/usuarios/actions";
 import styles from "../admin.module.css";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 
 type Rol = { id: string; nombre: string };
 
@@ -78,7 +79,7 @@ export function CrearUsuarioForm({ roles }: { roles: Rol[] }) {
 
         <label className={styles.campo}>
           <span className={styles.etiqueta}>Rol</span>
-          <select
+          <SelectConFlecha
             className={styles.control}
             value={form.rolId}
             required
@@ -90,7 +91,7 @@ export function CrearUsuarioForm({ roles }: { roles: Rol[] }) {
                 {rol.nombre}
               </option>
             ))}
-          </select>
+          </SelectConFlecha>
         </label>
 
         <div className={styles.botones}>

@@ -10,7 +10,7 @@ export default async function CuentaDireccionesPage() {
 
   return (
     <section className={styles.tarjeta}>
-      <DireccionesPanel direcciones={direcciones.map((direccion) => ({ ...direccion, referencia: direccion.referencia ?? "" }))} />
+      <DireccionesPanel direcciones={direcciones.map((direccion) => ({ ...direccion, codigoPostal: direccion.codigoPostal ?? "", referencia: direccion.referencia ?? "" }))} />
     </section>
   );
 }

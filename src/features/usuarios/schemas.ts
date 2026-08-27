@@ -18,17 +18,22 @@ export const editarUsuarioSchema = z.object({
 
 export const editarPerfilSchema = z.object({
   nombre: z.string().trim().min(2, "Ingresa tu nombre").max(80, "El nombre es demasiado largo"),
-  apellidos: z.string().trim().max(100, "Los apellidos son demasiado largos"),
+  apellidoPaterno: z.string().trim().min(2, "Ingresa tu apellido paterno").max(80, "El apellido paterno es demasiado largo"),
+  apellidoMaterno: z.string().trim().max(80, "El apellido materno es demasiado largo"),
   telefono: z.string().trim().max(20, "El teléfono es demasiado largo"),
+  codigoPais: z.enum(["+51", "+56"]),
+  fechaNacimiento: z.string().regex(/^$|^\d{4}-\d{2}-\d{2}$/, "Ingresa una fecha válida"),
+  genero: z.enum(["MASCULINO", "FEMENINO", "NO_BINARIO", "PREFIERO_NO_DECIR", ""]),
+  tipoDocumento: z.enum(["DNI", "CE", "PASAPORTE", ""]),
+  documento: z.string().trim().regex(/^$|^[A-Za-z0-9-]{5,20}$/, "Ingresa un número de documento válido"),
 });
 
 export const direccionSchema = z.object({
-  destinatario: z.string().trim().min(2, "Ingresa el nombre de quien recibe").max(120),
-  telefono: z.string().trim().min(6, "Ingresa un teléfono válido").max(20),
   departamento: z.string().trim().min(2, "Ingresa el departamento").max(80),
   provincia: z.string().trim().min(2, "Ingresa la provincia").max(80),
   distrito: z.string().trim().min(2, "Ingresa el distrito").max(80),
   direccion: z.string().trim().min(5, "Ingresa una dirección completa").max(200),
+  codigoPostal: z.string().trim().max(20, "El código postal es demasiado largo"),
   referencia: z.string().trim().max(200, "La referencia es demasiado larga"),
   predeterminada: z.boolean().default(false),
 });

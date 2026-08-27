@@ -13,8 +13,14 @@ model Usuario {
   authId        String      @unique // id del usuario en Supabase Auth
   email         String      @unique
   nombre        String
-  apellidos     String?
+  apellidoPaterno String?
+  apellidoMaterno String?
   telefono      String?
+  codigoPais    String?     @default("+51")
+  fechaNacimiento DateTime?
+  genero        String?
+  tipoDocumento String?
+  documento     String?     @unique
   rolId         String
   rol           Rol         @relation(fields: [rolId], references: [id])
   direcciones   Direccion[]
@@ -63,6 +69,7 @@ model Direccion {
   provincia      String
   distrito       String
   direccion      String
+  codigoPostal   String?
   referencia     String?
   predeterminada Boolean  @default(false)
   creadoEn       DateTime @default(now())

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { cambiarRolUsuario, editarUsuario, eliminarUsuario } from "@/features/usuarios/actions";
 import styles from "../admin.module.css";
 import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
+import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
 
 type Fila = {
   id: string;
@@ -132,7 +133,7 @@ export function UsuariosTabla({
                     )}
                   </td>
                   <td>
-                    <select
+                    <SelectConFlecha
                       className={styles.control}
                       value={usuario.rolId}
                       disabled={pendiente}
@@ -143,7 +144,7 @@ export function UsuariosTabla({
                           {rol.nombre}
                         </option>
                       ))}
-                    </select>
+                    </SelectConFlecha>
                   </td>
                   <td>{usuario.creadoEn}</td>
                   <td>

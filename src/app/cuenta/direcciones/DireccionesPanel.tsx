@@ -3,11 +3,18 @@
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
+import { Select } from "@/components/ui/Select";
 import { eliminarMiDireccion, guardarMiDireccion } from "@/features/usuarios/cuenta-actions";
+import departamentosData from "@/data/ubigeos/1_ubigeo_departamentos.json";
+import provinciasData from "@/data/ubigeos/2_ubigeo_provincias.json";
+import distritosData from "@/data/ubigeos/3_ubigeo_distritos.json";
 import styles from "../cuenta.module.css";
 
-type Direccion = { id: string; destinatario: string; telefono: string; departamento: string; provincia: string; distrito: string; direccion: string; referencia: string; predeterminada: boolean };
-const VACIA = { destinatario: "", telefono: "", departamento: "", provincia: "", distrito: "", direccion: "", referencia: "", predeterminada: false };
+type Direccion = { id: string; departamento: string; provincia: string; distrito: string; direccion: string; codigoPostal: string; referencia: string; predeterminada: boolean };
+const VACIA = { departamento: "", provincia: "", distrito: "", direccion: "", codigoPostal: "", referencia: "", predeterminada: false };
+const DEPARTAMENTOS = departamentosData.ubigeo_departamentos;
+const PROVINCIAS = provinciasData.ubigeo_provincias;
+const DISTRITOS = distritosData.ubigeo_distritos;
 
 export function DireccionesPanel({ direcciones }: { direcciones: Direccion[] }) {
   const router = useRouter();
@@ -18,9 +25,13 @@ export function DireccionesPanel({ direcciones }: { direcciones: Direccion[] }) 
   const [pendiente, iniciarTransicion] = useTransition();
 
   function nueva() { setEditandoId(null); setForm(VACIA); setError(null); setMostrar(true); }
-  function editar(d: Direccion) { setEditandoId(d.id); setForm({ ...d, referencia: d.referencia || "" }); setError(null); setMostrar(true); }
+  function editar(d: Direccion) { setEditandoId(d.id); setForm({ ...d, codigoPostal: d.codigoPostal || "", referencia: d.referencia || "" }); setError(null); setMostrar(true); }
   function cancelar() { setMostrar(false); setEditandoId(null); setError(null); }
   function cambiar(campo: keyof typeof VACIA, valor: string | boolean) { setForm((p) => ({ ...p, [campo]: valor })); }
+  const departamento = DEPARTAMENTOS.find((item) => item.departamento === form.departamento);
+  const provincia = PROVINCIAS.find((item) => item.provincia === form.provincia && item.departamento_id === departamento?.id);
+  const provinciasDisponibles = PROVINCIAS.filter((item) => item.departamento_id === departamento?.id);
+  const distritosDisponibles = DISTRITOS.filter((item) => item.provincia_id === provincia?.id);
   function onSubmit(e: React.FormEvent) {
     e.preventDefault(); setError(null);
     iniciarTransicion(async () => {
@@ -41,17 +52,16 @@ export function DireccionesPanel({ direcciones }: { direcciones: Direccion[] }) 
       <div className={styles.formularioTitulo}><h3>{editandoId ? "Editar dirección" : "Nueva dirección"}</h3><button type="button" className={styles.botonTexto} onClick={cancelar}>Cancelar</button></div>
       {error && <p className={styles.mensajeError}>{error}</p>}
       <div className={styles.formGrid}>
-        <label className={styles.campo}><span>Persona que recibe</span><input required value={form.destinatario} onChange={(e) => cambiar("destinatario", e.target.value)} /></label>
-        <label className={styles.campo}><span>Teléfono</span><input required inputMode="tel" value={form.telefono} onChange={(e) => cambiar("telefono", e.target.value)} /></label>
-        <label className={styles.campo}><span>Departamento</span><input required value={form.departamento} onChange={(e) => cambiar("departamento", e.target.value)} /></label>
-        <label className={styles.campo}><span>Provincia</span><input required value={form.provincia} onChange={(e) => cambiar("provincia", e.target.value)} /></label>
-        <label className={styles.campo}><span>Distrito</span><input required value={form.distrito} onChange={(e) => cambiar("distrito", e.target.value)} /></label>
-        <label className={`${styles.campo} ${styles.campoAncho}`}><span>Dirección</span><input required placeholder="Av., calle, número, interior" value={form.direccion} onChange={(e) => cambiar("direccion", e.target.value)} /></label>
-        <label className={`${styles.campo} ${styles.campoAncho}`}><span>Referencia (opcional)</span><input value={form.referencia} onChange={(e) => cambiar("referencia", e.target.value)} /></label>
+        <label className={styles.campo}><span>Dirección</span><input required placeholder="Av., calle, número, interior" value={form.direccion} onChange={(e) => cambiar("direccion", e.target.value)} /></label>
+        <label className={styles.campo}><span>Referencia (opcional)</span><input value={form.referencia} onChange={(e) => cambiar("referencia", e.target.value)} /></label>
+        <div className={styles.campo}><span>Departamento</span><Select value={departamento ? String(departamento.id) : ""} placeholder="Selecciona un departamento" ariaLabel="Departamento" options={DEPARTAMENTOS.map((item) => ({ valor: String(item.id), etiqueta: item.departamento }))} onChange={(valor) => { const seleccionado = DEPARTAMENTOS.find((item) => String(item.id) === valor); cambiar("departamento", seleccionado?.departamento ?? ""); cambiar("provincia", ""); cambiar("distrito", ""); }} /></div>
+        <div className={styles.campo}><span>Provincia</span><Select value={provincia ? String(provincia.id) : ""} placeholder="Selecciona una provincia" ariaLabel="Provincia" disabled={!departamento} options={provinciasDisponibles.map((item) => ({ valor: String(item.id), etiqueta: item.provincia }))} onChange={(valor) => { const seleccionado = provinciasDisponibles.find((item) => String(item.id) === valor); cambiar("provincia", seleccionado?.provincia ?? ""); cambiar("distrito", ""); }} /></div>
+        <div className={styles.campo}><span>Distrito</span><Select value={distritosDisponibles.find((item) => item.distrito === form.distrito) ? String(distritosDisponibles.find((item) => item.distrito === form.distrito)?.id) : ""} placeholder="Selecciona un distrito" ariaLabel="Distrito" disabled={!provincia} options={distritosDisponibles.map((item) => ({ valor: String(item.id), etiqueta: item.distrito }))} onChange={(valor) => { const seleccionado = distritosDisponibles.find((item) => String(item.id) === valor); cambiar("distrito", seleccionado?.distrito ?? ""); }} /></div>
+        <label className={styles.campo}><span>Código postal (opcional)</span><input value={form.codigoPostal} maxLength={20} inputMode="numeric" onChange={(e) => cambiar("codigoPostal", e.target.value.replace(/\D/g, ""))} /></label>
       </div>
       <label className={styles.check}><input type="checkbox" checked={form.predeterminada} onChange={(e) => cambiar("predeterminada", e.target.checked)} /> Usar como dirección predeterminada</label>
       <button className={styles.botonPrimario} type="submit" disabled={pendiente}>{pendiente ? "Guardando..." : "Guardar dirección"}</button>
     </form>}
-    {direcciones.length ? <div className={styles.direcciones}>{direcciones.map((d) => <article className={styles.direccion} key={d.id}><div className={styles.direccionCabecera}><div>{d.predeterminada && <span className={styles.etiqueta}>Predeterminada</span>}<h3>{d.destinatario}</h3></div><div className={styles.iconos}><button type="button" onClick={() => editar(d)} aria-label="Editar dirección"><IconoEditar /></button><button type="button" onClick={() => eliminar(d.id)} aria-label="Eliminar dirección"><IconoEliminar /></button></div></div><p>{d.direccion}{d.referencia ? ` · ${d.referencia}` : ""}</p><p>{d.distrito}, {d.provincia}, {d.departamento}</p><p>{d.telefono}</p></article>)}</div> : !mostrar && <div className={styles.estadoVacio}><strong>Aún no tienes direcciones</strong><p>Agrega una para completar tus compras más rápido.</p><button type="button" className={styles.botonSecundario} onClick={nueva}>Agregar mi primera dirección</button></div>}
+    {direcciones.length ? <div className={styles.direcciones}>{direcciones.map((d) => <article className={styles.direccion} key={d.id}><div className={styles.direccionCabecera}><div>{d.predeterminada && <span className={styles.etiqueta}>Predeterminada</span>}<h3>{d.distrito}, {d.provincia}</h3></div><div className={styles.iconos}><button type="button" onClick={() => editar(d)} aria-label="Editar dirección"><IconoEditar /></button><button type="button" onClick={() => eliminar(d.id)} aria-label="Eliminar dirección"><IconoEliminar /></button></div></div><p>{d.direccion}{d.referencia ? ` · ${d.referencia}` : ""}</p><p>{d.distrito}, {d.provincia}, {d.departamento}</p></article>)}</div> : !mostrar && <div className={styles.estadoVacio}><strong>Aún no tienes direcciones</strong><p>Agrega una para completar tus compras más rápido.</p><button type="button" className={styles.botonSecundario} onClick={nueva}>Agregar mi primera dirección</button></div>}
   </>;
 }
