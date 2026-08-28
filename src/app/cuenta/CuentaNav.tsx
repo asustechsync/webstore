@@ -5,14 +5,17 @@ import { usePathname } from "next/navigation";
 import styles from "./cuenta.module.css";
 
 const ENLACES = [
-  { href: "/cuenta", etiqueta: "Inicio" },
-  { href: "/cuenta/perfil", etiqueta: "Perfil" },
-  { href: "/cuenta/pedidos", etiqueta: "Pedidos" },
-  { href: "/cuenta/direcciones", etiqueta: "Direcciones" },
-  { href: "/cuenta/pagos", etiqueta: "Pagos" },
-  { href: "/cuenta/favoritos", etiqueta: "Favoritos" },
-  { href: "/cuenta/seguridad", etiqueta: "Seguridad" },
-];
+  { href: "/cuenta/perfil", etiqueta: "Mi perfil", icono: "perfil" },
+  { href: "/cuenta/pedidos", etiqueta: "Mis pedidos", icono: "pedidos" },
+  { href: "/cuenta/direcciones", etiqueta: "Direcciones", icono: "direcciones" },
+  { href: "/cuenta/favoritos", etiqueta: "Favoritos", icono: "favoritos" },
+  { href: "/cuenta/seguridad", etiqueta: "Seguridad", icono: "seguridad" },
+  { href: "/cuenta/configuracion", etiqueta: "Configuración", icono: "configuracion" },
+] as const;
+
+function IconoNav({ tipo }: { tipo: string }) {
+  return <span className={`${styles.navIcono} ${styles[`navIcono${tipo.charAt(0).toUpperCase()}${tipo.slice(1)}`]}`} aria-hidden="true" />;
+}
 
 export function CuentaNav() {
   const pathname = usePathname();
@@ -20,9 +23,11 @@ export function CuentaNav() {
   return (
     <nav className={styles.nav} aria-label="Navegación de mi cuenta">
       {ENLACES.map((enlace) => {
-        const activo = enlace.href === "/cuenta" ? pathname === enlace.href : pathname.startsWith(enlace.href);
+        const activo = pathname.startsWith(enlace.href);
         return <Link key={enlace.href} href={enlace.href} className={activo ? `${styles.navEnlace} ${styles.navEnlaceActivo}` : styles.navEnlace}>
-          {enlace.etiqueta}
+          <IconoNav tipo={enlace.icono} />
+          <span><strong>{enlace.etiqueta}</strong></span>
+          <span className={styles.navFlecha} aria-hidden="true" />
         </Link>;
       })}
     </nav>

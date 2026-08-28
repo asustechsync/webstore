@@ -13,17 +13,22 @@ type SelectProps = {
   ariaLabel: string;
   disabled?: boolean;
   className?: string;
+  seleccionarAlEscribir?: boolean;
+  buscable?: boolean;
 };
 
 // Sustituye el menú nativo para conservar la misma apariencia en todos los navegadores.
-export function Select({ value, onChange, options, placeholder = "Selecciona una opción", ariaLabel, disabled = false, className }: SelectProps) {
+export function Select({ value, onChange, options, placeholder = "Selecciona una opción", ariaLabel, disabled = false, className, seleccionarAlEscribir = false, buscable = false }: SelectProps) {
   const [abierto, setAbierto] = useState(false);
   const [resaltada, setResaltada] = useState(value);
+  const [termino, setTermino] = useState("");
   const contenedor = useRef<HTMLDivElement>(null);
   const lista = useRef<HTMLDivElement>(null);
+  const entradaBusqueda = useRef<HTMLInputElement>(null);
   const busqueda = useRef({ texto: "", momento: 0 });
   const listaId = useId();
   const seleccionada = options.find((opcion) => opcion.valor === value);
+  const opcionesVisibles = buscable ? (termino.trim() ? options.filter((opcion) => `${opcion.etiqueta} ${opcion.valor}`.includes(termino.trim())) : []) : options;
 
   useEffect(() => {
     function cerrar(evento: MouseEvent) {
@@ -32,6 +37,10 @@ export function Select({ value, onChange, options, placeholder = "Selecciona una
     document.addEventListener("mousedown", cerrar);
     return () => document.removeEventListener("mousedown", cerrar);
   }, []);
+
+  useEffect(() => {
+    if (abierto && buscable) entradaBusqueda.current?.focus();
+  }, [abierto, buscable]);
 
   useEffect(() => {
     if (!abierto || !resaltada) return;
@@ -43,6 +52,7 @@ export function Select({ value, onChange, options, placeholder = "Selecciona una
   function seleccionar(valor: string) {
     onChange(valor);
     setResaltada(valor);
+    setTermino("");
     setAbierto(false);
   }
 
@@ -70,7 +80,8 @@ export function Select({ value, onChange, options, placeholder = "Selecciona una
       if (coincidencia) {
         evento.preventDefault();
         setResaltada(coincidencia.valor);
-        setAbierto(true);
+        if (seleccionarAlEscribir && options.some((opcion) => opcion.etiqueta === texto)) seleccionar(coincidencia.valor);
+        else setAbierto(true);
       }
       return;
     }
@@ -88,7 +99,9 @@ export function Select({ value, onChange, options, placeholder = "Selecciona una
       <svg className={styles.flecha} viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
     </button>
     {abierto && <div ref={lista} id={listaId} className={styles.menu} role="listbox" aria-label={ariaLabel}>
-      {options.map((opcion) => <button key={opcion.valor} data-valor={opcion.valor} type="button" role="option" aria-selected={opcion.valor === value} className={opcion.valor === resaltada ? `${styles.opcion} ${styles.opcionActiva}` : styles.opcion} onClick={() => seleccionar(opcion.valor)}>{opcion.icono}{opcion.etiqueta}</button>)}
+      {buscable && <input ref={entradaBusqueda} className={styles.busqueda} value={termino} onChange={(evento) => setTermino(evento.target.value)} onKeyDown={(evento) => evento.stopPropagation()} placeholder="Número" aria-label={`Buscar ${ariaLabel.toLocaleLowerCase()}`} inputMode="tel" />}
+      {opcionesVisibles.map((opcion) => <button key={opcion.valor} data-valor={opcion.valor} type="button" role="option" aria-selected={opcion.valor === value} className={opcion.valor === resaltada ? `${styles.opcion} ${styles.opcionActiva}` : styles.opcion} onClick={() => seleccionar(opcion.valor)}>{opcion.icono}{opcion.etiqueta}</button>)}
+      {termino.trim() && opcionesVisibles.length === 0 && <p className={styles.sinResultados}>Sin datos</p>}
     </div>}
   </div>;
 }

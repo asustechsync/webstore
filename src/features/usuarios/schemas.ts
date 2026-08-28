@@ -21,7 +21,7 @@ export const editarPerfilSchema = z.object({
   apellidoPaterno: z.string().trim().min(2, "Ingresa tu apellido paterno").max(80, "El apellido paterno es demasiado largo"),
   apellidoMaterno: z.string().trim().max(80, "El apellido materno es demasiado largo"),
   telefono: z.string().trim().max(20, "El teléfono es demasiado largo"),
-  codigoPais: z.enum(["+51", "+56"]),
+  codigoPais: z.string().regex(/^\+\d{1,4}$/, "Ingresa un código de país válido"),
   fechaNacimiento: z.string().regex(/^$|^\d{4}-\d{2}-\d{2}$/, "Ingresa una fecha válida"),
   genero: z.enum(["MASCULINO", "FEMENINO", "NO_BINARIO", "PREFIERO_NO_DECIR", ""]),
   tipoDocumento: z.enum(["DNI", "CE", "PASAPORTE", ""]),

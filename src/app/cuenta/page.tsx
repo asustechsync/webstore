@@ -28,7 +28,7 @@ export default async function CuentaPage() {
       <header className={styles.seccionCabecera}>
         <div><h2 className={styles.titulo}>Hola, {usuario.nombre}</h2><p className={styles.descripcion}>Aquí tienes un resumen de tu cuenta.</p></div>
       </header>
-      <section className={styles.resumenes} aria-label="Resumen de cuenta">
+      <section className={`${styles.resumenes} ${styles.resumenPrincipal}`} aria-label="Resumen de cuenta">
         <div className={styles.resumenNumero}><strong>{cuenta?._count.pedidos ?? 0}</strong><span>Pedidos realizados</span></div>
         <div className={styles.resumenNumero}><strong>{cuenta?._count.direcciones ?? 0}</strong><span>Direcciones guardadas</span></div>
         <div className={styles.resumenNumero}><strong>{usuario.rol.nombre === "CLIENTE" ? "Cliente" : usuario.rol.nombre}</strong><span>Tipo de cuenta</span></div>

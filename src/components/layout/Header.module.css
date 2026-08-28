@@ -2,11 +2,15 @@
   border-bottom: 1px solid var(--color-borde);
 }
 
+.ocultarEnMovil {
+  display: block;
+}
+
 .nav {
+  position: relative;
   display: flex;
-  align-items: flex-start;
-  flex-direction: column;
-  gap: var(--espacio-3);
+  align-items: center;
+  justify-content: center;
   min-width: 0;
   padding-top: var(--espacio-3);
   padding-bottom: var(--espacio-3);
@@ -17,13 +21,44 @@
   font-weight: var(--peso-semibold);
 }
 
+.menuMovil {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+}
+
+.botonMenu {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  place-items: center;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg);
+  color: var(--color-texto);
+  box-shadow: var(--sombra-sm);
+  cursor: pointer;
+  list-style: none;
+}
+
+.botonMenu svg { width: 1.15rem; height: 1.15rem; fill: currentColor; }
+
 .enlaces {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  min-width: 0;
-  width: 100%;
-  gap: var(--espacio-2) var(--espacio-4);
+  position: absolute;
+  top: calc(100% + var(--espacio-2));
+  right: 0;
+  z-index: 10;
+  flex-direction: column;
+  align-items: stretch;
+  width: 13rem;
+  padding: var(--espacio-2);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
+  background: var(--color-bg);
+  box-shadow: var(--sombra-md);
+  gap: var(--espacio-1);
   font-size: var(--texto-sm);
 }
 
@@ -31,12 +66,16 @@
   display: inline-flex;
   min-height: var(--control-alto);
   align-items: center;
+  padding: 0 var(--espacio-3);
+  border-radius: var(--radio-borde);
 }
+
+.enlaces > a:hover { background: var(--color-bg-suave); }
+.enlaces { display: none; }
+.enlacesAbiertos { display: flex; }
 
 @media (min-width: 64rem) {
   .nav {
-    align-items: center;
-    flex-direction: row;
     justify-content: space-between;
     gap: var(--espacio-6);
     padding-top: var(--espacio-4);
@@ -44,9 +83,28 @@
   }
 
   .enlaces {
+    position: static;
     flex-wrap: nowrap;
+    flex-direction: row;
+    align-items: center;
     justify-content: flex-end;
     width: auto;
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
     gap: var(--espacio-6);
+  }
+
+  .menuMovil { position: static; transform: none; }
+  .botonMenu { display: none; }
+  .enlaces { display: flex; }
+  .enlaces > a { padding: 0; }
+}
+
+@media (max-width: 63.99rem) {
+  .ocultarEnMovil {
+    display: none;
   }
 }

@@ -5,6 +5,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { CuentaNav } from "./CuentaNav";
+import { CuentaShell } from "./CuentaShell";
 import { CerrarSesionBoton } from "./CerrarSesionBoton";
 import { formatearNombreUbicacion } from "@/lib/ubicaciones";
 import styles from "./cuenta.module.css";
@@ -28,6 +29,9 @@ export default async function CuentaLayout({ children }: { children: React.React
     redirect("/ingresar");
   }
   const cuenta = await obtenerResumenCuenta(usuario.id);
+  const nombreCompleto = [usuario.nombre, cuenta?.apellidoPaterno]
+    .filter(Boolean)
+    .join(" ");
   const direccionPrincipal = cuenta?.direcciones[0];
   const ubicacion = direccionPrincipal ? `${formatearNombreUbicacion(direccionPrincipal.provincia)}, PE` : "Ubicación no registrada";
   const compras = cuenta?._count.pedidos ?? 0;
@@ -35,25 +39,33 @@ export default async function CuentaLayout({ children }: { children: React.React
 
   return (
     <>
-      <Header />
+      <Header ocultarEnMovil />
       <main className={styles.principal}>
         <Container>
-          <div className={styles.distribucion}>
-            <aside className={styles.sidebar}>
+          <CuentaShell
+            sidebar={<aside className={styles.sidebar}>
+              <h1 className={styles.tituloMovil}>Mi cuenta</h1>
               <div className={styles.usuarioCard}>
                 <div className={styles.usuarioPortada} />
                 <div className={styles.usuarioCardCuerpo}>
                   <span className={styles.avatar} aria-hidden="true">{usuario.nombre.trim().charAt(0).toUpperCase()}</span>
-                  <div className={styles.usuarioNombreFila}>
-                    <strong>{usuario.nombre}</strong>
-                    <IconoVerificado />
-                  </div>
-                  <p className={styles.usuarioUbicacion}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true"><path d="M128 252.6C128 148.4 214 64 320 64C426 64 512 148.4 512 252.6C512 371.9 391.8 514.9 341.6 569.4C329.8 582.2 310.1 582.2 298.3 569.4C248.1 514.9 127.9 371.9 127.9 252.6zM320 320C355.3 320 384 291.3 384 256C384 220.7 355.3 192 320 192C284.7 192 256 220.7 256 256C256 291.3 284.7 320 320 320z"/></svg><span>{ubicacion}</span></p>
-                  <div className={styles.usuarioMetricas}>
-                    <span className={styles.usuarioRol}>{usuario.rol.nombre === "ADMIN" ? "Admin" : usuario.rol.nombre === "CLIENTE" ? "Cliente" : usuario.rol.nombre}</span>
-                    <span className={styles.usuarioActivo}><i aria-hidden="true" /> Activa</span>
+                  <div className={styles.usuarioDatos}>
+                    <div className={styles.usuarioNombreFila}>
+                      <strong>{nombreCompleto}</strong>
+                      <IconoVerificado />
+                    </div>
+                    <p className={styles.usuarioUbicacion}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 640" fill="currentColor" aria-hidden="true"><path d="M128 252.6C128 148.4 214 64 320 64C426 64 512 148.4 512 252.6C512 371.9 391.8 514.9 341.6 569.4C329.8 582.2 310.1 582.2 298.3 569.4C248.1 514.9 127.9 371.9 127.9 252.6zM320 320C355.3 320 384 291.3 384 256C384 220.7 355.3 192 320 192C284.7 192 256 220.7 256 256C256 291.3 284.7 320 320 320z"/></svg><span>{ubicacion}</span></p>
+                    <div className={styles.usuarioMetricas}>
+                      <span className={styles.usuarioRol}>{usuario.rol.nombre === "ADMIN" ? "Admin" : usuario.rol.nombre === "CLIENTE" ? "Cliente" : usuario.rol.nombre}</span>
+                      <span className={styles.usuarioActivo}><i aria-hidden="true" /> Activa</span>
+                    </div>
                   </div>
                 </div>
+              </div>
+              <div className={styles.resumenMovil} aria-label="Resumen de cuenta">
+                <div><strong>{compras}</strong><span>Pedidos</span></div>
+                <div><strong>{cuenta?._count.direcciones ?? 0}</strong><span>Direcciones</span></div>
+                <div><strong>{usuario.rol.nombre === "CLIENTE" ? "Cliente" : usuario.rol.nombre}</strong><span>Cuenta</span></div>
               </div>
               <section className={styles.nivelesPremium} aria-labelledby="niveles-premium-titulo">
                 <div className={styles.nivelesPremiumCabecera}>
@@ -74,9 +86,10 @@ export default async function CuentaLayout({ children }: { children: React.React
               </section>
               <CuentaNav />
               <div className={styles.sidebarSalir}><CerrarSesionBoton /></div>
-            </aside>
-            <div className={styles.contenido}>{children}</div>
-          </div>
+            </aside>}
+          >
+            {children}
+          </CuentaShell>
         </Container>
       </main>
       <Footer />
