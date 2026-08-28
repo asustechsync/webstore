@@ -62,4 +62,3 @@ export function PerfilForm({ perfil }: { perfil: { nombre: string; apellidoPater
     <button className={styles.botonPrimario} type="submit" disabled={pendiente}>{pendiente ? "Guardando..." : "Guardar cambios"}</button>
   </form>;
 }
-
