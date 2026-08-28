@@ -287,7 +287,7 @@
 .nav {
   display: flex;
   flex-direction: column;
-  gap: var(--espacio-3);
+  gap: var(--espacio-1);
   min-width: 0;
 }
 
@@ -316,24 +316,15 @@
   display: inline-flex;
   flex: 1 1 8rem;
   align-items: center;
-  justify-content: center;
-  gap: var(--espacio-2);
+  justify-content: flex-start;
   min-height: var(--control-alto);
-  padding: var(--espacio-2) var(--espacio-3);
+  padding: var(--espacio-1) var(--espacio-3);
   border-radius: var(--radio-borde);
   color: var(--color-texto-suave);
   font-size: var(--texto-sm);
   white-space: nowrap;
   text-decoration: none;
   transition: background-color var(--transicion-rapida), border-color var(--transicion-rapida), color var(--transicion-rapida);
-}
-
-.navPunto {
-  width: 0.35rem;
-  height: 0.35rem;
-  flex-shrink: 0;
-  border: 1px solid currentColor;
-  border-radius: 50%;
 }
 
 .navEnlace:hover,
@@ -344,11 +335,6 @@
 
 .navEnlaceActivo {
   font-weight: var(--peso-medio);
-}
-
-.navEnlaceActivo .navPunto {
-  border-color: var(--color-texto);
-  background: var(--color-texto);
 }
 
 .sidebarSalir {
@@ -749,7 +735,8 @@
 .cuentaVinculada small.vinculadaActiva { color: var(--estado-exito); }
 .estadoVinculada { display: flex; align-items: center; gap: var(--espacio-2); }
 .estadoVinculada { display: flex; align-items: center; gap: var(--espacio-2); }
-.botonVincular { padding: 0.35rem 0.6rem; border: 1px solid var(--color-borde); border-radius: var(--radio-sm); background: transparent; color: var(--texto-principal); cursor: pointer; font: inherit; font-size: var(--texto-xs); }
+.botonVincular { display: grid; width: 2rem; height: 2rem; padding: 0; place-items: center; border: 1px solid var(--color-borde); border-radius: var(--radio-sm); background: transparent; color: var(--texto-principal); cursor: pointer; font: inherit; font-size: var(--texto-base); }
+.botonVincular svg { width: 1rem; height: 1rem; fill: currentColor; }
 .botonVincular:hover, .botonVincular:focus-visible { border-color: var(--control-borde-hover); background: var(--superficie-suave); outline: none; }
 .botonVincular:disabled { cursor: wait; opacity: 0.6; }
 

@@ -1,6 +1,7 @@
 .contenedor {
   display: grid;
-  grid-template-columns: 0.8fr 1.25fr 1fr;
+  grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.25fr) minmax(0, 1fr);
   gap: var(--espacio-1);
+  min-width: 0;
   width: 100%;
 }

@@ -2,6 +2,7 @@
 
 .control {
   display: flex;
+  min-width: 0;
   width: 100%;
   height: var(--control-alto);
   align-items: center;
