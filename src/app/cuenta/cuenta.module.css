@@ -86,6 +86,11 @@
   display: none;
 }
 
+.cabeceraMovilCuenta,
+.volverTiendaMovil {
+  display: none;
+}
+
 .resumenMovil {
   display: none;
 }
@@ -384,6 +389,10 @@
   display: none;
 }
 
+.cabeceraSubpaginaMovil {
+  display: none;
+}
+
 .tarjeta,
 .acceso,
 .resumenNumero,
@@ -660,7 +669,7 @@
   margin-bottom: var(--espacio-4);
 }
 
-.campo span {
+.campo > span {
   font-size: var(--texto-sm);
   font-weight: var(--peso-medio);
 }
@@ -674,6 +683,10 @@
 .campo input[readonly] {
   background: var(--superficie-suave);
   color: var(--texto-secundario);
+}
+
+.formularioPerfil input::placeholder {
+  color: color-mix(in srgb, var(--texto-secundario) 60%, transparent);
 }
 
 .campoConIcono {
@@ -960,8 +973,40 @@
     display: block;
     margin: 0;
     color: var(--color-texto);
-    font-size: var(--texto-2xl);
+    font-size: var(--texto-xl);
     line-height: var(--interlineado-compacto);
+  }
+
+  .cabeceraMovilCuenta {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio-2);
+  }
+
+  .volverTiendaMovil {
+    display: grid;
+    flex: 0 0 auto;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-items: center;
+    margin-left: calc(var(--espacio-1) * -1);
+    border-radius: var(--radio-borde);
+    color: var(--color-texto);
+  }
+
+  .volverTiendaMovil svg {
+    width: 1.25rem;
+    height: 1.25rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .volverTiendaMovil:focus-visible {
+    outline: 2px solid var(--marca-primario);
+    outline-offset: 2px;
   }
 
   .usuarioPortada {
@@ -976,8 +1021,8 @@
   }
 
   .avatar {
-    width: 4.25rem;
-    height: 4.25rem;
+    width: 5.1rem;
+    height: 5.1rem;
     margin-top: 0;
     border-width: 0.15rem;
     border-radius: var(--radio-borde);
@@ -1008,7 +1053,9 @@
   }
 
   .usuarioMetricas {
-    display: none;
+    display: flex;
+    gap: var(--espacio-1);
+    margin-top: var(--espacio-2);
   }
 
   .formularioPerfil .campo input {
@@ -1045,6 +1092,18 @@
     border-radius: 0;
     background: transparent;
     box-shadow: none;
+  }
+
+  .tarjetaPerfil .seccionCabecera .titulo {
+    display: none;
+  }
+
+  .tarjetaPerfil .seccionCabecera {
+    margin: 0 var(--espacio-2) var(--espacio-3);
+  }
+
+  .tarjetaPerfil .seccionCabecera .descripcion {
+    margin-top: 0;
   }
 
   .resumenMovil {
@@ -1190,15 +1249,47 @@
     display: none;
   }
 
-  .volverCuentaMovil {
-    display: inline-flex;
+  .cabeceraSubpaginaMovil {
+    display: grid;
+    grid-template-columns: 2.5rem minmax(0, 1fr) 2.5rem;
     align-items: center;
-    min-height: var(--control-alto-sm);
-    margin-bottom: var(--espacio-4);
+    min-height: 2.5rem;
+    margin: calc(var(--espacio-2) * -1) 0 var(--espacio-3);
     color: var(--color-texto);
     font-size: var(--texto-sm);
     font-weight: var(--peso-medio);
+  }
+
+  .cabeceraSubpaginaMovil > span {
+    grid-column: 2;
+    overflow: hidden;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .volverCuentaMovil {
+    display: grid;
+    width: 2.5rem;
+    height: 2.5rem;
+    place-items: center;
     text-decoration: none;
+  }
+
+  .volverCuentaMovil svg {
+    width: 1.15rem;
+    height: 1.15rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 1.8;
+  }
+
+  .volverCuentaMovil:focus-visible {
+    border-radius: var(--radio-borde);
+    outline: 2px solid var(--marca-primario);
+    outline-offset: 2px;
   }
 }
 

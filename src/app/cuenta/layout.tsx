@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { getUsuarioActual } from "@/lib/auth";
 import { obtenerResumenCuenta } from "@/features/usuarios/queries";
 import { Header } from "@/components/layout/Header";
@@ -44,7 +45,14 @@ export default async function CuentaLayout({ children }: { children: React.React
         <Container>
           <CuentaShell
             sidebar={<aside className={styles.sidebar}>
-              <h1 className={styles.tituloMovil}>Mi cuenta</h1>
+              <div className={styles.cabeceraMovilCuenta}>
+                <Link href="/" className={styles.volverTiendaMovil} aria-label="Volver a la tienda">
+                  <svg aria-hidden="true" viewBox="0 0 24 24" focusable="false">
+                    <path d="m15 18-6-6 6-6" />
+                  </svg>
+                </Link>
+                <h1 className={styles.tituloMovil}>Mi cuenta</h1>
+              </div>
               <div className={styles.usuarioCard}>
                 <div className={styles.usuarioPortada} />
                 <div className={styles.usuarioCardCuerpo}>
@@ -64,8 +72,8 @@ export default async function CuentaLayout({ children }: { children: React.React
               </div>
               <div className={styles.resumenMovil} aria-label="Resumen de cuenta">
                 <div><strong>{compras}</strong><span>Pedidos</span></div>
-                <div><strong>{cuenta?._count.direcciones ?? 0}</strong><span>Direcciones</span></div>
-                <div><strong>{usuario.rol.nombre === "CLIENTE" ? "Cliente" : usuario.rol.nombre}</strong><span>Cuenta</span></div>
+                <div><strong>0</strong><span>Favoritos</span></div>
+                <div><strong>0</strong><span>Puntos</span></div>
               </div>
               <section className={styles.nivelesPremium} aria-labelledby="niveles-premium-titulo">
                 <div className={styles.nivelesPremiumCabecera}>
