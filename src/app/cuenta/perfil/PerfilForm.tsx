@@ -37,7 +37,7 @@ export function PerfilForm({ perfil }: { perfil: { nombre: string; apellidoPater
         documento: form.documento,
       });
       if (!resultado.ok) return setMensaje({ tipo: "error", texto: resultado.error });
-      setMensaje({ tipo: "exito", texto: "Tus datos se actualizaron correctamente." });
+      setMensaje({ tipo: "exito", texto: "Perfil actualizado." });
       router.refresh();
     });
   }
@@ -55,10 +55,10 @@ export function PerfilForm({ perfil }: { perfil: { nombre: string; apellidoPater
       <div className={styles.campo}><span>Fecha de nacimiento</span><DateSelectPicker value={form.fechaNacimiento} ariaLabel="Fecha de nacimiento" onChange={(fechaNacimiento) => setForm((p) => ({ ...p, fechaNacimiento }))} /></div>
       <div className={styles.campo}><span>Género</span><Select value={form.genero} ariaLabel="Género" placeholder="Selecciona una opción" onChange={(genero) => setForm((p) => ({ ...p, genero }))} options={[{ valor: "", etiqueta: "Selecciona una opción" }, { valor: "FEMENINO", etiqueta: "Femenino" }, { valor: "MASCULINO", etiqueta: "Masculino" }]} /></div>
       <div className={styles.documentoGrupo}>
-        <div className={styles.campo}><span>Tipo de documento</span><Select value={form.tipoDocumento} ariaLabel="Tipo de documento" placeholder="Selecciona" onChange={(tipoDocumento) => setForm((p) => ({ ...p, tipoDocumento }))} options={[{ valor: "", etiqueta: "Selecciona" }, { valor: "DNI", etiqueta: "DNI" }, { valor: "CE", etiqueta: "Carné de extranjería" }, { valor: "PASAPORTE", etiqueta: "Pasaporte" }]} /></div>
+        <div className={styles.campo}><span>Tipo de documento</span><Select value={form.tipoDocumento} ariaLabel="Tipo de documento" placeholder="Elegir" onChange={(tipoDocumento) => setForm((p) => ({ ...p, tipoDocumento }))} options={[{ valor: "", etiqueta: "Elegir" }, { valor: "DNI", etiqueta: "DNI" }, { valor: "CE", etiqueta: "Carné de extranjería", etiquetaMovil: "C.E." }, { valor: "PASAPORTE", etiqueta: "Pasaporte", etiquetaMovil: "PAS" }]} /></div>
         <label className={styles.campo}><span>Número de documento</span><input value={form.documento} maxLength={20} placeholder={form.tipoDocumento === "DNI" ? "8 dígitos" : "N.º de documento"} onChange={(e) => setForm((p) => ({ ...p, documento: e.target.value.replace(/[^a-zA-Z0-9-]/g, "").slice(0, 20) }))} /></label>
       </div>
     </div>
-    <button className={styles.botonPrimario} type="submit" disabled={pendiente}>{pendiente ? "Guardando..." : "Guardar cambios"}</button>
+    <button className={styles.botonSecundario} type="submit" disabled={pendiente}>{pendiente ? "Guardando..." : "Guardar cambios"}</button>
   </form>;
 }

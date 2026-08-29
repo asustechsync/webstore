@@ -30,6 +30,7 @@
 .control:disabled { cursor: not-allowed; opacity: 0.6; }
 .placeholder { color: var(--control-placeholder); }
 .valor { display: inline-flex; min-width: 0; align-items: center; gap: var(--espacio-2); }
+.etiquetaMovil { display: none; }
 
 .flecha {
   width: 1rem;
@@ -109,3 +110,8 @@
 .opcion:hover,
 .opcion:focus-visible { outline: none; background: var(--superficie-suave); }
 .opcionActiva { background: color-mix(in srgb, var(--texto-secundario) 9%, var(--control-fondo)); font-weight: var(--peso-medio); }
+
+@media (max-width: 40rem) {
+  .etiquetaEscritorio { display: none; }
+  .etiquetaMovil { display: inline; }
+}

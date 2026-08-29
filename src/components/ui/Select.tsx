@@ -3,7 +3,7 @@
 import { useEffect, useId, useRef, useState, type ReactNode } from "react";
 import styles from "./Select.module.css";
 
-export type OpcionSelect = { valor: string; etiqueta: string; icono?: ReactNode };
+export type OpcionSelect = { valor: string; etiqueta: string; etiquetaMovil?: string; icono?: ReactNode };
 
 type SelectProps = {
   value: string;
@@ -95,12 +95,12 @@ export function Select({ value, onChange, options, placeholder = "Selecciona una
 
   return <div ref={contenedor} className={styles.contenedor} onKeyDown={manejarTecla}>
     <button type="button" className={`${styles.control} ${abierto ? styles.controlAbierto : ""} ${className ?? ""}`} aria-label={ariaLabel} aria-haspopup="listbox" aria-expanded={abierto} aria-controls={listaId} disabled={disabled} onClick={() => setAbierto((estado) => !estado)}>
-      <span className={`${styles.valor} ${seleccionada ? "" : styles.placeholder}`}>{seleccionada?.icono}{seleccionada?.etiqueta ?? placeholder}</span>
+      <span className={`${styles.valor} ${seleccionada ? "" : styles.placeholder}`}>{seleccionada?.icono}{seleccionada && <><span className={styles.etiquetaEscritorio}>{seleccionada.etiqueta}</span><span className={styles.etiquetaMovil}>{seleccionada.etiquetaMovil ?? seleccionada.etiqueta}</span></>}{!seleccionada && placeholder}</span>
       <svg className={styles.flecha} viewBox="0 0 24 24" aria-hidden="true"><path d="m6 9 6 6 6-6" /></svg>
     </button>
     {abierto && <div ref={lista} id={listaId} className={styles.menu} role="listbox" aria-label={ariaLabel}>
       {buscable && <input ref={entradaBusqueda} className={styles.busqueda} value={termino} onChange={(evento) => setTermino(evento.target.value)} onKeyDown={(evento) => evento.stopPropagation()} placeholder="Número" aria-label={`Buscar ${ariaLabel.toLocaleLowerCase()}`} inputMode="tel" />}
-      {opcionesVisibles.map((opcion) => <button key={opcion.valor} data-valor={opcion.valor} type="button" role="option" aria-selected={opcion.valor === value} className={opcion.valor === resaltada ? `${styles.opcion} ${styles.opcionActiva}` : styles.opcion} onClick={() => seleccionar(opcion.valor)}>{opcion.icono}{opcion.etiqueta}</button>)}
+      {opcionesVisibles.map((opcion) => <button key={opcion.valor} data-valor={opcion.valor} type="button" role="option" aria-selected={opcion.valor === value} className={opcion.valor === resaltada ? `${styles.opcion} ${styles.opcionActiva}` : styles.opcion} onClick={() => seleccionar(opcion.valor)}>{opcion.icono}<span className={styles.etiquetaEscritorio}>{opcion.etiqueta}</span><span className={styles.etiquetaMovil}>{opcion.etiquetaMovil ?? opcion.etiqueta}</span></button>)}
       {termino.trim() && opcionesVisibles.length === 0 && <p className={styles.sinResultados}>Sin datos</p>}
     </div>}
   </div>;

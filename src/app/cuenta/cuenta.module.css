@@ -689,6 +689,19 @@
   color: color-mix(in srgb, var(--texto-secundario) 60%, transparent);
 }
 
+.formularioPerfil input:not([readonly]):hover {
+  border-color: var(--control-borde-hover);
+  background: #f7fafb;
+}
+
+.formularioPerfil input:not([readonly]):focus,
+.formularioPerfil input:not([readonly]):focus-visible {
+  border-color: color-mix(in srgb, var(--control-focus) 68%, var(--control-borde));
+  background: #edf4f7;
+  box-shadow: var(--control-sombra-focus);
+  outline: none;
+}
+
 .campoConIcono {
   position: relative;
 }
@@ -814,6 +827,17 @@
 
 .botonSecundario {
   composes: botonSecundario from "../../styles/ui.module.css";
+}
+
+.formularioPerfil .botonSecundario {
+  border-color: #cedbe2;
+  background: #f1f5f7;
+  color: #526c7b;
+}
+
+.formularioPerfil .botonSecundario:hover:not(:disabled) {
+  border-color: #bdcfd9;
+  background: #e8eff2;
 }
 
 .botonTexto {
@@ -1076,7 +1100,7 @@
 
   .formularioPerfil .documentoGrupo {
     display: grid;
-    grid-template-columns: minmax(7.5rem, 0.8fr) minmax(0, 1.2fr);
+    grid-template-columns: minmax(5.75rem, 6.5rem) minmax(0, 1fr);
     gap: 0 var(--espacio-2);
   }
 
