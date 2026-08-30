@@ -7,7 +7,6 @@ import { Footer } from "@/components/layout/Footer";
 import { Container } from "@/components/ui/Container";
 import { CuentaNav } from "./CuentaNav";
 import { CuentaShell } from "./CuentaShell";
-import { CerrarSesionBoton } from "./CerrarSesionBoton";
 import { formatearNombreUbicacion } from "@/lib/ubicaciones";
 import styles from "./cuenta.module.css";
 
@@ -93,14 +92,13 @@ export default async function CuentaLayout({ children }: { children: React.React
                 </article>
               </section>
               <CuentaNav />
-              <div className={styles.sidebarSalir}><CerrarSesionBoton /></div>
             </aside>}
           >
             {children}
           </CuentaShell>
         </Container>
       </main>
-      <Footer />
+      <Footer ocultarEnMovil />
     </>
   );
 }

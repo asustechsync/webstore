@@ -9,3 +9,9 @@
   font-size: var(--texto-sm);
   color: var(--color-texto-suave);
 }
+
+@media (max-width: 899px) {
+  .ocultarEnMovil {
+    display: none;
+  }
+}

@@ -4,7 +4,13 @@ import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
 
-export function CerrarSesionBoton() {
+export function CerrarSesionBoton({
+  className,
+  children = "Cerrar sesión",
+}: {
+  className?: string;
+  children?: React.ReactNode;
+}) {
   const router = useRouter();
 
   async function cerrarSesion() {
@@ -15,8 +21,8 @@ export function CerrarSesionBoton() {
   }
 
   return (
-    <Button variante="secundario" onClick={cerrarSesion}>
-      Cerrar sesión
+    <Button variante="peligro" className={className} onClick={cerrarSesion}>
+      {children}
     </Button>
   );
 }

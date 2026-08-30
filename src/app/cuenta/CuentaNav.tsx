@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import styles from "./cuenta.module.css";
+import { CerrarSesionBoton } from "./CerrarSesionBoton";
 
 const ENLACES = [
   { href: "/cuenta/perfil", etiqueta: "Mi perfil", icono: "perfil" },
@@ -30,6 +31,11 @@ export function CuentaNav() {
           <span className={styles.navFlecha} aria-hidden="true" />
         </Link>;
       })}
+      <CerrarSesionBoton className={styles.navCerrarSesion}>
+        <IconoNav tipo="salir" />
+        <span><strong>Cerrar sesión</strong></span>
+        <span className={styles.navFlecha} aria-hidden="true" />
+      </CerrarSesionBoton>
     </nav>
   );
 }

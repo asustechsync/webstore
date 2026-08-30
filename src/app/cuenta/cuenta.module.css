@@ -367,6 +367,35 @@
 .navIconoSeguridad { -webkit-mask-image: url("/icons/iconsax/shield-tick.svg"); mask-image: url("/icons/iconsax/shield-tick.svg"); }
 .navIconoConfiguracion { -webkit-mask-image: url("/icons/iconsax/setting.svg"); mask-image: url("/icons/iconsax/setting.svg"); }
 .navFlecha { -webkit-mask-image: url("/icons/iconsax/arrow-right4.svg"); mask-image: url("/icons/iconsax/arrow-right4.svg"); }
+.navIconoSalir { -webkit-mask-image: url("/icons/iconsax/arrow-right4.svg"); mask-image: url("/icons/iconsax/arrow-right4.svg"); }
+
+.navCerrarSesion {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  min-height: var(--control-alto);
+  padding: var(--espacio-1) var(--espacio-3);
+  border: 0;
+  border-radius: var(--radio-borde);
+  background: transparent;
+  color: var(--estado-error);
+  font: inherit;
+  font-size: var(--texto-sm);
+  text-align: left;
+  box-shadow: none;
+}
+
+.navCerrarSesion:hover,
+.navCerrarSesion:focus-visible {
+  background: color-mix(in srgb, var(--estado-error) 6%, var(--color-bg));
+  color: var(--estado-error);
+  outline: none;
+}
+
+.navCerrarSesion .navIcono,
+.navCerrarSesion .navFlecha {
+  display: none;
+}
 
 .navEnlace > span {
   min-width: 0;
@@ -986,11 +1015,12 @@
 
 @media (max-width: 899px) {
   .principal {
-    padding-top: var(--espacio-5);
+    padding-top: var(--espacio-3);
+    padding-bottom: var(--espacio-5);
   }
 
   .sidebar {
-    gap: var(--espacio-4);
+    gap: var(--espacio-3);
   }
 
   .tituloMovil {
@@ -1041,7 +1071,7 @@
     display: flex;
     align-items: center;
     gap: var(--espacio-3);
-    padding: var(--espacio-3);
+    padding: var(--espacio-2) var(--espacio-3);
   }
 
   .avatar {
@@ -1138,7 +1168,7 @@
 
   .resumenMovil > div {
     display: grid;
-    min-height: 3.5rem;
+    min-height: 3.15rem;
     place-content: center;
     gap: 0.15rem;
     padding: var(--espacio-2);
@@ -1184,7 +1214,7 @@
     display: grid;
     grid-template-columns: 2.2rem minmax(0, 1fr) auto;
     flex: none;
-    min-height: 3.2rem;
+    min-height: 3rem;
     padding: 0.4rem var(--espacio-4);
     border-radius: 0;
     color: var(--color-texto);
@@ -1254,15 +1284,37 @@
     mask-size: contain;
   }
 
-  .sidebarSalir {
-    padding-top: 0;
-    border-top: 0;
+  .navCerrarSesion {
+    display: grid;
+    grid-template-columns: 2.2rem minmax(0, 1fr) auto;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.4rem var(--espacio-4);
+    border-top: 1px solid var(--color-borde);
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
   }
 
-  .sidebarSalir button {
-    min-height: 3.25rem;
-    border-color: color-mix(in srgb, var(--estado-error) 55%, var(--color-borde));
-    color: var(--estado-error);
+  .navCerrarSesion .navIcono,
+  .navCerrarSesion .navFlecha {
+    display: block;
+  }
+
+  .navCerrarSesion .navIcono,
+  .navCerrarSesion .navFlecha {
+    background: currentColor;
+  }
+
+  .navCerrarSesion .navIcono {
+    width: 1.25rem;
+    height: 1.25rem;
+    transform: rotate(180deg);
+  }
+
+  .navCerrarSesion .navFlecha {
+    width: 1.15rem;
+    height: 1.15rem;
   }
 
   .enSubpagina .sidebar {
