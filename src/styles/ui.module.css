@@ -94,6 +94,9 @@
   font-weight: var(--peso-medio);
   line-height: 1;
   cursor: pointer;
+  background: #f1f5f7;
+  color: #526c7b;
+  border-color: #cedbe2;
   transition:
     opacity var(--transicion-rapida),
     background-color var(--transicion-rapida),
@@ -107,8 +110,9 @@
 
 .botonPrimario {
   composes: boton;
-  background: var(--boton-primario-fondo);
-  color: var(--boton-primario-texto);
+  background: #f1f5f7;
+  color: #526c7b;
+  border-color: #cedbe2;
 }
 
 .botonSecundario {
@@ -116,6 +120,17 @@
   background: var(--boton-secundario-fondo);
   color: var(--boton-secundario-texto);
   border-color: var(--borde-sutil);
+}
+
+.boton:hover:not(:disabled),
+.boton:focus-visible,
+.botonPrimario:hover:not(:disabled),
+.botonPrimario:focus-visible,
+.botonSecundario:hover:not(:disabled),
+.botonSecundario:focus-visible {
+  border-color: #bdcfd9;
+  background: #e8eff2;
+  outline: none;
 }
 
 .botonPeligro {

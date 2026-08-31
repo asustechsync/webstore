@@ -19,7 +19,7 @@ export const obtenerResumenCuenta = cache(async (usuarioId: string) => {
       direcciones: {
         orderBy: [{ predeterminada: "desc" }, { creadoEn: "desc" }],
         take: 1,
-        select: { provincia: true },
+        select: { distrito: true, provincia: true },
       },
     },
   });

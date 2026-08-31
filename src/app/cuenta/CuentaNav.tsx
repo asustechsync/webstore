@@ -34,7 +34,6 @@ export function CuentaNav() {
       <CerrarSesionBoton className={styles.navCerrarSesion}>
         <IconoNav tipo="salir" />
         <span><strong>Cerrar sesión</strong></span>
-        <span className={styles.navFlecha} aria-hidden="true" />
       </CerrarSesionBoton>
     </nav>
   );

@@ -9,7 +9,7 @@ export default async function CuentaDireccionesPage() {
   const direcciones = await db.direccion.findMany({ where: { usuarioId: usuario.id }, orderBy: [{ predeterminada: "desc" }, { creadoEn: "desc" }] });
 
   return (
-    <section className={styles.tarjeta}>
+    <section className={`${styles.tarjeta} ${styles.tarjetaDirecciones}`}>
       <DireccionesPanel direcciones={direcciones.map((direccion) => ({ ...direccion, codigoPostal: direccion.codigoPostal ?? "", referencia: direccion.referencia ?? "" }))} />
     </section>
   );

@@ -33,7 +33,9 @@ export default async function CuentaLayout({ children }: { children: React.React
     .filter(Boolean)
     .join(" ");
   const direccionPrincipal = cuenta?.direcciones[0];
-  const ubicacion = direccionPrincipal ? `${formatearNombreUbicacion(direccionPrincipal.provincia)}, PE` : "Ubicación no registrada";
+  const ubicacion = direccionPrincipal
+    ? `${formatearNombreUbicacion(direccionPrincipal.distrito)}, ${formatearNombreUbicacion(direccionPrincipal.provincia)}`
+    : "Ubicación no registrada";
   const compras = cuenta?._count.pedidos ?? 0;
   const nivelActual = [...nivelesPremium].reverse().find((nivel) => compras >= nivel.minimo) ?? nivelesPremium[0];
 

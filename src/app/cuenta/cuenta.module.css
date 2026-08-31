@@ -367,7 +367,7 @@
 .navIconoSeguridad { -webkit-mask-image: url("/icons/iconsax/shield-tick.svg"); mask-image: url("/icons/iconsax/shield-tick.svg"); }
 .navIconoConfiguracion { -webkit-mask-image: url("/icons/iconsax/setting.svg"); mask-image: url("/icons/iconsax/setting.svg"); }
 .navFlecha { -webkit-mask-image: url("/icons/iconsax/arrow-right4.svg"); mask-image: url("/icons/iconsax/arrow-right4.svg"); }
-.navIconoSalir { -webkit-mask-image: url("/icons/iconsax/arrow-right4.svg"); mask-image: url("/icons/iconsax/arrow-right4.svg"); }
+.navIconoSalir { -webkit-mask-image: url("/icons/iconsax/logout2.svg"); mask-image: url("/icons/iconsax/logout2.svg"); }
 
 .navCerrarSesion {
   display: inline-flex;
@@ -686,6 +686,13 @@
   font-size: var(--texto-base);
 }
 
+.accionesDireccion {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-3);
+  margin-top: var(--espacio-4);
+}
+
 .formGrid {
   display: grid;
   gap: 0 var(--espacio-4);
@@ -856,17 +863,6 @@
 
 .botonSecundario {
   composes: botonSecundario from "../../styles/ui.module.css";
-}
-
-.formularioPerfil .botonSecundario {
-  border-color: #cedbe2;
-  background: #f1f5f7;
-  color: #526c7b;
-}
-
-.formularioPerfil .botonSecundario:hover:not(:disabled) {
-  border-color: #bdcfd9;
-  background: #e8eff2;
 }
 
 .botonTexto {
@@ -1120,6 +1116,13 @@
     padding-inline: var(--espacio-2);
   }
 
+  .formularioDireccion {
+    padding-inline: var(--espacio-2);
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
   .formularioPerfil .campo > span {
     display: none;
   }
@@ -1142,6 +1145,14 @@
 
   .tarjetaPerfil {
     padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .tarjetaDirecciones {
+    padding: 0 var(--espacio-2) var(--espacio-4);
     border: 0;
     border-radius: 0;
     background: transparent;
