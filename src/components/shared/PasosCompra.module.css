@@ -1,0 +1,68 @@
+/* Guía de pasos de la compra. Solo distribución: los colores salen de los
+   tokens, igual que el resto de la tienda. */
+
+.pasos {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  margin: 0 0 var(--espacio-6);
+}
+
+.paso {
+  position: relative;
+  display: flex;
+  flex: 0 1 9rem;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-1);
+  text-align: center;
+}
+
+/* La línea nace del círculo de un paso y muere en el del siguiente. */
+.paso:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 0.875rem;
+  left: calc(50% + 1.25rem);
+  right: calc(-50% + 1.25rem);
+  height: 1px;
+  background: var(--borde-sutil);
+}
+
+.marca {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--radio-full);
+  background: var(--superficie-pagina);
+  font-size: var(--texto-2xs);
+  line-height: 1;
+}
+
+.pendiente {
+  color: var(--texto-secundario);
+}
+
+.actual {
+  border-color: var(--marca-primario);
+  background: var(--marca-primario);
+  color: var(--marca-contraste);
+  font-weight: var(--peso-semibold);
+}
+
+.hecho {
+  border-color: var(--marca-primario);
+  color: var(--texto-principal);
+}
+
+.nombre {
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.paso[aria-current] .nombre {
+  color: var(--texto-principal);
+  font-weight: var(--peso-medio);
+}

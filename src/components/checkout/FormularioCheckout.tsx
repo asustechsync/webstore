@@ -12,7 +12,12 @@ import { crearPedido } from "@/features/pedidos/actions";
 import departamentosData from "@/data/ubigeos/1_ubigeo_departamentos.json";
 import provinciasData from "@/data/ubigeos/2_ubigeo_provincias.json";
 import distritosData from "@/data/ubigeos/3_ubigeo_distritos.json";
-import { calcularSubtotal, contarUnidades, useCartStore } from "@/store/cartStore";
+import {
+  calcularSubtotal,
+  contarUnidades,
+  filtrarSeleccionados,
+  useCartStore,
+} from "@/store/cartStore";
 import { formatearPrecio } from "@/lib/utils";
 import styles from "./checkout.module.css";
 
@@ -52,10 +57,15 @@ export function FormularioCheckout({
   contacto: { nombre: string; telefono: string };
 }) {
   const router = useRouter();
-  const items = useCartStore((estado) => estado.items);
+  const todos = useCartStore((estado) => estado.items);
+  const seleccionados = useCartStore((estado) => estado.seleccionados);
   const cupon = useCartStore((estado) => estado.cupon);
-  const vaciar = useCartStore((estado) => estado.vaciar);
+  const quitarItems = useCartStore((estado) => estado.quitarItems);
+  const quitarCupon = useCartStore((estado) => estado.quitarCupon);
   const hidratado = useCarritoHidratado();
+
+  // Se paga lo que quedó marcado en el carrito; el resto sigue esperando ahí.
+  const items = filtrarSeleccionados(todos, seleccionados);
 
   // Con direcciones guardadas se parte de la predeterminada; si no, se
   // completa una nueva sin salir del checkout.
@@ -68,6 +78,10 @@ export function FormularioCheckout({
   const [metodoPago, setMetodoPago] = useState<string>(METODOS_PAGO[0].clave);
   const [error, setError] = useState<string | null>(null);
   const [enviando, iniciar] = useTransition();
+  // El pedido ya se creó y estamos yendo a su página. Se marca antes de
+  // vaciar el carrito para no repintar "No hay nada que pagar" en el
+  // instante entre que las líneas se quitan y la navegación termina.
+  const [pedidoListo, setPedidoListo] = useState(false);
 
   const usandoNueva = direccionId === "nueva";
   const guardada = direcciones.find((item) => item.id === direccionId) ?? null;
@@ -125,12 +139,18 @@ export function FormularioCheckout({
         return;
       }
 
-      vaciar();
+      setPedidoListo(true);
+      // Solo salen del carrito las líneas que acaban de comprarse.
+      quitarItems(items.map((item) => item.varianteId));
+      // El cupón ya se usó en este pedido (el servidor incrementó sus usos):
+      // no debe seguir aplicado a lo que quede en el carrito ni a la próxima
+      // compra.
+      if (cupon) quitarCupon();
       router.push(`/pedido/${resultado.datos.id}?nuevo=1`);
     });
   }
 
-  if (!hidratado) {
+  if (!hidratado || pedidoListo) {
     return <p className={styles.cargando}>Cargando tu pedido…</p>;
   }
 

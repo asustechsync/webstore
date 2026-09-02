@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { CarritoContenido } from "@/components/carrito/CarritoContenido";
+import { PasosCompra } from "@/components/shared/PasosCompra";
 
 export const metadata: Metadata = {
   title: "Carrito",
@@ -12,6 +13,7 @@ export default function CarritoPage() {
   return (
     <main>
       <Container>
+        <PasosCompra actual={1} />
         <PageHeader titulo="Carrito" descripcion="Revisa tu pedido antes de pagar" />
         <CarritoContenido />
       </Container>

@@ -5,6 +5,7 @@ import { EstadoPedido, MetodoPago } from "@prisma/client";
 import { db } from "@/lib/db";
 import { requirePermiso, requireUsuarioActual } from "@/lib/auth";
 import { ejecutar } from "@/lib/acciones";
+import { precioEfectivo } from "@/features/carrito/revision";
 import { calcularDescuentoCupon } from "@/features/cupones/calculo";
 import { buscarCuponVigente } from "@/features/cupones/servidor";
 import { crearPedidoSchema, type CrearPedidoInput } from "./schemas";
@@ -23,16 +24,20 @@ export async function cambiarEstadoPedido(id: string, estado: EstadoPedido) {
   });
 }
 
-/** Precio que realmente se cobra: la oferta del producto gana si es menor. */
-function precioEfectivo(variante: {
+/**
+ * Precio que realmente se cobra, traducido desde los decimales de Prisma. La
+ * regla es la misma que revisa el carrito, para que el importe que se muestra
+ * antes de pagar y el que se cobra salgan de la misma cuenta.
+ */
+function precioDeVariante(variante: {
   precio: unknown;
   producto: { precio: unknown; precioOferta: unknown };
 }) {
-  const base = Number(variante.precio ?? variante.producto.precio);
-  const oferta = variante.producto.precioOferta;
-  if (oferta == null) return base;
-  const rebajado = Number(oferta);
-  return rebajado < base ? rebajado : base;
+  return precioEfectivo(
+    variante.precio != null ? Number(variante.precio) : null,
+    Number(variante.producto.precio),
+    variante.producto.precioOferta != null ? Number(variante.producto.precioOferta) : null,
+  );
 }
 
 /**
@@ -71,7 +76,7 @@ export async function crearPedido(datos: CrearPedidoInput) {
       return {
         varianteId: variante.id,
         cantidad: item.cantidad,
-        precioUnit: precioEfectivo(variante),
+        precioUnit: precioDeVariante(variante),
         costoUnit: variante.costo != null ? Number(variante.costo) : variante.producto.costo != null ? Number(variante.producto.costo) : null,
       };
     });

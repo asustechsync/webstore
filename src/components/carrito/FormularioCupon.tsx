@@ -39,6 +39,12 @@ export function FormularioCupon({ subtotal }: { subtotal: number }) {
 
   if (cupon) {
     const falta = faltaParaMinimo(cupon, subtotal);
+    // Cuánto del monto mínimo ya cubre el carrito; con la barra se ve de un
+    // vistazo si conviene sumar una unidad más para que el cupón entre.
+    const avance =
+      cupon.montoMinimo && cupon.montoMinimo > 0
+        ? Math.min(Math.round((subtotal / cupon.montoMinimo) * 100), 100)
+        : 100;
 
     return (
       <div className={styles.cuponAplicado}>
@@ -60,10 +66,24 @@ export function FormularioCupon({ subtotal }: { subtotal: number }) {
         </div>
 
         {falta > 0 ? (
-          <p className={styles.cuponAviso}>
-            Agrega {formatearPrecio(falta)} para usar este cupón.
-          </p>
-        ) : null}
+          <>
+            <p className={styles.cuponAviso}>
+              Agrega {formatearPrecio(falta)} para usar este cupón.
+            </p>
+            <div
+              className={styles.cuponBarra}
+              role="progressbar"
+              aria-label="Avance hacia el mínimo del cupón"
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-valuenow={avance}
+            >
+              <span className={styles.cuponBarraRelleno} style={{ width: `${avance}%` }} />
+            </div>
+          </>
+        ) : (
+          <p className={styles.cuponListo}>Descuento aplicado a tu total.</p>
+        )}
       </div>
     );
   }

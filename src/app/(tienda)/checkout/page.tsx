@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { FormularioCheckout } from "@/components/checkout/FormularioCheckout";
+import { PasosCompra } from "@/components/shared/PasosCompra";
 import { getUsuarioActual } from "@/lib/auth";
 import { db } from "@/lib/db";
 
@@ -32,6 +33,7 @@ export default async function CheckoutPage() {
   return (
     <main>
       <Container>
+        <PasosCompra actual={2} />
         <PageHeader titulo="Checkout" descripcion="Confirma tu envío y cómo prefieres pagar" />
         <FormularioCheckout
           direcciones={direcciones.map((direccion) => ({

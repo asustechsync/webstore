@@ -7,10 +7,68 @@
   align-items: start;
 }
 
+.columna {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
 .cargando {
   margin: var(--espacio-6) 0;
   color: var(--texto-secundario);
   font-size: var(--texto-sm);
+}
+
+/* ── Selección del pedido ──
+   Cabecera al estilo de un checkout: cuántas líneas van a pagarse y las dos
+   acciones que se aplican a todas ellas de una vez. */
+
+.seleccion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}
+
+.seleccionTodo {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  cursor: pointer;
+}
+
+.seleccionTodo input,
+.itemMarca {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--marca-primario);
+  cursor: pointer;
+}
+
+.seleccionAcciones {
+  display: flex;
+  gap: var(--espacio-4);
+}
+
+.seleccionAccion {
+  border: 0;
+  background: none;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  cursor: pointer;
+}
+
+.seleccionAccion:hover:not(:disabled) {
+  color: var(--texto-principal);
+  text-decoration: underline;
+}
+
+.seleccionAccion:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* ── Lista de productos ── */
@@ -18,15 +76,25 @@
 .lista {
   display: flex;
   flex-direction: column;
-  border-top: 1px solid var(--borde-sutil);
+  padding: 0 var(--espacio-4);
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--radio-lg);
 }
 
 .item {
   display: grid;
-  grid-template-columns: 4.5rem minmax(0, 1fr);
+  grid-template-columns: auto 4.5rem minmax(0, 1fr);
   gap: var(--espacio-3);
   padding: var(--espacio-4) 0;
   border-bottom: 1px solid var(--borde-sutil);
+}
+
+.item:last-child {
+  border-bottom: 0;
+}
+
+.itemMarca {
+  margin-top: var(--espacio-1);
 }
 
 .itemImagen {
@@ -59,7 +127,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0;
-  gap: var(--espacio-1);
+  gap: var(--espacio-2);
 }
 
 .itemNombre {
@@ -73,8 +141,27 @@
   text-decoration: underline;
 }
 
-.itemOpciones,
-.itemUnitario {
+/* Talla, color y forma de envío: los datos que distinguen una línea de otra. */
+.itemEtiquetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+}
+
+.itemEtiqueta {
+  display: inline-flex;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 var(--espacio-2);
+  border-radius: var(--radio-full);
+  background: var(--superficie-suave);
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.itemOpciones {
   margin: 0;
   color: var(--texto-secundario);
   font-size: var(--texto-xs);
@@ -101,16 +188,40 @@
   color: var(--estado-error);
 }
 
+.itemQuitar svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
 .itemAcciones {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--espacio-3);
 }
 
-.itemTotal {
+.itemPrecio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--espacio-2);
+  margin: 0;
   font-size: var(--texto-base);
   font-weight: var(--peso-semibold);
+}
+
+.itemPrecioAnterior {
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-normal);
+  text-decoration: line-through;
+}
+
+.itemUnitario {
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-normal);
 }
 
 /* ── Selector de cantidad ── */
@@ -141,60 +252,306 @@
   cursor: not-allowed;
 }
 
+/* La cantidad también se escribe: es más rápido que pulsar diez veces. */
 .cantidadValor {
-  min-width: 2.5rem;
+  width: 2.75rem;
+  border: 0;
+  background: none;
+  color: var(--texto-principal);
+  font: inherit;
   font-size: var(--texto-sm);
   font-variant-numeric: tabular-nums;
   text-align: center;
 }
 
-/* ── Pie de la lista ── */
-
-.piePista {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: var(--espacio-4);
+.cantidadValor:focus-visible {
+  border-radius: var(--radio-sm);
+  outline: 2px solid var(--control-focus);
+  outline-offset: -2px;
 }
 
-.vaciar {
+.cantidadValor:disabled {
+  opacity: 0.35;
+}
+
+/* Estado de la revisión: discreto, porque la buena noticia es que no hay
+   nada que hacer. */
+.estadoRevision {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  text-align: right;
+}
+
+/* ── Avisos de la revisión contra el catálogo ── */
+
+/* Un solo bloque para todos los cambios, con la corrección al lado: quien
+   compra no tiene que interpretar línea por línea qué hacer. */
+.revision {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) var(--espacio-4);
+  border: 1px solid color-mix(in srgb, var(--estado-advertencia) 35%, var(--borde-sutil));
+  border-radius: var(--radio-lg);
+  background: color-mix(in srgb, var(--estado-advertencia) 6%, var(--superficie-pagina));
+}
+
+.revisionIcono {
+  --icono-tamano: 1.125rem;
+  flex: 0 0 auto;
+  color: var(--estado-advertencia);
+}
+
+.revisionTexto {
+  flex: 1 1 12rem;
+  min-width: 0;
+}
+
+.revisionTitulo {
+  margin: 0;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+}
+
+.revisionDetalle {
+  margin: var(--espacio-1) 0 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.revisionError {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.revisionReintentar {
+  border: 0;
+  background: none;
+  color: var(--texto-principal);
+  font: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── Avisos dentro de una línea ── */
+
+.itemInactivo .itemImagen,
+.itemInactivo .itemTextos,
+.itemInactivo .itemPrecio {
+  opacity: 0.5;
+}
+
+.itemAvisos {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  font-size: var(--texto-xs);
+}
+
+.itemAviso {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-1);
+  color: var(--estado-advertencia);
+}
+
+.itemAvisoIcono {
+  --icono-tamano: 0.875rem;
+  flex: 0 0 auto;
+}
+
+.itemNota {
+  color: var(--texto-secundario);
+}
+
+.itemGuardar {
+  align-self: flex-start;
+  padding: 0;
   border: 0;
   background: none;
   color: var(--texto-secundario);
+  font: inherit;
   font-size: var(--texto-xs);
   cursor: pointer;
 }
 
-.vaciar:hover {
-  color: var(--estado-error);
+.itemGuardar:hover {
+  color: var(--texto-principal);
   text-decoration: underline;
 }
 
-/* ── Resumen ── */
+/* ── Deshacer ── */
+
+.deshacer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-4);
+  padding: var(--espacio-3) var(--espacio-4);
+  border-radius: var(--radio-lg);
+  background: var(--marca-primario);
+  color: var(--marca-contraste);
+  font-size: var(--texto-sm);
+}
+
+.deshacerMensaje {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.deshacerBoton {
+  flex: 0 0 auto;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  font-weight: var(--peso-semibold);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* ── Guardados para después ── */
+
+.guardados {
+  padding-top: var(--espacio-4);
+  border-top: 1px solid var(--borde-sutil);
+}
+
+.guardadosTitulo {
+  composes: seccionTitulo from "@/styles/ui.module.css";
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+.guardadosCuenta {
+  composes: badge from "@/styles/ui.module.css";
+}
+
+.guardadosLista {
+  display: flex;
+  flex-direction: column;
+  margin-top: var(--espacio-3);
+}
+
+.guardado {
+  display: grid;
+  grid-template-columns: 3rem minmax(0, 1fr);
+  gap: var(--espacio-3);
+  padding: var(--espacio-3) 0;
+  border-bottom: 1px solid var(--borde-sutil);
+}
+
+.guardadoImagen {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+  border-radius: var(--radio-borde);
+  background: var(--superficie-suave);
+}
+
+.guardadoTextos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--espacio-1);
+}
+
+.guardadoAcciones {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  grid-column: 2;
+}
+
+.guardadoMover {
+  min-height: var(--control-alto-sm);
+  padding: 0 var(--espacio-3);
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--radio-full);
+  background: var(--superficie-elevada);
+  color: var(--texto-principal);
+  font-size: var(--texto-xs);
+  cursor: pointer;
+  transition: background-color var(--transicion-rapida);
+}
+
+.guardadoMover:hover {
+  background: var(--superficie-suave);
+}
+
+/* ── Resumen ──
+   Tres bloques con su propio título: cupones, envío y detalle del precio.
+   Cada uno es una caja independiente para poder leerlos de un vistazo. */
 
 .resumen {
-  composes: tarjeta from "@/styles/ui.module.css";
   display: flex;
   flex-direction: column;
   gap: var(--espacio-3);
 }
 
-.resumenTitulo {
-  composes: seccionTitulo from "@/styles/ui.module.css";
+.bloque {
+  min-width: 0;
 }
 
-.resumenFila {
-  display: flex;
-  justify-content: space-between;
-  gap: var(--espacio-3);
-  color: var(--texto-secundario);
+.bloqueTitulo {
+  margin: 0 0 var(--espacio-2);
   font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
 }
 
-.resumenNota {
+.bloqueCaja {
+  padding: var(--espacio-4);
+  border-radius: var(--radio-lg);
+  background: var(--superficie-suave);
+}
+
+.envio {
+  background: color-mix(in srgb, var(--marca-primario) 5%, var(--superficie-suave));
+}
+
+.envioTitulo {
+  margin: 0;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+.envioDetalle {
+  margin: var(--espacio-1) 0 0;
+  color: var(--texto-secundario);
   font-size: var(--texto-xs);
 }
 
-.resumenTotal {
+.detalleCuenta {
+  margin: 0 0 var(--espacio-3);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+.detalleFila {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-2);
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.detalleProducto {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.detalleDescuento {
+  color: var(--estado-exito);
+}
+
+.detalleTotal {
   display: flex;
   justify-content: space-between;
   gap: var(--espacio-3);
@@ -204,62 +561,46 @@
   font-weight: var(--peso-semibold);
 }
 
-/* ── Indicador del encabezado ── */
+.resumenAhorro {
+  margin: 0;
+  padding: var(--espacio-2) var(--espacio-3);
+  border-radius: var(--radio-borde);
+  background: color-mix(in srgb, var(--estado-exito) 10%, transparent);
+  color: var(--estado-exito);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+  text-align: center;
+}
 
-.contador {
-  display: inline-flex;
-  align-items: center;
+.pagar {
   gap: var(--espacio-2);
 }
 
-/* La burbuja va en línea para que funcione igual en la barra de escritorio
-   y dentro del menú desplegable de móvil. */
-.burbuja {
-  display: inline-flex;
-  min-width: 1.25rem;
-  height: 1.25rem;
-  align-items: center;
-  justify-content: center;
-  padding: 0 var(--espacio-1);
-  border-radius: var(--radio-full);
-  background: var(--marca-primario);
-  color: var(--marca-contraste);
+.pagar svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.resumenBloqueo {
+  margin: 0;
+  color: var(--estado-advertencia);
+  font-size: var(--texto-xs);
+  text-align: center;
+}
+
+.resumenPagos {
+  margin: 0;
+  color: var(--texto-secundario);
   font-size: var(--texto-2xs);
-  font-weight: var(--peso-semibold);
-  line-height: 1;
-}
-
-@media (min-width: 40rem) {
-  .item {
-    grid-template-columns: 6rem minmax(0, 1fr);
-    gap: var(--espacio-4);
-  }
-}
-
-@media (min-width: 64rem) {
-  .disposicion {
-    grid-template-columns: minmax(0, 1fr) 20rem;
-    gap: var(--espacio-8);
-  }
-
-  .resumen {
-    position: sticky;
-    top: var(--espacio-4);
-  }
+  text-align: center;
 }
 
 /* ── Cupón ── */
-
-.resumenDescuento {
-  color: var(--estado-exito);
-}
 
 .cuponFormulario {
   display: flex;
   flex-direction: column;
   gap: var(--espacio-2);
-  padding-top: var(--espacio-3);
-  border-top: 1px solid var(--borde-sutil);
 }
 
 .cuponEtiquetaCampo {
@@ -288,8 +629,6 @@
   display: flex;
   flex-direction: column;
   gap: var(--espacio-2);
-  padding-top: var(--espacio-3);
-  border-top: 1px solid var(--borde-sutil);
 }
 
 .cuponEtiqueta {
@@ -301,7 +640,7 @@
   padding: var(--espacio-1) var(--espacio-1) var(--espacio-1) var(--espacio-3);
   border: 1px dashed var(--borde-sutil);
   border-radius: var(--radio-full);
-  background: var(--superficie-suave);
+  background: var(--superficie-elevada);
 }
 
 .cuponCodigo {
@@ -329,7 +668,7 @@
 }
 
 .cuponQuitar:hover {
-  background: var(--superficie-pagina);
+  background: var(--superficie-suave);
   color: var(--estado-error);
 }
 
@@ -342,4 +681,119 @@
   margin: 0;
   color: var(--estado-advertencia);
   font-size: var(--texto-xs);
+}
+
+/* ── Avance hacia el mínimo del cupón ── */
+
+.cuponBarra {
+  overflow: hidden;
+  height: 0.375rem;
+  border-radius: var(--radio-full);
+  background: var(--superficie-elevada);
+}
+
+.cuponBarraRelleno {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--estado-exito);
+  transition: width var(--transicion-rapida);
+}
+
+.cuponListo {
+  margin: 0;
+  color: var(--estado-exito);
+  font-size: var(--texto-xs);
+}
+
+/* ── Indicador del encabezado ── */
+
+.contador {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+/* La burbuja va en línea para que funcione igual en la barra de escritorio
+   y dentro del menú desplegable de móvil. */
+.burbuja {
+  display: inline-flex;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--espacio-1);
+  border-radius: var(--radio-full);
+  background: var(--marca-primario);
+  color: var(--marca-contraste);
+  font-size: var(--texto-2xs);
+  font-weight: var(--peso-semibold);
+  line-height: 1;
+}
+
+/* ── Barra de pago en móvil ──
+   Va pegada al final del contenido: acompaña el scroll del carrito y se
+   detiene antes del pie de página, sin taparlo. */
+
+.barraMovil {
+  position: sticky;
+  bottom: var(--espacio-3);
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  /* Al llegar al final del carrito la barra deja de flotar y se apoya bajo el
+     resumen; el margen evita que quede pegada a su botón de pagar. */
+  margin-top: var(--espacio-6);
+  padding: var(--espacio-2) var(--espacio-2) var(--espacio-2) var(--espacio-4);
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--radio-full);
+  background: var(--superficie-elevada);
+  box-shadow: var(--sombra-lg);
+}
+
+.barraMovilTotal {
+  display: flex;
+  flex-direction: column;
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+  line-height: var(--interlineado-compacto);
+}
+
+.barraMovilEtiqueta {
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+  font-weight: var(--peso-normal);
+}
+
+@media (min-width: 40rem) {
+  .item {
+    grid-template-columns: auto 6rem minmax(0, 1fr);
+    gap: var(--espacio-4);
+  }
+
+  .guardado {
+    grid-template-columns: 3.5rem minmax(0, 1fr) auto;
+  }
+
+  .guardadoAcciones {
+    grid-column: auto;
+  }
+}
+
+@media (min-width: 64rem) {
+  .disposicion {
+    grid-template-columns: minmax(0, 1fr) 21rem;
+    gap: var(--espacio-8);
+  }
+
+  .resumen {
+    position: sticky;
+    top: var(--espacio-4);
+  }
+
+  .barraMovil {
+    display: none;
+  }
 }

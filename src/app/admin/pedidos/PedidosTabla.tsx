@@ -1,19 +1,52 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { Fragment, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { EstadoPedido } from "@prisma/client";
 import { cambiarEstadoPedido } from "@/features/pedidos/actions";
 import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
+import { IconoFlecha } from "@/components/ui/ActionIcons";
 import styles from "../admin.module.css";
+
+type ProductoResumen = {
+  id: string;
+  nombre: string;
+  /** "Talla: M · Color: Negro"; el SKU si el pedido no guardó opciones. */
+  opciones: string;
+  cantidad: number;
+  precioUnit: string;
+  subtotal: string;
+};
+
+type ResumenPedido = {
+  subtotal: string;
+  descuento: string | null;
+  costoEnvio: string | null;
+  total: string;
+  cupon: string | null;
+  metodoPago: string;
+  envio: {
+    destinatario: string;
+    telefono: string;
+    direccion: string;
+    referencia: string;
+    distrito: string;
+    provincia: string;
+    departamento: string;
+  } | null;
+  productos: ProductoResumen[];
+};
 
 type Fila = {
   id: string;
   cliente: string;
+  correo: string;
+  telefono: string | null;
   total: string;
   estado: EstadoPedido;
   items: number;
   creadoEn: string;
+  resumen: ResumenPedido;
 };
 
 const ESTADOS: EstadoPedido[] = [
@@ -25,10 +58,13 @@ const ESTADOS: EstadoPedido[] = [
   "CANCELADO",
 ];
 
+const COLUMNAS = 7;
+
 export function PedidosTabla({ pedidos }: { pedidos: Fila[] }) {
   const router = useRouter();
   const [pendiente, iniciarTransicion] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [expandidoId, setExpandidoId] = useState<string | null>(null);
 
   function onCambiarEstado(id: string, estado: EstadoPedido) {
     setError(null);
@@ -51,6 +87,7 @@ export function PedidosTabla({ pedidos }: { pedidos: Fila[] }) {
         <table className={styles.tabla}>
           <thead>
             <tr>
+              <th />
               <th>Pedido</th>
               <th>Cliente</th>
               <th>Items</th>
@@ -60,34 +97,180 @@ export function PedidosTabla({ pedidos }: { pedidos: Fila[] }) {
             </tr>
           </thead>
           <tbody>
-            {pedidos.map((pedido) => (
-              <tr key={pedido.id}>
-                <td>{pedido.id.slice(0, 8)}</td>
-                <td>{pedido.cliente}</td>
-                <td>{pedido.items}</td>
-                <td>{pedido.total}</td>
-                <td>{pedido.creadoEn}</td>
-                <td>
-                  <SelectConFlecha
-                    className={styles.control}
-                    value={pedido.estado}
-                    disabled={pendiente}
-                    onChange={(evento) =>
-                      onCambiarEstado(pedido.id, evento.target.value as EstadoPedido)
-                    }
+            {pedidos.map((pedido) => {
+              const expandido = pedido.id === expandidoId;
+
+              return (
+                <Fragment key={pedido.id}>
+                  <tr
+                    className={expandido ? styles.filaSeleccionada : undefined}
+                    onClick={() => setExpandidoId((actual) => (actual === pedido.id ? null : pedido.id))}
+                    style={{ cursor: "pointer" }}
                   >
-                    {ESTADOS.map((estado) => (
-                      <option key={estado} value={estado}>
-                        {estado.replace("_", " ")}
-                      </option>
-                    ))}
-                  </SelectConFlecha>
-                </td>
-              </tr>
-            ))}
+                    <td>
+                      <IconoFlecha
+                        className={`${styles.filaExpandirIcono} ${expandido ? styles.filaExpandirIconoAbierta : ""}`}
+                      />
+                    </td>
+                    <td>{pedido.id.slice(0, 8)}</td>
+                    <td>{pedido.cliente}</td>
+                    <td>{pedido.items}</td>
+                    <td>{pedido.total}</td>
+                    <td>{pedido.creadoEn}</td>
+                    <td onClick={(evento) => evento.stopPropagation()}>
+                      <SelectConFlecha
+                        className={styles.control}
+                        value={pedido.estado}
+                        disabled={pendiente}
+                        onChange={(evento) =>
+                          onCambiarEstado(pedido.id, evento.target.value as EstadoPedido)
+                        }
+                      >
+                        {ESTADOS.map((estado) => (
+                          <option key={estado} value={estado}>
+                            {estado.replace("_", " ")}
+                          </option>
+                        ))}
+                      </SelectConFlecha>
+                    </td>
+                  </tr>
+
+                  {expandido && (
+                    <tr className={styles.filaVariantes}>
+                      <td colSpan={COLUMNAS}>
+                        <ResumenPedido pedido={pedido} />
+                      </td>
+                    </tr>
+                  )}
+                </Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>
     </>
+  );
+}
+
+function ResumenPedido({ pedido }: { pedido: Fila }) {
+  const { resumen } = pedido;
+
+  return (
+    <div className={styles.resumenPedido}>
+      <div className={styles.resumenPedidoColumnas}>
+        <div>
+          <h3 className={styles.resumenPedidoTitulo}>Cliente</h3>
+          <dl className={styles.previaDatos}>
+            <div>
+              <dt>Nombre</dt>
+              <dd>{pedido.cliente || "—"}</dd>
+            </div>
+            <div>
+              <dt>Correo</dt>
+              <dd>{pedido.correo}</dd>
+            </div>
+            {pedido.telefono && (
+              <div>
+                <dt>Teléfono</dt>
+                <dd>{pedido.telefono}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+
+        <div>
+          <h3 className={styles.resumenPedidoTitulo}>Envío</h3>
+          {resumen.envio ? (
+            <dl className={styles.previaDatos}>
+              <div>
+                <dt>Recibe</dt>
+                <dd>
+                  {resumen.envio.destinatario}
+                  {resumen.envio.telefono ? ` · ${resumen.envio.telefono}` : ""}
+                </dd>
+              </div>
+              <div>
+                <dt>Dirección</dt>
+                <dd>
+                  {resumen.envio.direccion}
+                  {resumen.envio.referencia ? ` · ${resumen.envio.referencia}` : ""}
+                </dd>
+              </div>
+              <div>
+                <dt>Zona</dt>
+                <dd>
+                  {[resumen.envio.distrito, resumen.envio.provincia, resumen.envio.departamento]
+                    .filter(Boolean)
+                    .join(", ")}
+                </dd>
+              </div>
+            </dl>
+          ) : (
+            <p className={styles.vacio}>Sin dirección de envío.</p>
+          )}
+        </div>
+
+        <div>
+          <h3 className={styles.resumenPedidoTitulo}>Pago</h3>
+          <dl className={styles.previaDatos}>
+            <div>
+              <dt>Método</dt>
+              <dd>{resumen.metodoPago}</dd>
+            </div>
+            {resumen.cupon && (
+              <div>
+                <dt>Cupón</dt>
+                <dd>{resumen.cupon}</dd>
+              </div>
+            )}
+          </dl>
+        </div>
+      </div>
+
+      <table className={styles.tablaVariantesProducto}>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Precio unit.</th>
+            <th>Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          {resumen.productos.map((producto) => (
+            <tr key={producto.id}>
+              <td>
+                {producto.nombre}
+                <span className={styles.resumenPedidoOpciones}>{producto.opciones}</span>
+              </td>
+              <td>{producto.cantidad}</td>
+              <td>{producto.precioUnit}</td>
+              <td>{producto.subtotal}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <dl className={styles.resumenPedidoTotales}>
+        <div>
+          <dt>Subtotal</dt>
+          <dd>{resumen.subtotal}</dd>
+        </div>
+        {resumen.descuento && (
+          <div>
+            <dt>Descuento</dt>
+            <dd>−{resumen.descuento}</dd>
+          </div>
+        )}
+        <div>
+          <dt>Envío</dt>
+          <dd>{resumen.costoEnvio ?? "Sin costo"}</dd>
+        </div>
+        <div className={styles.resumenPedidoTotalFinal}>
+          <dt>Total</dt>
+          <dd>{resumen.total}</dd>
+        </div>
+      </dl>
+    </div>
   );
 }

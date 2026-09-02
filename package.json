@@ -23,7 +23,7 @@
     "cloudinary": "^2.10.1",
     "flag-icons": "^7.5.0",
     "libphonenumber-js": "^1.13.12",
-    "next": "16.3.2",
+    "next": "^16.3.4",
     "next-cloudinary": "^6.18.8",
     "pg": "^8.23.0",
     "prisma": "^7.9.1",
@@ -40,7 +40,7 @@
     "@types/react-dom": "^19",
     "dotenv": "^17.4.2",
     "eslint": "^9",
-    "eslint-config-next": "16.3.2",
+    "eslint-config-next": "^16.3.4",
     "tsx": "^4.23.12",
     "typescript": "^5"
   },
