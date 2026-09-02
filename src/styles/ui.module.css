@@ -192,5 +192,161 @@
 }
 
 .seccion {
-  margin-bottom: var(--espacio-8);
+  margin-bottom: var(--seccion-espacio);
+}
+
+/* ── Secciones de contenido ───────────────────────────────
+   Encabezado de sección reutilizable: título, bajada opcional y un enlace
+   de "ver todo" alineado a la derecha. Lo consume el componente Section. */
+
+.seccionEncabezado {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-bottom: var(--espacio-4);
+}
+
+.seccionTitulo {
+  margin: 0;
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-semibold);
+  line-height: var(--interlineado-compacto);
+}
+
+.seccionDescripcion {
+  margin: var(--espacio-1) 0 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.seccionEnlace {
+  flex: 0 0 auto;
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  white-space: nowrap;
+}
+
+.seccionEnlace:hover {
+  color: var(--texto-principal);
+  text-decoration: underline;
+}
+
+/* ── Grillas del catálogo ─────────────────────────────────
+   El número de columnas vive en tokens.css; acá solo se arma la grilla. */
+
+.gridProductos {
+  display: grid;
+  grid-template-columns: repeat(var(--catalogo-columnas), minmax(0, 1fr));
+  gap: var(--catalogo-gap);
+}
+
+.gridCategorias {
+  display: grid;
+  grid-template-columns: repeat(var(--categoria-columnas), minmax(0, 1fr));
+  gap: var(--catalogo-gap);
+}
+
+/* ── Precios ──────────────────────────────────────────────
+   Mismo formato en tarjeta, detalle y carrito. */
+
+.precios {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+
+.precio {
+  color: var(--texto-principal);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+  line-height: 1.2;
+}
+
+.precioRebajado {
+  composes: precio;
+  color: var(--estado-error);
+}
+
+.precioAnterior {
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-normal);
+  text-decoration: line-through;
+}
+
+/* ── Etiquetas del catálogo ───────────────────────────────
+   Se apoyan sobre la imagen de la tarjeta. */
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  height: 1.375rem;
+  padding: 0 var(--espacio-2);
+  border-radius: var(--radio-full);
+  font-size: var(--texto-2xs);
+  font-weight: var(--peso-semibold);
+  letter-spacing: 0.02em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.etiquetaOferta {
+  composes: etiqueta;
+  background: var(--etiqueta-oferta-fondo);
+  color: var(--etiqueta-oferta-texto);
+}
+
+.etiquetaNuevo {
+  composes: etiqueta;
+  background: var(--etiqueta-nuevo-fondo);
+  color: var(--etiqueta-nuevo-texto);
+}
+
+/* ── Estado vacío ─────────────────────────────────────────
+   Reemplaza a los párrafos sueltos de "no hay resultados". */
+
+.vacio {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--espacio-2);
+  padding: var(--espacio-12) var(--espacio-4);
+  border: 1px dashed var(--borde-sutil);
+  border-radius: var(--radio-lg);
+  background: var(--superficie-suave);
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+  text-align: center;
+}
+
+/* ── Tipografía editorial ─────────────────────────────────
+   Piezas grandes de la portada. Se apoyan en --texto-display y en la
+   escala de la marca, sin introducir tamaños sueltos. */
+
+.etiquetaSuperior {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+  font-weight: var(--peso-medio);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+}
+
+.tituloDisplay {
+  margin: 0;
+  font-size: var(--texto-display);
+  font-weight: var(--peso-semibold);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+/* Superficie sobria: solo una línea de contorno, sin relleno ni sombra.
+   Es la base de los bloques minimalistas de la portada. */
+.contorno {
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--radio-xl);
 }

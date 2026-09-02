@@ -1,6 +1,22 @@
+import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 
 const PRODUCTOS_POR_PAGINA = 24;
+const PRODUCTOS_PORTADA = 8;
+
+/**
+ * Datos mínimos que necesita ProductoCard. Todas las consultas del catálogo
+ * lo reutilizan para que las tarjetas reciban siempre la misma forma.
+ */
+const incluirTarjeta = {
+  imagenes: { orderBy: { orden: "asc" }, take: 1 },
+  marca: true,
+  variantes: {
+    where: { activo: true },
+    orderBy: [{ color: "asc" }, { talla: "asc" }],
+    select: { id: true, sku: true, talla: true, color: true, precio: true },
+  },
+} satisfies Prisma.ProductoInclude;
 
 export async function listarProductos(opciones: {
   pagina?: number;
@@ -19,15 +35,7 @@ export async function listarProductos(opciones: {
   const [productos, total] = await Promise.all([
     db.producto.findMany({
       where,
-      include: {
-        imagenes: { orderBy: { orden: "asc" }, take: 1 },
-        marca: true,
-        variantes: {
-          where: { activo: true },
-          orderBy: [{ color: "asc" }, { talla: "asc" }],
-          select: { id: true, sku: true, talla: true, color: true, precio: true },
-        },
-      },
+      include: incluirTarjeta,
       orderBy: { creadoEn: "desc" },
       skip: (pagina - 1) * porPagina,
       take: porPagina,
@@ -40,6 +48,47 @@ export async function listarProductos(opciones: {
     total,
     totalPaginas: Math.ceil(total / porPagina),
   };
+}
+
+/** Últimos productos publicados, para la sección "Nuevos ingresos". */
+export function listarNuevosIngresos(limite = PRODUCTOS_PORTADA) {
+  return db.producto.findMany({
+    where: { activo: true },
+    include: incluirTarjeta,
+    orderBy: { creadoEn: "desc" },
+    take: limite,
+  });
+}
+
+/**
+ * Productos con precio rebajado vigente. La comparación entre columnas la
+ * resuelve la base de datos, así el límite devuelve ofertas reales.
+ */
+export function listarOfertas(limite = PRODUCTOS_PORTADA) {
+  return db.producto.findMany({
+    where: {
+      activo: true,
+      precioOferta: { not: null, lt: db.producto.fields.precio },
+    },
+    include: incluirTarjeta,
+    orderBy: { actualizadoEn: "desc" },
+    take: limite,
+  });
+}
+
+/** Total de productos publicados, para los datos de la portada. */
+export function contarProductosActivos() {
+  return db.producto.count({ where: { activo: true } });
+}
+
+/** Productos marcados como destacados por el administrador. */
+export function listarDestacados(limite = 4) {
+  return db.producto.findMany({
+    where: { activo: true, destacado: true },
+    include: incluirTarjeta,
+    orderBy: { actualizadoEn: "desc" },
+    take: limite,
+  });
 }
 
 export function obtenerProductoPorSlug(slug: string) {

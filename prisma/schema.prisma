@@ -298,10 +298,23 @@ model Pedido {
   usuario       Usuario      @relation(fields: [usuarioId], references: [id])
   items         ItemPedido[]
   estado        EstadoPedido @default(PENDIENTE)
+  subtotal      Decimal      @default(0) @db.Decimal(10, 2)
+  costoEnvio    Decimal      @default(0) @db.Decimal(10, 2)
   total         Decimal      @db.Decimal(10, 2)
   descuento     Decimal      @default(0) @db.Decimal(10, 2)
+  metodoPago    MetodoPago?
   cuponId       String?
   cupon         Cupon?       @relation(fields: [cuponId], references: [id])
+  // Copia de la dirección al comprar: el pedido no debe cambiar si luego se
+  // edita o elimina la dirección del cliente.
+  envioDestinatario String?
+  envioTelefono     String?
+  envioDepartamento String?
+  envioProvincia    String?
+  envioDistrito     String?
+  envioDireccion    String?
+  envioReferencia   String?
+  envioCodigoPostal String?
   creadoEn      DateTime     @default(now())
   actualizadoEn DateTime     @updatedAt
 
@@ -324,6 +337,13 @@ model ItemPedido {
   @@index([pedidoId])
   @@index([varianteId])
   @@map("items_pedido")
+}
+
+enum MetodoPago {
+  TARJETA
+  YAPE
+  PLIN
+  TRANSFERENCIA
 }
 
 enum EstadoPedido {

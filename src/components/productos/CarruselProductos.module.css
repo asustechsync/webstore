@@ -1,0 +1,84 @@
+.carrusel {
+  position: relative;
+}
+
+.pista {
+  display: flex;
+  gap: var(--catalogo-gap);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+  /* En móvil el carrusel se extiende hasta el borde de la pantalla para que
+     se note que hay más productos; el padding recupera la alineación. */
+  margin-inline: calc(var(--pagina-padding) * -1);
+  padding-inline: var(--pagina-padding);
+  scroll-padding-inline: var(--pagina-padding);
+}
+
+.pista::-webkit-scrollbar {
+  display: none;
+}
+
+.pista:focus-visible {
+  outline: 2px solid var(--control-focus);
+  outline-offset: 4px;
+}
+
+.item {
+  /* Ancho exacto para que entren --catalogo-visibles tarjetas por pantalla. */
+  flex: 0 0
+    calc((100% - (var(--catalogo-visibles) - 1) * var(--catalogo-gap)) / var(--catalogo-visibles));
+  scroll-snap-align: start;
+}
+
+.flecha {
+  position: absolute;
+  top: calc(50% - var(--espacio-8));
+  z-index: 2;
+  display: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--radio-full);
+  background: var(--superficie-elevada);
+  color: var(--texto-principal);
+  box-shadow: var(--sombra-md);
+  opacity: 1;
+  cursor: pointer;
+  transition:
+    opacity var(--transicion-rapida),
+    border-color var(--transicion-rapida);
+}
+
+.flecha:hover:not(:disabled) {
+  border-color: var(--control-borde-hover);
+}
+
+.flecha:disabled {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.flechaAnterior {
+  left: calc(var(--espacio-4) * -1);
+}
+
+.flechaSiguiente {
+  right: calc(var(--espacio-4) * -1);
+}
+
+/* Con puntero disponible aparecen las flechas y el carrusel deja de sangrar
+   hasta el borde: ya está dentro del ancho del contenedor. */
+@media (min-width: 64rem) {
+  .pista {
+    margin-inline: 0;
+    padding-inline: 0;
+    scroll-padding-inline: 0;
+  }
+
+  .flecha {
+    display: grid;
+  }
+}

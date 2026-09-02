@@ -1,0 +1,50 @@
+.detalles {
+  border-top: 1px solid var(--borde-sutil);
+}
+
+.bloque {
+  border-bottom: 1px solid var(--borde-sutil);
+}
+
+.titulo {
+  display: flex;
+  min-height: var(--control-alto);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--espacio-3) 0;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  cursor: pointer;
+  list-style: none;
+}
+
+.titulo::-webkit-details-marker {
+  display: none;
+}
+
+/* Signo + / − dibujado con texto para no depender de un icono. */
+.titulo::after {
+  content: "+";
+  color: var(--texto-secundario);
+  font-size: var(--texto-base);
+  line-height: 1;
+}
+
+.bloque[open] .titulo::after {
+  content: "−";
+}
+
+.contenido {
+  padding-bottom: var(--espacio-4);
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.contenido p {
+  margin: 0 0 var(--espacio-2);
+  max-width: 62ch;
+}
+
+.contenido p:last-child {
+  margin-bottom: 0;
+}

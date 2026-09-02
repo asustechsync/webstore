@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { ContadorCarrito } from "@/components/carrito/ContadorCarrito";
 import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import styles from "./Header.module.css";
 
@@ -14,6 +15,6 @@ export function HeaderMenu({ esAdmin }: { esAdmin: boolean }) {
 
   return <div className={styles.menuMovil}>
     <button type="button" className={styles.botonMenu} aria-label="Abrir menú de navegación" aria-expanded={abierto} onClick={() => setAbierto((valor) => !valor)}><IconoMenu /></button>
-    <div className={`${styles.enlaces} ${abierto ? styles.enlacesAbiertos : ""}`}><Link href="/productos">Productos</Link><Link href="/categorias">Categorías</Link><Link href="/carrito">Carrito</Link><Link href="/cuenta">Mi cuenta</Link>{esAdmin && <Link href="/admin">Panel admin</Link>}<ThemeToggle /></div>
+    <div className={`${styles.enlaces} ${abierto ? styles.enlacesAbiertos : ""}`}><Link href="/productos">Productos</Link><Link href="/categorias">Categorías</Link><ContadorCarrito /><Link href="/cuenta">Mi cuenta</Link>{esAdmin && <Link href="/admin">Panel admin</Link>}<ThemeToggle /></div>
   </div>;
 }

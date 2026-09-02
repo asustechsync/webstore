@@ -41,6 +41,13 @@ export const getUsuarioActual = cache(async () => {
 
 // Lanza si no hay sesión o si el usuario no tiene el permiso indicado.
 // Uso: al inicio de cada server action / layout de admin protegido.
+/** Igual que getUsuarioActual, pero exige sesión. */
+export async function requireUsuarioActual() {
+  const usuario = await getUsuarioActual();
+  if (!usuario) throw new NoAutorizadoError("Debes iniciar sesión");
+  return usuario;
+}
+
 export async function requirePermiso(clave: string) {
   return requireAlgunPermiso(clave);
 }

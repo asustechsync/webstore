@@ -1,0 +1,345 @@
+/* Estilos del carrito. Solo distribución: colores, radios y tamaños salen
+   de los tokens. */
+
+.disposicion {
+  display: grid;
+  gap: var(--espacio-6);
+  align-items: start;
+}
+
+.cargando {
+  margin: var(--espacio-6) 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+/* ── Lista de productos ── */
+
+.lista {
+  display: flex;
+  flex-direction: column;
+  border-top: 1px solid var(--borde-sutil);
+}
+
+.item {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: var(--espacio-3);
+  padding: var(--espacio-4) 0;
+  border-bottom: 1px solid var(--borde-sutil);
+}
+
+.itemImagen {
+  position: relative;
+  aspect-ratio: var(--catalogo-imagen-ratio);
+  overflow: hidden;
+  border-radius: var(--radio-borde);
+  background: var(--superficie-suave);
+}
+
+.imagen {
+  object-fit: cover;
+}
+
+.itemDetalle {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--espacio-3);
+}
+
+.itemCabecera {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--espacio-2);
+}
+
+.itemTextos {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: var(--espacio-1);
+}
+
+.itemNombre {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: var(--interlineado-compacto);
+  overflow-wrap: anywhere;
+}
+
+.itemNombre:hover {
+  text-decoration: underline;
+}
+
+.itemOpciones,
+.itemUnitario {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.itemQuitar {
+  display: grid;
+  flex: 0 0 auto;
+  width: var(--control-alto);
+  height: var(--control-alto);
+  place-items: center;
+  border: 0;
+  border-radius: var(--radio-borde);
+  background: none;
+  color: var(--texto-secundario);
+  cursor: pointer;
+  transition:
+    background-color var(--transicion-rapida),
+    color var(--transicion-rapida);
+}
+
+.itemQuitar:hover {
+  background: var(--superficie-suave);
+  color: var(--estado-error);
+}
+
+.itemAcciones {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}
+
+.itemTotal {
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+}
+
+/* ── Selector de cantidad ── */
+
+.cantidad {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--control-borde);
+  border-radius: var(--control-radio);
+  background: var(--control-fondo);
+}
+
+/* Usa la altura de control del proyecto: 44 px en móvil para tocar cómodo. */
+.cantidadBoton {
+  display: grid;
+  width: var(--control-alto);
+  height: var(--control-alto);
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--texto-principal);
+  cursor: pointer;
+  transition: opacity var(--transicion-rapida);
+}
+
+.cantidadBoton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cantidadValor {
+  min-width: 2.5rem;
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+/* ── Pie de la lista ── */
+
+.piePista {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: var(--espacio-4);
+}
+
+.vaciar {
+  border: 0;
+  background: none;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  cursor: pointer;
+}
+
+.vaciar:hover {
+  color: var(--estado-error);
+  text-decoration: underline;
+}
+
+/* ── Resumen ── */
+
+.resumen {
+  composes: tarjeta from "@/styles/ui.module.css";
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+}
+
+.resumenTitulo {
+  composes: seccionTitulo from "@/styles/ui.module.css";
+}
+
+.resumenFila {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.resumenNota {
+  font-size: var(--texto-xs);
+}
+
+.resumenTotal {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  padding-top: var(--espacio-3);
+  border-top: 1px solid var(--borde-sutil);
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+}
+
+/* ── Indicador del encabezado ── */
+
+.contador {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+/* La burbuja va en línea para que funcione igual en la barra de escritorio
+   y dentro del menú desplegable de móvil. */
+.burbuja {
+  display: inline-flex;
+  min-width: 1.25rem;
+  height: 1.25rem;
+  align-items: center;
+  justify-content: center;
+  padding: 0 var(--espacio-1);
+  border-radius: var(--radio-full);
+  background: var(--marca-primario);
+  color: var(--marca-contraste);
+  font-size: var(--texto-2xs);
+  font-weight: var(--peso-semibold);
+  line-height: 1;
+}
+
+@media (min-width: 40rem) {
+  .item {
+    grid-template-columns: 6rem minmax(0, 1fr);
+    gap: var(--espacio-4);
+  }
+}
+
+@media (min-width: 64rem) {
+  .disposicion {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+    gap: var(--espacio-8);
+  }
+
+  .resumen {
+    position: sticky;
+    top: var(--espacio-4);
+  }
+}
+
+/* ── Cupón ── */
+
+.resumenDescuento {
+  color: var(--estado-exito);
+}
+
+.cuponFormulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  padding-top: var(--espacio-3);
+  border-top: 1px solid var(--borde-sutil);
+}
+
+.cuponEtiquetaCampo {
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.cuponCampo {
+  display: flex;
+  gap: var(--espacio-2);
+}
+
+.cuponInput {
+  composes: control from "@/styles/ui.module.css";
+  min-width: 0;
+  text-transform: uppercase;
+}
+
+.cuponError {
+  margin: 0;
+  color: var(--estado-error);
+  font-size: var(--texto-xs);
+}
+
+.cuponAplicado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  padding-top: var(--espacio-3);
+  border-top: 1px solid var(--borde-sutil);
+}
+
+.cuponEtiqueta {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: var(--espacio-2);
+  max-width: 100%;
+  padding: var(--espacio-1) var(--espacio-1) var(--espacio-1) var(--espacio-3);
+  border: 1px dashed var(--borde-sutil);
+  border-radius: var(--radio-full);
+  background: var(--superficie-suave);
+}
+
+.cuponCodigo {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  letter-spacing: 0.04em;
+  overflow-wrap: anywhere;
+}
+
+.cuponDetalle {
+  color: var(--estado-exito);
+  font-size: var(--texto-xs);
+}
+
+.cuponQuitar {
+  display: grid;
+  width: 1.75rem;
+  height: 1.75rem;
+  place-items: center;
+  border: 0;
+  border-radius: var(--radio-full);
+  background: none;
+  color: var(--texto-secundario);
+  cursor: pointer;
+}
+
+.cuponQuitar:hover {
+  background: var(--superficie-pagina);
+  color: var(--estado-error);
+}
+
+.cuponQuitar svg {
+  width: 0.75rem;
+  height: 0.75rem;
+}
+
+.cuponAviso {
+  margin: 0;
+  color: var(--estado-advertencia);
+  font-size: var(--texto-xs);
+}

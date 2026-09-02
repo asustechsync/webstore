@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports -- This CommonJS script must load Node's process API with require.
 const { spawn } = require('node:child_process');
 
 const args = [

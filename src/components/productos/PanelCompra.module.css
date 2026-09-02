@@ -1,0 +1,206 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+/* ── Precio ── */
+
+.precios {
+  composes: precios from "@/styles/ui.module.css";
+  align-items: baseline;
+}
+
+.precio {
+  composes: precio from "@/styles/ui.module.css";
+  font-size: var(--texto-2xl);
+}
+
+.precioRebajado {
+  composes: precioRebajado from "@/styles/ui.module.css";
+  font-size: var(--texto-2xl);
+}
+
+.precioAnterior {
+  composes: precioAnterior from "@/styles/ui.module.css";
+  font-size: var(--texto-base);
+}
+
+.etiquetaOferta {
+  composes: etiquetaOferta from "@/styles/ui.module.css";
+}
+
+/* ── Opciones ── */
+
+.opcion {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.opcionTitulo {
+  display: flex;
+  gap: var(--espacio-2);
+  padding: 0 0 var(--espacio-2);
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+.opcionElegida {
+  color: var(--texto-principal);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.valores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-2);
+}
+
+.valor {
+  display: inline-flex;
+  min-height: var(--control-alto);
+  align-items: center;
+  gap: var(--espacio-2);
+  padding: 0 var(--espacio-3);
+  border: 1px solid var(--control-borde);
+  border-radius: var(--control-radio);
+  background: var(--control-fondo);
+  font-size: var(--texto-sm);
+  cursor: pointer;
+  transition:
+    border-color var(--transicion-rapida),
+    color var(--transicion-rapida);
+}
+
+.valor:hover:not(:disabled) {
+  border-color: var(--control-borde-hover);
+}
+
+.valorActivo {
+  border-color: var(--texto-principal);
+  box-shadow: inset 0 0 0 1px var(--texto-principal);
+}
+
+/* Existe la combinación pero está agotada: se puede ver, no comprar. */
+.valorAgotado {
+  color: var(--texto-secundario);
+  text-decoration: line-through;
+}
+
+.valor:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.muestra {
+  width: 1rem;
+  height: 1rem;
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--radio-full);
+}
+
+/* ── Stock ── */
+
+.stock {
+  margin: 0;
+  font-size: var(--texto-sm);
+}
+
+.disponible {
+  color: var(--estado-stock-disponible);
+}
+
+.pocas {
+  color: var(--estado-stock-bajo);
+}
+
+.agotado,
+.sinCombinacion {
+  color: var(--estado-stock-agotado);
+}
+
+/* ── Compra ── */
+
+.compra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-3);
+}
+
+.cantidad {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  border: 1px solid var(--control-borde);
+  border-radius: var(--control-radio);
+  background: var(--control-fondo);
+}
+
+.cantidadBoton {
+  display: grid;
+  width: var(--control-alto);
+  height: var(--control-alto);
+  place-items: center;
+  border: 0;
+  background: none;
+  color: var(--texto-principal);
+  cursor: pointer;
+}
+
+.cantidadBoton:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.cantidadValor {
+  min-width: 2.5rem;
+  font-size: var(--texto-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+
+.botonAgregar {
+  flex: 1;
+  min-width: 12rem;
+}
+
+.confirmacion {
+  margin: 0;
+  color: var(--estado-exito);
+  font-size: var(--texto-sm);
+}
+
+.enlaceCarrito {
+  color: var(--texto-principal);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ── Ficha ── */
+
+.ficha {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espacio-3);
+  margin: 0;
+  padding-top: var(--espacio-4);
+  border-top: 1px solid var(--borde-sutil);
+}
+
+.ficha dt {
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.ficha dd {
+  margin: var(--espacio-1) 0 0;
+  font-size: var(--texto-sm);
+  overflow-wrap: anywhere;
+}

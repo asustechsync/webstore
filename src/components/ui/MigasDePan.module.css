@@ -1,0 +1,28 @@
+.migas {
+  margin-bottom: var(--espacio-4);
+}
+
+.lista {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--espacio-2);
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.miga {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-width: 0;
+}
+
+.enlace:hover {
+  color: var(--texto-principal);
+  text-decoration: underline;
+}
+
+.separador {
+  color: var(--borde-sutil);
+}

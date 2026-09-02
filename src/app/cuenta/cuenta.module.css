@@ -1123,10 +1123,6 @@
     background: transparent;
   }
 
-  .formularioPerfil .campo > span {
-    display: none;
-  }
-
   .formularioPerfil .campo small {
     display: none;
   }
@@ -1530,4 +1526,45 @@
     grid-template-columns: minmax(0, 1.7fr) minmax(17rem, 0.8fr);
     align-items: start;
   }
+}
+
+/* Confirmación y datos de entrega del pedido recién creado. */
+.confirmacion {
+  margin-bottom: var(--espacio-6);
+  padding: var(--espacio-4);
+  border: 1px solid var(--estado-exito);
+  border-radius: var(--radio-lg);
+  background: color-mix(in srgb, var(--estado-exito) 8%, transparent);
+}
+
+.confirmacion h2 {
+  margin: 0;
+  font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
+}
+
+.confirmacion p {
+  margin: var(--espacio-2) 0 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.datosPedido {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  margin: 0;
+}
+
+.datosPedido dt {
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.datosPedido dd {
+  margin: var(--espacio-1) 0 0;
+  font-size: var(--texto-sm);
+  overflow-wrap: anywhere;
 }

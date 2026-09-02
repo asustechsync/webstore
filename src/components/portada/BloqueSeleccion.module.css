@@ -1,0 +1,143 @@
+.bloque {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--portada-gap);
+}
+
+/* ── Pieza grande ── */
+
+.principal {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  color: inherit;
+}
+
+.principalImagen {
+  position: relative;
+  aspect-ratio: var(--catalogo-imagen-ratio);
+  overflow: hidden;
+  border-radius: var(--radio-lg);
+  background: var(--superficie-suave);
+}
+
+.imagen {
+  object-fit: cover;
+  transition: transform var(--transicion-rapida);
+}
+
+.principal:hover .imagen,
+.fila:hover .imagen {
+  transform: scale(1.03);
+}
+
+.principalTexto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  padding-top: var(--espacio-3);
+}
+
+.principalNombre {
+  margin: 0;
+  font-size: var(--texto-lg);
+  font-weight: var(--peso-medio);
+  line-height: var(--interlineado-compacto);
+}
+
+.principal:hover .principalNombre,
+.fila:hover .filaNombre {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+/* ── Lista lateral ── */
+
+.lista {
+  display: flex;
+  flex-direction: column;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: var(--espacio-3);
+  align-items: center;
+  padding: var(--espacio-3) 0;
+  border-bottom: 1px solid var(--borde-sutil);
+  color: inherit;
+}
+
+.lista > li:first-child .fila {
+  border-top: 1px solid var(--borde-sutil);
+}
+
+.filaImagen {
+  position: relative;
+  aspect-ratio: var(--catalogo-imagen-ratio);
+  overflow: hidden;
+  border-radius: var(--radio-borde);
+  background: var(--superficie-suave);
+}
+
+.filaTexto {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--espacio-1);
+}
+
+.filaNombre {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  margin: 0;
+  overflow: hidden;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: var(--interlineado-compacto);
+}
+
+.marca {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.precios {
+  composes: precios from "@/styles/ui.module.css";
+}
+
+.precio {
+  composes: precio from "@/styles/ui.module.css";
+}
+
+.precioRebajado {
+  composes: precioRebajado from "@/styles/ui.module.css";
+}
+
+.precioAnterior {
+  composes: precioAnterior from "@/styles/ui.module.css";
+}
+
+@media (min-width: 64rem) {
+  .bloque {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .principal {
+    grid-column: span 7;
+  }
+
+  .principalImagen {
+    aspect-ratio: var(--catalogo-imagen-ratio-ancho);
+  }
+
+  .lista {
+    grid-column: span 5;
+  }
+}

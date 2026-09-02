@@ -1,0 +1,105 @@
+.tarjeta {
+  composes: tarjeta from "@/styles/ui.module.css";
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  color: inherit;
+  text-decoration: none;
+  transition:
+    border-color var(--transicion-rapida),
+    box-shadow var(--transicion-rapida),
+    transform var(--transicion-rapida);
+}
+
+.tarjeta:hover {
+  border-color: var(--control-borde-hover);
+  box-shadow: var(--sombra-md);
+  transform: translateY(-2px);
+}
+
+.imagenContenedor {
+  position: relative;
+  display: grid;
+  height: var(--categoria-imagen-alto);
+  place-items: center;
+  background: var(--superficie-suave);
+}
+
+.imagen {
+  object-fit: cover;
+}
+
+.inicial {
+  color: var(--texto-secundario);
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-semibold);
+  text-transform: uppercase;
+}
+
+.info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  padding: var(--espacio-3);
+}
+
+.nombre {
+  margin: 0;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: var(--interlineado-compacto);
+}
+
+.descripcion {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  margin: 0;
+  overflow: hidden;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.conteo {
+  margin: auto 0 0;
+  padding-top: var(--espacio-1);
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+}
+
+/* ── Variante limpia ──────────────────────────────────────
+   Imagen cuadrada suelta con el nombre debajo, para la tira de la portada. */
+
+.limpia {
+  border-color: transparent;
+  background: none;
+  border-radius: 0;
+}
+
+.limpia .imagenContenedor {
+  height: auto;
+  aspect-ratio: var(--catalogo-imagen-ratio);
+  overflow: hidden;
+  border-radius: var(--radio-lg);
+}
+
+.limpia .info {
+  padding: var(--espacio-2) 0 0;
+  gap: 0;
+}
+
+.limpia:hover {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.limpia:hover .nombre {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}

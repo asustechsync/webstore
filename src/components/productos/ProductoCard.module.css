@@ -2,27 +2,37 @@
   composes: tarjeta from "@/styles/ui.module.css";
   display: flex;
   flex-direction: column;
+  height: 100%;
   min-width: 0;
   padding: 0;
   overflow: hidden;
   color: inherit;
   text-decoration: none;
-  transition: box-shadow var(--transicion-rapida), transform var(--transicion-rapida);
+  transition:
+    border-color var(--transicion-rapida),
+    box-shadow var(--transicion-rapida),
+    transform var(--transicion-rapida);
 }
 
 .tarjeta:hover {
+  border-color: var(--control-borde-hover);
   box-shadow: var(--sombra-md);
   transform: translateY(-2px);
 }
 
 .imagenContenedor {
   position: relative;
-  aspect-ratio: 1 / 1;
+  aspect-ratio: var(--catalogo-imagen-ratio);
   background: var(--superficie-suave);
 }
 
 .imagen {
   object-fit: cover;
+  transition: transform var(--transicion-rapida);
+}
+
+.tarjeta:hover .imagen {
+  transform: scale(1.03);
 }
 
 .imagenPlaceholder {
@@ -35,8 +45,26 @@
   font-size: var(--texto-xs);
 }
 
+.etiquetas {
+  position: absolute;
+  top: var(--espacio-2);
+  left: var(--espacio-2);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1);
+}
+
+.etiquetaOferta {
+  composes: etiquetaOferta from "@/styles/ui.module.css";
+}
+
+.etiquetaNuevo {
+  composes: etiquetaNuevo from "@/styles/ui.module.css";
+}
+
 .info {
   display: flex;
+  flex: 1;
   flex-direction: column;
   min-width: 0;
   gap: var(--espacio-1);
@@ -46,46 +74,87 @@
 .marca {
   margin: 0;
   color: var(--texto-secundario);
-  font-size: var(--texto-xs);
+  font-size: var(--texto-2xs);
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.06em;
 }
 
 .nombre {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   margin: 0;
+  overflow: hidden;
   font-size: var(--texto-sm);
   font-weight: var(--peso-medio);
   line-height: var(--interlineado-compacto);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.sku,
-.tallas {
+/* SKU y opciones. En móvil la tarjeta es angosta, así que se permiten dos
+   líneas en vez de recortar la talla con puntos suspensivos. */
+.meta {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
   margin: 0;
+  overflow: hidden;
   color: var(--texto-secundario);
-  font-size: var(--texto-xs);
+  font-size: var(--texto-2xs);
+  overflow-wrap: anywhere;
 }
 
 .precios {
-  display: flex;
-  align-items: baseline;
-  gap: var(--espacio-2);
-  margin-top: var(--espacio-1);
+  composes: precios from "@/styles/ui.module.css";
+  margin-top: auto;
+  padding-top: var(--espacio-2);
 }
 
 .precio {
-  font-size: var(--texto-base);
-  font-weight: var(--peso-semibold);
+  composes: precio from "@/styles/ui.module.css";
 }
 
-.precioOferta {
-  color: var(--estado-error);
+.precioRebajado {
+  composes: precioRebajado from "@/styles/ui.module.css";
 }
 
-.precioTachado {
-  color: var(--texto-secundario);
-  font-size: var(--texto-sm);
-  text-decoration: line-through;
+.precioAnterior {
+  composes: precioAnterior from "@/styles/ui.module.css";
+}
+
+/* ── Variante limpia ──────────────────────────────────────
+   Sin caja: la tarjeta se reduce a imagen y texto. Se usa en la portada,
+   donde el aire entre productos ya separa lo suficiente. Va al final del
+   archivo para ganarle en la cascada a las reglas de arriba. */
+
+.limpia {
+  border-color: transparent;
+  background: none;
+  border-radius: 0;
+}
+
+.limpia .imagenContenedor {
+  overflow: hidden;
+  border-radius: var(--radio-lg);
+}
+
+.limpia .info {
+  padding: var(--espacio-3) 0 0;
+}
+
+.limpia:hover {
+  border-color: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.limpia:hover .nombre {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.limpia .etiquetas {
+  top: var(--espacio-3);
+  left: var(--espacio-3);
 }

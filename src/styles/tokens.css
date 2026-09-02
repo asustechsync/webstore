@@ -53,6 +53,7 @@
   --texto-2xl: 1.625rem;
   --texto-xl: 1.875rem;
   --texto-titulo-pagina: 2.25rem;
+  --texto-display: 2.25rem;
   --peso-normal: 400;
   --peso-ligero: 300;
   --peso-medio: 500;
@@ -74,6 +75,7 @@
   --radio-sm: 0.25rem;
   --radio-borde: 0.5rem;
   --radio-lg: 0.75rem;
+  --radio-xl: 1rem;
   --radio-full: 9999px;
 
   /* Sombras */
@@ -111,6 +113,30 @@
   --tarjeta-radio: var(--radio-borde);
   --tarjeta-padding: var(--espacio-4);
 
+  /*
+   * Catálogo (mobile first).
+   * Estos tokens son la única fuente de verdad de la grilla de productos, del
+   * carrusel y de las tarjetas de categoría. Cambiar cuántas tarjetas entran
+   * por fila se hace acá, no dentro de cada módulo de página.
+   */
+  --seccion-espacio: var(--espacio-8);
+  --catalogo-gap: var(--espacio-3);
+  --catalogo-columnas: 2;
+  /* Tarjetas visibles en el carrusel; el decimal deja ver que hay más. */
+  --catalogo-visibles: 2.15;
+  --catalogo-imagen-ratio: 1 / 1;
+  /* Proporción editorial apaisada, para las piezas grandes de la portada. */
+  --catalogo-imagen-ratio-ancho: 3 / 2;
+  --portada-gap: var(--espacio-3);
+  --categoria-columnas: 2;
+  --categoria-imagen-alto: 7rem;
+
+  /* Etiquetas sobre las imágenes del catálogo */
+  --etiqueta-oferta-fondo: var(--estado-error);
+  --etiqueta-oferta-texto: #ffffff;
+  --etiqueta-nuevo-fondo: var(--marca-primario);
+  --etiqueta-nuevo-texto: var(--marca-contraste);
+
   /* Movimiento */
   --transicion-rapida: 150ms ease;
 }
@@ -122,7 +148,12 @@
  * móvil grande, tableta, portátil, escritorio y pantallas amplias.
  */
 @media (min-width: 30rem) { /* 480 px: móvil grande */
-  :root { --pagina-padding: var(--espacio-4); --contenido-padding: var(--espacio-4); }
+  :root {
+    --pagina-padding: var(--espacio-4);
+    --contenido-padding: var(--espacio-4);
+    --catalogo-visibles: 2.5;
+    --categoria-columnas: 3;
+  }
 }
 
 @media (min-width: 40rem) { /* 640 px: tableta compacta */
@@ -137,20 +168,49 @@
     --texto-2xl: 1.5rem;
     --texto-xl: 1.75rem;
     --texto-titulo-pagina: 2rem;
+    --texto-display: 3.25rem;
     --control-alto: 2.5rem;
+    --portada-gap: var(--espacio-4);
+    --seccion-espacio: var(--espacio-12);
+    --catalogo-gap: var(--espacio-4);
+    --catalogo-columnas: 3;
+    --catalogo-visibles: 3.5;
+    --categoria-columnas: 4;
+    --categoria-imagen-alto: 8rem;
   }
 }
 
 @media (min-width: 48rem) { /* 768 px: tableta */
-  :root { --pagina-padding: var(--espacio-6); --contenido-padding: var(--espacio-6); }
+  :root {
+    --pagina-padding: var(--espacio-6);
+    --contenido-padding: var(--espacio-6);
+    --catalogo-columnas: 4;
+    --catalogo-visibles: 4.5;
+    --portada-gap: var(--espacio-6);
+  }
 }
 
 @media (min-width: 64rem) { /* 1024 px: portátil */
-  :root { --pagina-padding: var(--espacio-8); --contenido-padding: var(--espacio-8); }
+  :root {
+    --pagina-padding: var(--espacio-8);
+    --contenido-padding: var(--espacio-8);
+    --catalogo-columnas: 4;
+    --catalogo-visibles: 5;
+    --texto-display: 4rem;
+    --categoria-columnas: 5;
+    --categoria-imagen-alto: 9rem;
+  }
 }
 
 @media (min-width: 80rem) { /* 1280 px: escritorio */
-  :root { --pagina-padding: var(--espacio-12); }
+  :root {
+    --pagina-padding: var(--espacio-12);
+    /* Desde acá entran las 6 tarjetas por fila que pide la portada. */
+    --catalogo-columnas: 6;
+    --catalogo-visibles: 6;
+    --texto-display: 4.5rem;
+    --categoria-columnas: 6;
+  }
 }
 
 @media (min-width: 96rem) { /* 1536 px: escritorio amplio */

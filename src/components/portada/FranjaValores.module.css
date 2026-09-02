@@ -1,0 +1,48 @@
+.franja {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espacio-4);
+  margin-bottom: var(--seccion-espacio);
+  padding-top: var(--espacio-6);
+  border-top: 1px solid var(--borde-sutil);
+}
+
+.valor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+}
+
+.numero {
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.14em;
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  line-height: var(--interlineado-compacto);
+}
+
+.texto {
+  max-width: 26rem;
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+@media (min-width: 48rem) {
+  .franja {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--portada-gap);
+  }
+
+  /* Línea fina entre columnas en vez de cajas. */
+  .valor + .valor {
+    padding-left: var(--portada-gap);
+    border-left: 1px solid var(--borde-sutil);
+  }
+}

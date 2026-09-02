@@ -1,0 +1,85 @@
+/* Detalle: galería y compra en dos columnas desde 1024 px; debajo, las fichas
+   de texto en una columna de lectura y los productos relacionados. */
+
+.ficha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espacio-6);
+  margin-bottom: var(--seccion-espacio);
+}
+
+.galeria {
+  min-width: 0;
+}
+
+.compra {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.encabezado {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.marca {
+  composes: etiquetaSuperior from "@/styles/ui.module.css";
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-semibold);
+  line-height: var(--interlineado-compacto);
+  letter-spacing: -0.01em;
+}
+
+.bajada {
+  max-width: 46ch;
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+/* Se ve solo el instante previo a que el panel interactivo tome el relevo. */
+.precioEstatico {
+  margin: 0;
+  font-size: var(--texto-2xl);
+  font-weight: var(--peso-semibold);
+}
+
+.garantias {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  padding-top: var(--espacio-4);
+  border-top: 1px solid var(--borde-sutil);
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.fichas {
+  max-width: 48rem;
+  margin-bottom: var(--seccion-espacio);
+}
+
+@media (min-width: 64rem) {
+  .ficha {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: var(--portada-gap);
+    align-items: start;
+  }
+
+  .galeria {
+    grid-column: span 7;
+  }
+
+  .compra {
+    grid-column: span 5;
+    position: sticky;
+    top: var(--espacio-6);
+  }
+}

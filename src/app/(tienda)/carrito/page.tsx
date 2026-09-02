@@ -1,39 +1,19 @@
-"use client";
-
-import { useCartStore } from "@/store/cartStore";
-import { formatearPrecio } from "@/lib/utils";
+import type { Metadata } from "next";
 import { Container } from "@/components/ui/Container";
-import styles from "./page.module.css";
+import { PageHeader } from "@/components/ui/PageHeader";
+import { CarritoContenido } from "@/components/carrito/CarritoContenido";
+
+export const metadata: Metadata = {
+  title: "Carrito",
+  description: "Revisa los productos que agregaste antes de pagar.",
+};
 
 export default function CarritoPage() {
-  const items = useCartStore((estado) => estado.items);
-
-  if (items.length === 0) {
-    return (
-      <main>
-        <Container>
-          <h1>Carrito</h1>
-          <p>Tu carrito está vacío.</p>
-        </Container>
-      </main>
-    );
-  }
-
   return (
     <main>
       <Container>
-        <h1>Carrito</h1>
-        <ul className={styles.lista}>
-          {items.map((item) => (
-            <li key={item.varianteId} className={styles.item}>
-              <span>
-                {item.nombre} · {item.talla}
-                {item.color && ` · ${item.color}`} x{item.cantidad}
-              </span>
-              <span>{formatearPrecio(item.precio * item.cantidad)}</span>
-            </li>
-          ))}
-        </ul>
+        <PageHeader titulo="Carrito" descripcion="Revisa tu pedido antes de pagar" />
+        <CarritoContenido />
       </Container>
     </main>
   );

@@ -27,3 +27,17 @@ export const cuponSchema = z
   );
 
 export type CuponInput = z.input<typeof cuponSchema>;
+
+/** Código tal como lo escribe quien compra: se normaliza antes de buscarlo. */
+export const codigoCuponSchema = z
+  .string()
+  .trim()
+  .min(3, "Escribe el código del cupón")
+  .max(40, "Ese código no es válido")
+  .transform((valor) => valor.toUpperCase());
+
+/** Subtotal enviado por el carrito; el checkout lo recalcula por su cuenta. */
+export const subtotalSchema = z
+  .number()
+  .finite("El subtotal no es válido")
+  .nonnegative("El subtotal no es válido");
