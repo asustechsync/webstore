@@ -10,7 +10,7 @@ export default async function AdminNuevoProductoPage() {
   });
   return (
     <>
-      <PageHeader titulo="Nuevo producto" descripcion="Primero crea el producto padre; luego completa su información y variantes." />
+      <PageHeader titulo="Nuevo producto" descripcion="Elige cómo se vende, reserva su código y luego completa la ficha." />
       <CrearProductoBase categorias={categorias} />
     </>
   );

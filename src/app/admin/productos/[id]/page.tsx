@@ -75,7 +75,14 @@ export default async function AdminEditarProductoPage({
           costo: producto.costo?.toString() ?? "",
           sku: producto.sku,
           borrador: producto.borrador,
-          modoVariantes: producto.modoVariantes || producto.variantes.length > 1,
+          // Los productos anteriores a la separación tienen `modoVariantes` en
+          // false por defecto: tener opciones declaradas o más de una variante
+          // los delata igual, y sin esto el formulario los trataría como
+          // producto único y borraría sus atributos al guardar.
+          modoVariantes:
+            producto.modoVariantes ||
+            producto.variantes.length > 1 ||
+            producto.opciones.length > 0,
           tipoProducto: producto.tipoProducto ?? "GENERAL",
           perfilOpciones: producto.perfilOpciones ?? "personalizado",
           categoriaId: producto.categoriaId,

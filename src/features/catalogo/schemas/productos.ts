@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { CODIGOS_TIPO } from "../opciones";
 
 // Los formularios mandan "" en los campos opcionales que quedaron vacíos;
 // esto lo convierte en undefined antes de validar.
@@ -24,7 +25,9 @@ export const atributoVarianteSchema = z.object({
 export const varianteSchema = z.object({
   // Sin id = variante nueva; con id = variante existente que se actualiza.
   id: opcional(z.string().uuid()),
-  atributos: z.array(atributoVarianteSchema).min(1, "La variante necesita opciones"),
+  // Vacío en un producto único: ahí la única variante no distingue nada y no
+  // debe aparecer ningún selector en la ficha de la tienda.
+  atributos: z.array(atributoVarianteSchema),
   sku: z.string().min(1, "Cada variante necesita su propio SKU"),
   precio: opcional(z.coerce.number().positive("El precio de la variante debe ser mayor a 0")),
   costo: opcional(z.coerce.number().min(0, "El costo no puede ser negativo")),
@@ -64,7 +67,7 @@ export const productoSchema = z.object({
   descripcionSeo: opcional(z.string().max(160, "La descripción SEO admite hasta 160 caracteres")),
   activo: z.boolean().default(true),
   destacado: z.boolean().default(false),
-  opciones: z.array(opcionProductoSchema).min(1, "Configura al menos una opción"),
+  opciones: z.array(opcionProductoSchema).default([]),
   variantes: z
     .array(varianteSchema)
     .min(1, "Genera al menos una variante; es lo que realmente se vende"),
@@ -76,6 +79,23 @@ export const productoSchema = z.object({
   if (producto.activo && !producto.variantes.some((variante) => variante.activo)) {
     contexto.addIssue({ code: "custom", path: ["variantes"], message: "Activa al menos una variante antes de publicar" });
   }
+
+  // Un producto único es un producto con exactamente una variante sin
+  // atributos; uno con variantes necesita opciones declaradas. Validar el
+  // modo acá evita que el formulario mande estados a medio camino.
+  if (producto.modoVariantes) {
+    if (producto.opciones.length === 0) {
+      contexto.addIssue({ code: "custom", path: ["opciones"], message: "Agrega al menos un atributo (talla, color...) antes de guardar" });
+    }
+  } else {
+    if (producto.opciones.length > 0 || producto.variantes.some((variante) => variante.atributos.length > 0)) {
+      contexto.addIssue({ code: "custom", path: ["opciones"], message: "Un producto único no lleva atributos; cámbialo a producto con variantes" });
+    }
+    if (producto.variantes.length !== 1) {
+      contexto.addIssue({ code: "custom", path: ["variantes"], message: "Un producto único solo puede tener una presentación" });
+    }
+  }
+
   const opciones = new Map<string, Set<string>>();
 
   producto.opciones.forEach((opcion, indice) => {
@@ -135,7 +155,10 @@ export const productoBorradorSchema = z.object({
   nombre: z.string().trim().min(3, "Ingresa un nombre de al menos 3 caracteres"),
   categoriaId: z.string().uuid("Selecciona una categoría"),
   modoVariantes: z.boolean(),
-  codigoTipo: z.enum(["ME", "BO", "PR", "BR", "OT"], "Selecciona un tipo de producto"),
+  codigoTipo: z.enum(
+    CODIGOS_TIPO.map((tipo) => tipo.codigo),
+    "Selecciona un tipo de producto",
+  ),
 });
 
 // z.input (no z.infer) porque los formularios mandan los números y opcionales

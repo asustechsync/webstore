@@ -14,8 +14,48 @@ const sinStock = "M320 576C461.4 576 576 461.4 576 320C576 178.6 461.4 64 320 64
 const inactiva = "M160 96C124.7 96 96 124.7 96 160L96 480C96 515.3 124.7 544 160 544L480 544C515.3 544 544 515.3 544 480L544 160C544 124.7 515.3 96 480 96L160 96zM231 231C240.4 221.6 255.6 221.6 264.9 231L319.9 286L374.9 231C384.3 221.6 399.5 221.6 408.8 231C418.1 240.4 418.2 255.6 408.8 264.9L353.8 319.9L408.8 374.9C418.2 384.3 418.2 399.5 408.8 408.8C399.4 418.1 384.2 418.2 374.9 408.8L319.9 353.8L264.9 408.8C255.5 418.2 240.3 418.2 231 408.8C221.7 399.4 221.6 384.2 231 374.9L286 319.9L231 264.9C221.6 255.5 221.6 240.3 231 231z";
 const stockBajo = "M320 64C334.7 64 348.2 72.1 355.2 85L571.2 485C577.9 497.4 577.6 512.4 570.4 524.5C563.2 536.6 550.1 544 536 544L104 544C89.9 544 76.8 536.6 69.6 524.5C62.4 512.4 62.1 497.4 68.8 485L284.8 85C291.8 72.1 305.3 64 320 64zM320 416C302.3 416 288 430.3 288 448C288 465.7 302.3 480 320 480C337.7 480 352 465.7 352 448C352 430.3 337.7 416 320 416zM320 224C301.8 224 287.3 239.5 288.6 257.7L296 361.7C296.9 374.2 307.4 384 319.9 384C332.5 384 342.9 374.3 343.8 361.7L351.2 257.7C352.5 239.5 338.1 224 319.8 224z";
 function Icon({ path, className, color }: { path: string; className?: string; color?: string }) { return <svg viewBox="0 0 640 640" className={className} color={color} style={{ width: "var(--icono-tamano)", height: "var(--icono-tamano)" }} {...svg}><path d={path} /></svg>; }
-export const IconoEditar = (p: Props) => <Icon path={editar} {...p} />;
-export const IconoClonar = (p: Props) => <Icon path={clonar} {...p} />;
+export const IconoEditar = ({ className, color }: Props) => (
+  <span
+    className={className}
+    aria-hidden="true"
+    style={{
+      display: "inline-block",
+      width: "var(--icono-tamano)",
+      height: "var(--icono-tamano)",
+      flex: "0 0 auto",
+      backgroundColor: color ?? "currentColor",
+      WebkitMaskImage: 'url("/icons/iconsax/edit.svg")',
+      maskImage: 'url("/icons/iconsax/edit.svg")',
+      WebkitMaskPosition: "center",
+      maskPosition: "center",
+      WebkitMaskRepeat: "no-repeat",
+      maskRepeat: "no-repeat",
+      WebkitMaskSize: "contain",
+      maskSize: "contain",
+    }}
+  />
+);
+export const IconoClonar = ({ className, color }: Props) => (
+  <span
+    className={className}
+    aria-hidden="true"
+    style={{
+      display: "inline-block",
+      width: "var(--icono-tamano)",
+      height: "var(--icono-tamano)",
+      flex: "0 0 auto",
+      backgroundColor: color ?? "currentColor",
+      WebkitMaskImage: 'url("/icons/iconsax/copy.svg")',
+      maskImage: 'url("/icons/iconsax/copy.svg")',
+      WebkitMaskPosition: "center",
+      maskPosition: "center",
+      WebkitMaskRepeat: "no-repeat",
+      maskRepeat: "no-repeat",
+      WebkitMaskSize: "contain",
+      maskSize: "contain",
+    }}
+  />
+);
 export const IconoEliminar = (p: Props) => <Icon path={eliminar} {...p} />;
 export const IconoFlecha = (p: Props) => <Icon path={flecha} {...p} />;
 export const IconoBuscar = (p: Props) => <Icon path={buscar} {...p} />;

@@ -1506,7 +1506,48 @@
   .navEnlace {
     flex: 0 0 auto;
     justify-content: flex-start;
+    gap: var(--espacio-2);
     width: 100%;
+  }
+
+  /* En mobile el ícono va oculto (base .navIcono { display: none }) porque
+     esas filas son más angostas; en el sidebar de escritorio sí hay espacio
+     y ayuda a distinguir cada opción de un vistazo. */
+  .navIcono {
+    display: block;
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    background: var(--color-texto-suave);
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
+  }
+
+  .navEnlaceActivo .navIcono {
+    background: var(--marca-primario);
+  }
+
+  .navCerrarSesion {
+    gap: var(--espacio-2);
+  }
+
+  .navCerrarSesion .navIcono {
+    display: block;
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    background: currentColor;
+    transform: rotate(180deg);
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: contain;
+    mask-size: contain;
   }
 
   .perfilGrid {

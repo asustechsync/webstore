@@ -13,16 +13,24 @@ export default async function AdminProductosPage({
 }) {
   const { q, sku, categoria, estado, stock, oferta, destacado } = await searchParams;
 
+  // El SKU que el almacén tiene a mano es el de la variante, no el código de
+  // modelo del producto: buscar solo por `producto.sku` no encontraba nada.
+  const coincideSku = (texto: string): Prisma.ProductoWhereInput => ({
+    OR: [
+      { sku: { contains: texto, mode: "insensitive" } },
+      { variantes: { some: { sku: { contains: texto, mode: "insensitive" } } } },
+    ],
+  });
+
+  // Van en AND y no sueltos en el objeto porque los dos usan `OR` y el segundo
+  // pisaría al primero cuando se buscan texto y SKU a la vez.
+  const busquedas: Prisma.ProductoWhereInput[] = [
+    ...(q ? [{ OR: [{ nombre: { contains: q, mode: "insensitive" as const } }, coincideSku(q)] }] : []),
+    ...(sku ? [coincideSku(sku)] : []),
+  ];
+
   const where: Prisma.ProductoWhereInput = {
-    ...(q
-      ? {
-          OR: [
-            { nombre: { contains: q, mode: "insensitive" } },
-            { sku: { contains: q, mode: "insensitive" } },
-          ],
-        }
-      : {}),
-    ...(sku ? { sku: { contains: sku, mode: "insensitive" } } : {}),
+    ...(busquedas.length > 0 ? { AND: busquedas } : {}),
     ...(categoria ? { categoriaId: categoria } : {}),
     ...(estado === "activo" ? { activo: true } : {}),
     ...(estado === "inactivo" ? { activo: false } : {}),
@@ -36,10 +44,12 @@ export default async function AdminProductosPage({
       where,
       orderBy: { creadoEn: "desc" },
       include: {
-        categoria: true,
-        marca: true,
-        variantes: true,
-        imagenes: { orderBy: { orden: "asc" }, take: 1 },
+        // Solo lo que pinta la tabla: traer la variante entera de cada producto
+        // arrastraba fechas, descripciones y portadas que nadie usa acá.
+        variantes: {
+          orderBy: [{ color: "asc" }, { talla: "asc" }],
+          select: { id: true, sku: true, talla: true, color: true, precio: true, costo: true, cantidad: true, stockMinimo: true, activo: true },
+        },
       },
     }),
     db.categoria.findMany({ orderBy: { nombre: "asc" }, select: { id: true, nombre: true } }),
@@ -64,13 +74,10 @@ export default async function AdminProductosPage({
       stockBajo: producto.variantes.some(
         (variante) => variante.activo && variante.cantidad <= variante.stockMinimo,
       ),
-      imagenUrl: producto.imagenes[0]?.url,
-      categoria: producto.categoria.nombre,
-      marca: producto.marca?.nombre ?? "-",
-      tallas: producto.variantes.length,
       variantes: producto.variantes.map((variante) => ({
         id: variante.id,
-        opciones: [variante.talla, variante.color].filter(Boolean).join(" / "),
+        // Un producto único no tiene talla ni color: su fila es la presentación.
+        opciones: [variante.talla, variante.color].filter(Boolean).join(" / ") || "Única",
         sku: variante.sku,
         precio: formatearPrecio((variante.precio ?? producto.precio).toString()),
         cantidad: variante.cantidad,

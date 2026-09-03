@@ -4,41 +4,105 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import type { ComponentType } from "react";
-import { IconoFlecha, IconoFiltros } from "@/components/ui/ActionIcons";
+import { IconoFlecha } from "@/components/ui/ActionIcons";
 import styles from "./admin.module.css";
 
+// Ícono inline de tienda para compatibilidad con vistas antiguas.
 const IconoTienda: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 14, className, ...props }) => (
-  <svg viewBox="0 0 640 640" width={size} height={size} className={className} focusable="false" {...props}>
-    <path
-      fill="currentColor"
-      d="M53.5 245.1L110.3 131.4C121.2 109.7 143.3 96 167.6 96L472.5 96C496.7 96 518.9 109.7 529.7 131.4L586.5 245.1C590.1 252.3 592 260.2 592 268.3C592 295.6 570.8 318 544 319.9L544 512C544 529.7 529.7 544 512 544C494.3 544 480 529.7 480 512L480 320L384 320L384 496C384 522.5 362.5 544 336 544L144 544C117.5 544 96 522.5 96 496L96 319.9C69.2 318 48 295.6 48 268.3C48 260.3 49.9 252.3 53.5 245.1zM160 320L160 432C160 440.8 167.2 448 176 448L304 448C312.8 448 320 440.8 320 432L320 320L160 320z"
-    />
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} focusable="false" {...props}>
+    <g clipPath="url(#clip0_4418_7218)">
+      <path
+        fill="currentColor"
+        d="M14.7 22.7507H9.30001C4.36001 22.7507 2.26001 20.6407 2.26001 15.7107V11.2207C2.26001 10.8107 2.60001 10.4707 3.01001 10.4707C3.42001 10.4707 3.76001 10.8107 3.76001 11.2207V15.7107C3.76001 19.8007 5.21001 21.2507 9.30001 21.2507H14.69C18.78 21.2507 20.23 19.8007 20.23 15.7107V11.2207C20.23 10.8107 20.57 10.4707 20.98 10.4707C21.39 10.4707 21.73 10.8107 21.73 11.2207V15.7107C21.74 20.6407 19.63 22.7507 14.7 22.7507Z"
+      />
+      <path
+        fill="currentColor"
+        d="M12 12.75C10.9 12.75 9.9 12.32 9.19 11.53C8.48 10.74 8.15 9.71 8.26 8.61L8.93 1.93C8.97 1.55 9.29 1.25 9.68 1.25H14.35C14.74 1.25 15.06 1.54 15.1 1.93L15.77 8.61C15.88 9.71 15.55 10.74 14.84 11.53C14.1 12.32 13.1 12.75 12 12.75ZM10.35 2.75L9.75 8.76C9.68 9.43 9.88 10.06 10.3 10.52C11.15 11.46 12.85 11.46 13.7 10.52C14.12 10.05 14.32 9.42 14.25 8.76L13.65 2.75H10.35Z"
+      />
+      <path
+        fill="currentColor"
+        d="M18.31 12.75C16.28 12.75 14.47 11.11 14.26 9.09L13.56 2.08C13.54 1.87 13.61 1.66 13.75 1.5C13.89 1.34 14.09 1.25 14.31 1.25H17.36C20.3 1.25 21.67 2.48 22.08 5.5L22.36 8.28C22.48 9.46 22.12 10.58 21.35 11.43C20.58 12.28 19.5 12.75 18.31 12.75ZM15.14 2.75L15.76 8.94C15.89 10.19 17.05 11.25 18.31 11.25C19.07 11.25 19.75 10.96 20.24 10.43C20.72 9.9 20.94 9.19 20.87 8.43L20.59 5.68C20.28 3.42 19.55 2.75 17.36 2.75H15.14Z"
+      />
+      <path
+        fill="currentColor"
+        d="M5.64002 12.75C4.45002 12.75 3.37002 12.28 2.60002 11.43C1.83002 10.58 1.47002 9.46 1.59002 8.28L1.86002 5.53C2.28002 2.48 3.65002 1.25 6.59002 1.25H9.64002C9.85002 1.25 10.05 1.34 10.2 1.5C10.35 1.66 10.41 1.87 10.39 2.08L9.69002 9.09C9.48002 11.11 7.67002 12.75 5.64002 12.75ZM6.59002 2.75C4.40002 2.75 3.67002 3.41 3.35002 5.7L3.08002 8.43C3.00002 9.19 3.23002 9.9 3.71002 10.43C4.19002 10.96 4.87002 11.25 5.64002 11.25C6.90002 11.25 8.07002 10.19 8.19002 8.94L8.81002 2.75H6.59002Z"
+      />
+      <path
+        fill="currentColor"
+        d="M14.5 22.75H9.5C9.09 22.75 8.75 22.41 8.75 22V19.5C8.75 17.4 9.9 16.25 12 16.25C14.1 16.25 15.25 17.4 15.25 19.5V22C15.25 22.41 14.91 22.75 14.5 22.75ZM10.25 21.25H13.75V19.5C13.75 18.24 13.26 17.75 12 17.75C10.74 17.75 10.25 18.24 10.25 19.5V21.25Z"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_4418_7218">
+        <rect width="24" height="24" fill="white" />
+      </clipPath>
+    </defs>
   </svg>
 );
 
+// Ícono de box para Inventario (public/icons/iconsax/box.svg).
 const IconoInventario: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 14, className, ...props }) => (
-  <svg viewBox="0 0 640 640" width={size} height={size} className={className} focusable="false" {...props}>
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" className={className} focusable="false" {...props}>
     <path
-      fill="currentColor"
-      d="M288 64L288 128C288 136.8 295.2 144 304 144L336 144C344.8 144 352 136.8 352 128L352 64L384 64C419.3 64 448 92.7 448 128L448 256C448 261.5 447.3 266.9 446 272L194 272C192.7 266.9 192 261.5 192 256L192 128C192 92.7 220.7 64 256 64L288 64zM384 576C372.8 576 362.2 573.1 353 568C362.5 551.5 368 532.4 368 512L368 384C368 363.6 362.5 344.5 353 328C362.2 322.9 372.7 320 384 320L416 320L416 384C416 392.8 423.2 400 432 400L464 400C472.8 400 480 392.8 480 384L480 320L512 320C547.3 320 576 348.7 576 384L576 512C576 547.3 547.3 576 512 576L384 576zM64 384C64 348.7 92.7 320 128 320L160 320L160 384C160 392.8 167.2 400 176 400L208 400C216.8 400 224 392.8 224 384L224 320L256 320C291.3 320 320 348.7 320 384L320 512C320 547.3 291.3 576 256 576L128 576C92.7 576 64 547.3 64 512L64 384z"
+      d="M3.17004 7.43945 12 12.5494l8.77-5.07998M12 21.6091v-9.07M9.92999 2.48 4.59 5.45003C3.38 6.12003 2.39001 7.80001 2.39001 9.18001v5.64999c0 1.38.98999 3.06 2.19999 3.73l5.34 2.97c1.14.63 3.01.63 4.15 0l5.34-2.97c1.21-.67 2.2-2.35 2.2-3.73V9.18001c0-1.38-.99-3.06-2.2-3.72998L14.08 2.48c-1.15-.64-3.01-.64-4.15 0ZM17 13.2396V9.57965L7.51001 4.09961"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
     />
   </svg>
 );
 
+// Ícono inline de gráfico para compatibilidad con vistas antiguas.
 const IconoReportes: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 14, className, ...props }) => (
-  <svg viewBox="0 0 640 640" width={size} height={size} className={className} focusable="false" {...props}>
-    <path
-      fill="currentColor"
-      d="M128 128C128 110.3 113.7 96 96 96C78.3 96 64 110.3 64 128L64 464C64 508.2 99.8 544 144 544L544 544C561.7 544 576 529.7 576 512C576 494.3 561.7 480 544 480L144 480C135.2 480 128 472.8 128 464L128 128zM534.6 214.6C547.1 202.1 547.1 181.8 534.6 169.3C522.1 156.8 501.8 156.8 489.3 169.3L384 274.7L326.6 217.4C314.1 204.9 293.8 204.9 281.3 217.4L185.3 313.4C172.8 325.9 172.8 346.2 185.3 358.7C197.8 371.2 218.1 371.2 230.6 358.7L304 285.3L361.4 342.7C373.9 355.2 394.2 355.2 406.7 342.7L534.7 214.7z"
-    />
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} focusable="false" {...props}>
+    <g clipPath="url(#clip0_4418_7623)">
+      <path
+        fill="currentColor"
+        d="M22 22.75H2C1.59 22.75 1.25 22.41 1.25 22C1.25 21.59 1.59 21.25 2 21.25H22C22.41 21.25 22.75 21.59 22.75 22C22.75 22.41 22.41 22.75 22 22.75Z"
+      />
+      <path
+        fill="currentColor"
+        d="M14.25 22.75H9.75C9.34 22.75 9 22.41 9 22V4C9 2.28 9.95 1.25 11.55 1.25H12.45C14.05 1.25 15 2.28 15 4V22C15 22.41 14.66 22.75 14.25 22.75ZM10.5 21.25H13.5V4C13.5 2.85 12.96 2.75 12.45 2.75H11.55C11.04 2.75 10.5 2.85 10.5 4V21.25Z"
+      />
+      <path
+        fill="currentColor"
+        d="M7 22.75H3C2.59 22.75 2.25 22.41 2.25 22V10C2.25 8.28 3.13 7.25 4.6 7.25H5.4C6.87 7.25 7.75 8.28 7.75 10V22C7.75 22.41 7.41 22.75 7 22.75ZM3.75 21.25H6.25V10C6.25 8.75 5.7 8.75 5.4 8.75H4.6C4.3 8.75 3.75 8.75 3.75 10V21.25Z"
+      />
+      <path
+        fill="currentColor"
+        d="M21 22.75H17C16.59 22.75 16.25 22.41 16.25 22V15C16.25 13.28 17.13 12.25 18.6 12.25H19.4C20.87 12.25 21.75 13.28 21.75 15V22C21.75 22.41 21.41 22.75 21 22.75ZM17.75 21.25H20.25V15C20.25 13.75 19.7 13.75 19.4 13.75H18.6C18.3 13.75 17.75 13.75 17.75 15V21.25Z"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_4418_7623">
+        <rect width="24" height="24" fill="white" />
+      </clipPath>
+    </defs>
   </svg>
 );
 
+// Mismo ícono de engranaje que ya usa "Configuración" en la cuenta del
+// cliente (public/icons/iconsax/setting.svg), para que ambas secciones se
+// lean igual. Es de trazo (stroke), no de relleno como el resto de íconos
+// de este archivo, por eso el stroke usa currentColor en vez del fill.
 const IconoConfiguracion: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 14, className, ...props }) => (
-  <svg viewBox="0 0 640 640" width={size} height={size} className={className} focusable="false" {...props}>
+  <svg viewBox="0 0 24 24" width={size} height={size} fill="none" className={className} focusable="false" {...props}>
     <path
-      fill="currentColor"
-      d="M259.1 73.5C262.1 58.7 275.2 48 290.4 48L350.2 48C365.4 48 378.5 58.7 381.5 73.5L396 143.5C410.1 149.5 423.3 157.2 435.3 166.3L503.1 143.8C517.5 139 533.3 145 540.9 158.2L570.8 210C578.4 223.2 575.7 239.8 564.3 249.9L511 297.3C511.9 304.7 512.3 312.3 512.3 320C512.3 327.7 511.8 335.3 511 342.7L564.4 390.2C575.8 400.3 578.4 417 570.9 430.1L541 481.9C533.4 495 517.6 501.1 503.2 496.3L435.4 473.8C423.3 482.9 410.1 490.5 396.1 496.6L381.7 566.5C378.6 581.4 365.5 592 350.4 592L290.6 592C275.4 592 262.3 581.3 259.3 566.5L244.9 496.6C230.8 490.6 217.7 482.9 205.6 473.8L137.5 496.3C123.1 501.1 107.3 495.1 99.7 481.9L69.8 430.1C62.2 416.9 64.9 400.3 76.3 390.2L129.7 342.7C128.8 335.3 128.4 327.7 128.4 320C128.4 312.3 128.9 304.7 129.7 297.3L76.3 249.8C64.9 239.7 62.3 223 69.8 209.9L99.7 158.1C107.3 144.9 123.1 138.9 137.5 143.7L205.3 166.2C217.4 157.1 230.6 149.5 244.6 143.4L259.1 73.5zM320.3 400C364.5 399.8 400.2 363.9 400 319.7C399.8 275.5 363.9 239.8 319.7 240C275.5 240.2 239.8 276.1 240 320.3C240.2 364.5 276.1 400.2 320.3 400z"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeMiterlimit="10"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"
+    />
+    <path
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeMiterlimit="10"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      d="M2 12.8794v-1.76c0-1.04.85-1.9 1.9-1.9 1.81 0 2.55-1.28 1.64-2.85-.52-.9-.21-2.07.7-2.59l1.73-.99c.79-.47 1.81-.19 2.28.6l.11.19c.9 1.57 2.38 1.57 3.29 0l.11-.19c.47-.79 1.49-1.07 2.28-.6l1.73.99c.91.52 1.22 1.69.7 2.59-.91 1.57-.17 2.85 1.64 2.85 1.04 0 1.9.85 1.9 1.9v1.76c0 1.04-.85 1.9-1.9 1.9-1.81 0-2.55 1.28-1.64 2.85.52.91.21 2.07-.7 2.59l-1.73.99c-.79.47-1.81.19-2.28-.6l-.11-.19c-.9-1.57-2.38-1.57-3.29 0l-.11.19c-.47.79-1.49 1.07-2.28.6l-1.73-.99c-.91-.52-1.22-1.69-.7-2.59.91-1.57.17-2.85-1.64-2.85-1.05 0-1.9-.86-1.9-1.9Z"
     />
   </svg>
 );
@@ -67,6 +131,62 @@ const IconoEnvios: ComponentType<{ size?: number; className?: string; "aria-hidd
   </svg>
 );
 
+// Ícono de grid 2x2 para el panel de inicio (Inicio).
+const IconoGrid: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 14, className, ...props }) => (
+  <svg viewBox="0 0 24 24" width={size} height={size} className={className} focusable="false" {...props}>
+    <g clipPath="url(#clip0_4418_7182)">
+      <path
+        fill="currentColor"
+        d="M19.77 13.75H15.73C13.72 13.75 12.75 12.82 12.75 10.9V4.1C12.75 2.18 13.73 1.25 15.73 1.25H19.77C21.78 1.25 22.75 2.18 22.75 4.1V10.9C22.75 12.82 21.77 13.75 19.77 13.75ZM15.73 2.75C14.46 2.75 14.25 3.09 14.25 4.1V10.9C14.25 11.91 14.46 12.25 15.73 12.25H19.77C21.04 12.25 21.25 11.91 21.25 10.9V4.1C21.25 3.09 21.04 2.75 19.77 2.75H15.73Z"
+      />
+      <path
+        fill="currentColor"
+        d="M19.77 22.75H15.73C13.72 22.75 12.75 21.82 12.75 19.9V18.1C12.75 16.18 13.73 15.25 15.73 15.25H19.77C21.78 15.25 22.75 16.18 22.75 18.1V19.9C22.75 21.82 21.77 22.75 19.77 22.75ZM15.73 16.75C14.46 16.75 14.25 17.09 14.25 18.1V19.9C14.25 20.91 14.46 21.25 15.73 21.25H19.77C21.04 21.25 21.25 20.91 21.25 19.9V18.1C21.25 17.09 21.04 16.75 19.77 16.75H15.73Z"
+      />
+      <path
+        fill="currentColor"
+        d="M8.27 22.75H4.23C2.22 22.75 1.25 21.82 1.25 19.9V13.1C1.25 11.18 2.23 10.25 4.23 10.25H8.27C10.28 10.25 11.25 11.18 11.25 13.1V19.9C11.25 21.82 10.27 22.75 8.27 22.75ZM4.23 11.75C2.96 11.75 2.75 12.09 2.75 13.1V19.9C2.75 20.91 2.96 21.25 4.23 21.25H8.27C9.54 21.25 9.75 20.91 9.75 19.9V13.1C9.75 12.09 9.54 11.75 8.27 11.75H4.23Z"
+      />
+      <path
+        fill="currentColor"
+        d="M8.27 8.75H4.23C2.22 8.75 1.25 7.82 1.25 5.9V4.1C1.25 2.18 2.23 1.25 4.23 1.25H8.27C10.28 1.25 11.25 2.18 11.25 4.1V5.9C11.25 7.82 10.27 8.75 8.27 8.75ZM4.23 2.75C2.96 2.75 2.75 3.09 2.75 4.1V5.9C2.75 6.91 2.96 7.25 4.23 7.25H8.27C9.54 7.25 9.75 6.91 9.75 5.9V4.1C9.75 3.09 9.54 2.75 8.27 2.75H4.23Z"
+      />
+    </g>
+    <defs>
+      <clipPath id="clip0_4418_7182">
+        <rect width="24" height="24" fill="white" />
+      </clipPath>
+    </defs>
+  </svg>
+);
+
+// Se conservan disponibles para otras vistas que puedan reutilizar estos
+// iconos; Catálogo y Promociones usan ahora los recursos solicitados.
+void IconoTienda;
+void IconoMarketing;
+void IconoVentas;
+void IconoEnvios;
+
+const IconoCarpeta: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 16, className, ...props }) => (
+  <span className={`${className} ${styles.navIconoCarpeta}`} style={{ width: size, height: size }} {...props} />
+);
+
+const IconoBolsaVentas: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 16, className, ...props }) => (
+  <span className={`${className} ${styles.navIconoBolsaVentas}`} style={{ width: size, height: size }} {...props} />
+);
+
+const IconoEtiqueta: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 16, className, ...props }) => (
+  <span className={`${className} ${styles.navIconoEtiqueta}`} style={{ width: size, height: size }} {...props} />
+);
+
+const IconoNota: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 16, className, ...props }) => (
+  <span className={`${className} ${styles.navIconoNota}`} style={{ width: size, height: size }} {...props} />
+);
+
+const IconoCamion: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> = ({ size = 16, className, ...props }) => (
+  <span className={`${className} ${styles.navIconoCamion}`} style={{ width: size, height: size }} {...props} />
+);
+
 const GRUPOS: {
   titulo: string | null;
   icono: ComponentType<{ size?: number; className?: string; "aria-hidden"?: boolean }> | null;
@@ -74,12 +194,12 @@ const GRUPOS: {
 }[] = [
   {
     titulo: null, // Inicio va suelto, sin encabezado de grupo ni desplegable.
-    icono: IconoFiltros,
+    icono: IconoGrid,
     secciones: [{ href: "/admin", etiqueta: "Inicio" }],
   },
   {
     titulo: "Ventas",
-    icono: IconoVentas,
+    icono: IconoBolsaVentas,
     secciones: [
       { href: "/admin/pedidos", etiqueta: "Pedidos" },
       { href: "/admin/clientes", etiqueta: "Clientes" },
@@ -88,7 +208,7 @@ const GRUPOS: {
   },
   {
     titulo: "Catálogo",
-    icono: IconoTienda,
+    icono: IconoNota,
     secciones: [
       { href: "/admin/productos", etiqueta: "Productos" },
       { href: "/admin/categorias", etiqueta: "Categorías" },
@@ -106,7 +226,7 @@ const GRUPOS: {
   },
   {
     titulo: "Promociones",
-    icono: IconoMarketing,
+    icono: IconoEtiqueta,
     secciones: [
       { href: "/admin/cupones", etiqueta: "Cupones" },
       { href: "/admin/productos?destacado=si", etiqueta: "Destacados" },
@@ -114,7 +234,7 @@ const GRUPOS: {
   },
   {
     titulo: "Envíos",
-    icono: IconoEnvios,
+    icono: IconoCamion,
     secciones: [{ href: "/admin/envios", etiqueta: "Seguimiento" }],
   },
   {
@@ -209,7 +329,7 @@ export function AdminNav() {
                 aria-expanded={abierto}
                 onClick={() => alternarGrupo(grupo.titulo!)}
               >
-                {Icono && <Icono className={styles.navGrupoIcono} aria-hidden={true} />}
+                  {Icono && <Icono className={styles.navGrupoIcono} aria-hidden={true} />}
                 <span className={styles.navGrupoTexto}>{grupo.titulo}</span>
                 <IconoFlecha
                   className={`${styles.navGrupoChevron} ${abierto ? styles.navGrupoChevronAbierto : ""}`}
@@ -244,7 +364,7 @@ export function AdminNav() {
                   href={seccion.href}
                   className={`${styles.enlace} ${esActivo(pathname, seccion.href, searchParams) ? styles.enlaceActivo : ""}`}
                 >
-                  {Icono && <Icono size={18} className={`${styles.enlaceIcono} ${indice === 0 ? styles.enlaceIconoPanel : ""}`} aria-hidden={true} />}
+                  {Icono && <Icono className={`${styles.enlaceIcono} ${indice === 0 ? styles.enlaceIconoPanel : ""}`} aria-hidden={true} />}
                   {seccion.etiqueta}
                 </Link>
               ))

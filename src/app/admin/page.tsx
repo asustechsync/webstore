@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatearPrecio } from "@/lib/utils";
-import { PageHeader } from "@/components/ui";
 import styles from "./admin.module.css";
 
 // Mismo criterio que en Reportes: solo estos estados cuentan como venta real.
@@ -162,8 +161,8 @@ export default async function AdminDashboardPage() {
 
   return (
     <>
-      <PageHeader titulo="Panel administrativo" descripcion="Resumen general de la tienda." />
-
+      {/* Sin encabezado de página: el menú lateral ya marca "Inicio" como
+          sección activa, y este panel arranca directo con lo que importa. */}
       {/* ── Nivel 1: qué necesita atención ahora ───────────── */}
       {hayAlertas ? (
         <div className={styles.alertasGrid}>
@@ -201,7 +200,8 @@ export default async function AdminDashboardPage() {
                 {variantesBajas.map((variante) => (
                   <li key={variante.id}>
                     <span>
-                      {variante.producto.nombre} · {variante.talla}
+                      {variante.producto.nombre}
+                      {variante.talla && ` · ${variante.talla}`}
                       {variante.color && ` · ${variante.color}`}
                     </span>
                     <span className={variante.cantidad === 0 ? styles.alerta : undefined}>

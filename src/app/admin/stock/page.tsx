@@ -47,7 +47,7 @@ export default async function AdminStockPage({
             varianteId: variante.id,
             producto: variante.producto.nombre,
             imagenUrl: variante.producto.imagenes[0]?.url ?? null,
-            opciones: [variante.talla, variante.color].filter(Boolean).join(" / "),
+            opciones: [variante.talla, variante.color].filter(Boolean).join(" / ") || "Única",
             sku: variante.sku,
             cantidad: variante.cantidad,
             stockMinimo: variante.stockMinimo,

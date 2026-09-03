@@ -1,12 +1,5 @@
-import { Container } from "@/components/ui/Container";
+import { PageHeader } from "@/components/ui";
 
 export default function AdminFacturacionPage() {
-  return (
-    <main>
-      <Container>
-        <h1>Facturación</h1>
-        <p>Emisión de comprobantes (fase 3).</p>
-      </Container>
-    </main>
-  );
+  return <PageHeader titulo="Facturación" descripcion="Emisión de comprobantes (fase 3)." />;
 }

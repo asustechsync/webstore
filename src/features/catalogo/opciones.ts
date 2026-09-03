@@ -41,6 +41,25 @@ export type PerfilOpciones = {
   opciones: OpcionConfig[];
 };
 
+/**
+ * Códigos con los que arranca el SKU del producto. Vive acá y no dentro de la
+ * server action para que el formulario muestre exactamente el mismo catálogo
+ * que después valida el servidor.
+ */
+export const CODIGOS_TIPO = [
+  { codigo: "ME", nombre: "Media", tipoProducto: "MEDIAS_MUJER", perfil: "medias_mujer" },
+  { codigo: "BO", nombre: "Boxer", tipoProducto: "BOXER_ADULTO", perfil: "boxer_adulto" },
+  { codigo: "PR", nombre: "Prenda (polo, bividí)", tipoProducto: "ROPA_ADULTO", perfil: "ropa_adulto" },
+  { codigo: "BR", nombre: "Brasier", tipoProducto: "BRASIER", perfil: "brasier" },
+  { codigo: "OT", nombre: "Otro", tipoProducto: "PERSONALIZADO", perfil: "personalizado" },
+] as const;
+
+export type CodigoTipo = (typeof CODIGOS_TIPO)[number]["codigo"];
+
+export function definicionCodigoTipo(codigo: string) {
+  return CODIGOS_TIPO.find((tipo) => tipo.codigo === codigo) ?? CODIGOS_TIPO[CODIGOS_TIPO.length - 1];
+}
+
 export type TipoEditor = "unica" | "media" | "boxer" | "prenda" | "brasier" | "personalizado";
 export type PublicoEditor = "mujer" | "hombre" | "nino" | "adulto";
 

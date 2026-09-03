@@ -17,17 +17,16 @@
   background: var(--color-bg-suave);
 }
 
-/* El fondo gris (.shell) sigue ocupando todo el ancho de la pantalla; lo que
-   se angosta y centra es el contenido, con el mismo ancho máximo que usa
-   el resto del sitio, para que el panel no se estire borde a borde. */
+/* A diferencia del resto del sitio (tienda, cuenta, auth), que se angosta al
+   ancho máximo vía Container, el panel de administración es la única
+   sección que ocupa todo el ancho disponible: hay tablas, filtros y
+   columnas de datos que se aprovechan mejor sin ese límite. */
 .shellInterior {
   display: flex;
   flex-direction: column;
   flex: 1;
   min-height: 0;
   width: 100%;
-  max-width: var(--ancho-maximo);
-  margin-inline: auto;
   gap: var(--espacio-3);
 }
 
@@ -106,10 +105,53 @@
 
 .enlaceIcono {
   flex-shrink: 0;
+  width: var(--icono-tamano);
+  height: var(--icono-tamano);
 }
 
 .enlaceIconoPanel {
   fill: currentColor;
+}
+
+.navIconoCarpeta,
+.navIconoEtiqueta,
+.navIconoBolsaVentas,
+.navIconoNota,
+.navIconoCamion {
+  display: block;
+  flex: 0 0 auto;
+  background: var(--color-texto-suave);
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+}
+
+.navIconoCarpeta {
+  -webkit-mask-image: url("/icons/iconsax/folder.svg");
+  mask-image: url("/icons/iconsax/folder.svg");
+}
+
+.navIconoEtiqueta {
+  -webkit-mask-image: url("/icons/iconsax/tag.svg");
+  mask-image: url("/icons/iconsax/tag.svg");
+}
+
+.navIconoBolsaVentas {
+  -webkit-mask-image: url("/icons/iconsax/shopping-bag.svg");
+  mask-image: url("/icons/iconsax/shopping-bag.svg");
+}
+
+.navIconoNota {
+  -webkit-mask-image: url("/icons/iconsax/note.svg");
+  mask-image: url("/icons/iconsax/note.svg");
+}
+
+.navIconoCamion {
+  -webkit-mask-image: url("/icons/iconsax/truck.svg");
+  mask-image: url("/icons/iconsax/truck.svg");
 }
 
 .enlaceActivo {
@@ -148,7 +190,7 @@
     flex-shrink: 0;
     overflow-x: visible;
     padding: var(--espacio-3);
-    gap: var(--espacio-4);
+    gap: var(--espacio-2);
     /* El sidebar es tan alto como el contenido a su lado, para que ambos
        paneles floten con la misma altura visual en vez de que el sidebar
        quede corto y flotando "suelto" arriba. */
@@ -168,8 +210,8 @@
     width: 100%;
     border: none;
     background: transparent;
-    padding: var(--espacio-1) var(--espacio-3);
-    margin-bottom: var(--espacio-1);
+    padding: var(--espacio-2) var(--espacio-3);
+    margin-bottom: 0;
     font: inherit;
     font-size: var(--texto-xs);
     font-weight: var(--peso-semibold);
@@ -184,8 +226,15 @@
     background: var(--color-bg-suave);
   }
 
+  .navGrupoTitulo[aria-expanded="true"] {
+    background: var(--color-bg-suave);
+    color: var(--color-texto);
+  }
+
   .navGrupoIcono {
     flex-shrink: 0;
+    width: var(--icono-tamano);
+    height: var(--icono-tamano);
   }
 
   .navGrupoTexto {
@@ -195,11 +244,13 @@
 
   .navGrupoChevron {
     flex-shrink: 0;
+    opacity: 0;
     transition: transform 0.15s ease;
   }
 
   .navGrupoChevronAbierto {
     transform: rotate(180deg);
+    opacity: 1;
   }
 
   /* Colapso suave del sidebar: grid-template-rows 0fr→1fr es lo único que
@@ -511,33 +562,7 @@
   font-weight: var(--peso-medio);
 }
 
-/* ── Vista previa del producto (barra lateral) ─────────── */
-
-.previaProducto {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espacio-3);
-}
-
-.previaImagen {
-  display: block;
-  width: 100%;
-  height: 12rem;
-  border-radius: var(--radio-borde);
-  object-fit: cover;
-  background: var(--color-bg-suave);
-}
-
-.previaImagenVacia {
-  width: 100%;
-  height: 12rem;
-  border-radius: var(--radio-borde);
-  background: var(--color-bg-suave);
-}
-
-.previaNombre {
-  font-weight: var(--peso-semibold);
-}
+/* ── Detalle en línea (pedidos) ────────────────────────── */
 
 .previaDatos {
   display: flex;
@@ -638,18 +663,70 @@
   composes: grupoBotones from "../../styles/ui.module.css";
 }
 
-.selectorTipoProducto {
+/* ── Elegir cómo se vende el producto (paso 1) ───────────── */
+.selectorModo {
+  display: grid;
+  gap: var(--espacio-4);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .selectorModo {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.tarjetaModo {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  padding: var(--espacio-5);
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.tarjetaModo:hover,
+.tarjetaModo:focus-visible {
+  border-color: var(--color-texto);
+  background: var(--color-bg-suave);
+}
+
+.tarjetaModoResumen {
+  font-size: var(--texto-sm);
+  color: var(--color-texto);
+}
+
+.tarjetaModoDetalle {
+  font-size: var(--texto-caption);
+  color: var(--color-texto-suave);
+}
+
+.modoElegido {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: var(--espacio-3);
-  margin: 0 0 var(--espacio-4);
+  margin-bottom: var(--espacio-4);
   padding: var(--espacio-3);
   border: 1px solid var(--color-borde);
   border-radius: var(--radio-borde);
+  background: var(--color-bg-suave);
 }
 
-.selectorTipoProducto legend { padding-inline: var(--espacio-1); }
-.selectorTipoProducto label { display: flex; align-items: center; gap: var(--espacio-2); font-size: var(--texto-sm); }
+.modoElegido div {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+}
+
+.modoElegido span {
+  font-size: var(--texto-caption);
+  color: var(--color-texto-suave);
+}
 
 .boton {
   composes: botonPrimario from "../../styles/ui.module.css";
@@ -732,21 +809,6 @@
   .diseñoColumnas {
     grid-template-columns: 2fr 1fr;
   }
-
-  /* En el listado, la tabla y filtros necesitan más ancho que la vista
-     previa lateral. El formulario conserva su distribución propia. */
-  .panelProductos {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: var(--espacio-3);
-  }
-
-  .panelProductos > .columna:first-child {
-    grid-column: span 3;
-  }
-
-  .panelProductos > .columna:last-child {
-    grid-column: span 1;
-  }
 }
 
 @media (max-width: 900px) {
@@ -760,20 +822,6 @@
   flex-direction: column;
   gap: var(--espacio-6);
   min-width: 0;
-}
-
-.listaAtajos {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espacio-1);
-}
-
-.listaAtajos .enlace {
-  padding-left: 0;
-}
-
-.listaAtajos .enlace:hover {
-  background: var(--color-bg-suave);
 }
 
 /* ── Bloques del formulario de producto ────────────────── */
@@ -829,6 +877,34 @@
   color: var(--color-texto);
   font-weight: var(--peso-medio);
   border-bottom-color: var(--color-texto);
+}
+
+/* Contador de campos pendientes en la pestaña donde se arreglan. */
+.pestañaAviso {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.125rem;
+  height: 1.125rem;
+  margin-left: var(--espacio-2);
+  padding: 0 0.25rem;
+  border-radius: 999px;
+  background: var(--color-error, #dc2626);
+  color: #fff;
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+  line-height: 1;
+}
+
+.listaFaltantes {
+  margin: 0 0 var(--espacio-4);
+  padding-left: var(--espacio-5);
+  font-size: var(--texto-caption);
+  color: var(--color-texto-suave);
+}
+
+.listaFaltantes li + li {
+  margin-top: var(--espacio-1);
 }
 
 .productoContexto {

@@ -1,12 +1,5 @@
-import { Container } from "@/components/ui/Container";
+import { PageHeader } from "@/components/ui";
 
 export default function AdminEnviosPage() {
-  return (
-    <main>
-      <Container>
-        <h1>Envíos</h1>
-        <p>Rastreo de envíos con Shalom (fase 3).</p>
-      </Container>
-    </main>
-  );
+  return <PageHeader titulo="Envíos" descripcion="Rastreo de envíos con Shalom (fase 3)." />;
 }

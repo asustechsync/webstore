@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { IconoEliminar, IconoFlecha } from "@/components/ui/ActionIcons";
 import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
-import { useMemo, useRef, useState, useTransition } from "react";
+import { memo, useCallback, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { actualizarProducto, crearProducto, subirImagenProducto } from "@/features/catalogo/actions/productos";
 import {
@@ -79,6 +79,45 @@ const PESTAÑAS = [
 ] as const;
 type Pestaña = (typeof PESTAÑAS)[number]["clave"];
 
+/**
+ * Qué le falta al formulario, agrupado por la pestaña donde se arregla.
+ *
+ * Duplica a propósito parte de `productoSchema`: el servidor sigue siendo la
+ * autoridad, pero devuelve un error a la vez y sin decir dónde está. Esto
+ * permite marcar las pestañas y llevar al usuario al campo que falta.
+ */
+function revisarFormulario(form: ProductoFormValores): Record<Pestaña, string[]> {
+  const problemas: Record<Pestaña, string[]> = {
+    informacion: [], precios: [], variantes: [], imagenes: [], envio: [], seo: [],
+  };
+
+  if (form.nombre.trim().length < 3) problemas.informacion.push("El nombre necesita al menos 3 caracteres");
+  if (form.slug.trim().length < 3) problemas.informacion.push("El slug necesita al menos 3 caracteres");
+  if (!form.categoriaId) problemas.informacion.push("Selecciona una categoría");
+  if (form.descripcion.trim().length < 10) problemas.informacion.push("La descripción necesita al menos 10 caracteres");
+
+  if (!(Number(form.precio) > 0)) problemas.precios.push("El precio de venta debe ser mayor a 0");
+  if (form.precioOferta && Number(form.precioOferta) >= Number(form.precio)) {
+    problemas.precios.push("El precio de oferta debe ser menor al precio de venta");
+  }
+
+  if (form.modoVariantes) {
+    if (form.opciones.length === 0) problemas.variantes.push("Agrega al menos un atributo (talla, color…)");
+    const sinValores = form.opciones.filter((opcion) => opcion.valores.length === 0);
+    for (const opcion of sinValores) problemas.variantes.push(`${opcion.nombre} no tiene valores seleccionados`);
+    if (form.variantes.length === 0) problemas.variantes.push("Genera las combinaciones que se venderán");
+    if (form.variantes.length > 0 && !form.variantes.some((variante) => variante.activo)) {
+      problemas.variantes.push("Activa al menos una variante");
+    }
+  }
+
+  if (form.activo && form.imagenes.length === 0) {
+    problemas.imagenes.push("Agrega una imagen antes de publicar el producto");
+  }
+
+  return problemas;
+}
+
 let contadorClave = 0;
 function nuevaClave() {
   contadorClave += 1;
@@ -139,6 +178,10 @@ function compactarSku(sku: string) {
 }
 
 function skuParaVariante(skuBase: string, atributos: AtributoVariante[]) {
+  // Producto único: su presentación no distingue nada, así que el SKU es el
+  // código del producto tal cual, sin sufijos que confundan al buscarlo.
+  if (atributos.length === 0) return skuBase.trim().toUpperCase();
+
   const prioridad = ["talla", "edad", "contorno", "copa", "color", "diseno"];
   const ordenados = [...atributos].sort((a, b) => {
     const posicionA = prioridad.indexOf(a.clave);
@@ -172,6 +215,67 @@ function colorDeValor(opcion: OpcionConfig, valor: string) {
   return /^#[0-9A-Fa-f]{6}$/.test(hexadecimal) ? hexadecimal : "#6B7280";
 }
 
+/**
+ * Fila de la tabla de variantes.
+ *
+ * Va en su propio componente memoizado porque el formulario entero vive en un
+ * único `useState`: sin esto, escribir una letra en la descripción vuelve a
+ * renderizar las 250 filas y el tecleo se siente pegajoso.
+ */
+const FilaVariante = memo(function FilaVariante({
+  variante, opciones, subiendo, puedeQuitar,
+  onCampo, onAtributo, onFoto, onQuitarFoto, onQuitar,
+}: {
+  variante: VarianteForm;
+  opciones: OpcionConfig[];
+  subiendo: boolean;
+  puedeQuitar: boolean;
+  onCampo: (clave: string, campo: Exclude<keyof VarianteForm, "atributos">, valor: string | boolean) => void;
+  onAtributo: (clave: string, claveOpcion: string, valor: string) => void;
+  onFoto: (clave: string, evento: React.ChangeEvent<HTMLInputElement>) => void;
+  onQuitarFoto: (clave: string) => void;
+  onQuitar: (clave: string) => void;
+}) {
+  return (
+    <tr>
+      <td className={styles.columnaFoto}>
+        <div className={styles.fotoVariante}>
+          <label className={styles.fotoVarianteCaja} title={variante.imagenUrl ? "Cambiar la foto de esta variante" : "Subir una foto para esta variante"}>
+            {variante.imagenUrl ? <Image src={variante.imagenUrl} alt="" width={80} height={80} unoptimized className={styles.fotoVarianteImagen} /> : <span className={styles.fotoVarianteVacia} aria-hidden>+</span>}
+            <input type="file" accept="image/*" className={styles.fotoVarianteInput} disabled={subiendo} onChange={(evento) => onFoto(variante.clave, evento)} />
+            <span className={styles.soloLectores}>Foto de la variante</span>
+          </label>
+          {variante.imagenUrl && <button type="button" className={styles.fotoVarianteQuitar} onClick={() => onQuitarFoto(variante.clave)} title="Quitar la foto" aria-label="Quitar la foto de la variante">✕</button>}
+        </div>
+      </td>
+      {opciones.map((opcion) => (
+        <td key={opcion.clave} className={COLUMNA_ATRIBUTO[opcion.clave]}>
+          <SelectConFlecha className={styles.control} value={variante.atributos.find((atributo) => atributo.clave === opcion.clave)?.valor ?? ""} onChange={(evento) => onAtributo(variante.clave, opcion.clave, evento.target.value)}>
+            {opcion.valores.map((valor) => <option key={valor} value={valor}>{valor}</option>)}
+          </SelectConFlecha>
+        </td>
+      ))}
+      <td className={styles.columnaSku}>
+        <input className={styles.control} value={variante.sku} readOnly tabIndex={-1} title="Se genera solo a partir del código del producto y sus atributos" />
+      </td>
+      <td className={styles.columnaStock}>
+        <input className={styles.control} type="number" min="0" value={variante.cantidad} required onChange={(evento) => onCampo(variante.clave, "cantidad", evento.target.value)} />
+      </td>
+      <td className={styles.columnaMinimo}>
+        <input className={styles.control} type="number" min="0" value={variante.stockMinimo} required onChange={(evento) => onCampo(variante.clave, "stockMinimo", evento.target.value)} />
+      </td>
+      <td className={styles.columnaActiva}>
+        <button type="button" className={`${styles.switch} ${variante.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={variante.activo} onClick={() => onCampo(variante.clave, "activo", !variante.activo)}>
+          <span className={styles.switchPunto} aria-hidden="true" />
+        </button>
+      </td>
+      <td className={styles.columnaAcciones}>
+        <button type="button" className={styles.miniaturaBoton} disabled={!puedeQuitar} onClick={() => onQuitar(variante.clave)} aria-label="Quitar variante">✕</button>
+      </td>
+    </tr>
+  );
+});
+
 export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId, valoresIniciales }: {
   categorias: Opcion[]; marcas: Opcion[]; atributosCatalogo: AtributoCatalogo[]; productoId?: string; valoresIniciales?: ProductoFormValores;
 }) {
@@ -199,6 +303,12 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
         sku: skuParaVariante(valoresIniciales.sku, variante.atributos),
       })),
     };
+
+    // Un producto único siempre necesita su fila: los borradores creados antes
+    // de que el modo se separara no la tienen y la pestaña Precios la edita.
+    if (!base.modoVariantes && base.variantes.length === 0) {
+      base.variantes = [{ ...varianteVacia(), sku: base.sku }];
+    }
     return base;
   });
   const [pestaña, setPestaña] = useState<Pestaña>("informacion");
@@ -215,6 +325,16 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
   const combinacionesPosibles = useMemo(() => combinacionesOpciones(form.opciones).length, [form.opciones]);
   const margenBase = calcularMargen(form.precioOferta || form.precio, form.costo);
   const stockTotal = form.variantes.reduce((total, variante) => total + Number(variante.cantidad || 0), 0);
+
+  // Un producto único no tiene pestaña de variantes: su stock se edita como un
+  // campo más y la única fila que existe se arma sola al guardar.
+  const pestañasVisibles = useMemo(
+    () => PESTAÑAS.filter((opcion) => opcion.clave !== "variantes" || form.modoVariantes),
+    [form.modoVariantes],
+  );
+  const problemas = useMemo(() => revisarFormulario(form), [form]);
+  const totalProblemas = Object.values(problemas).reduce((total, lista) => total + lista.length, 0);
+  const varianteUnica = form.variantes[0];
 
   function actualizar<C extends keyof ProductoFormValores>(campo: C, valor: ProductoFormValores[C]) {
     setForm((previo) => ({ ...previo, [campo]: valor }));
@@ -246,6 +366,11 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
       setError(`${atributo.nombre} ya está configurado en este producto`);
       return;
     }
+    // Las combinaciones existentes no tienen valor para el atributo nuevo, así
+    // que hay que rehacerlas. Se avisa porque con ellas se va el stock cargado.
+    const conStock = form.variantes.some((variante) => Number(variante.cantidad) > 0);
+    if (conStock && !window.confirm(`Agregar ${atributo.nombre} obliga a regenerar las combinaciones y se perderá el stock ya cargado. ¿Continuar?`)) return;
+
     setError(null);
     setForm((previo) => ({
       ...previo,
@@ -276,10 +401,12 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
       return { ...previo, variantes };
     });
   }
-  function actualizarVariante(clave: string, campo: Exclude<keyof VarianteForm, "atributos">, valor: string | boolean) {
+  // Los tres van memoizados y con actualizador funcional para que su identidad
+  // no cambie entre renders; es lo que permite que FilaVariante no se repinte.
+  const actualizarVariante = useCallback((clave: string, campo: Exclude<keyof VarianteForm, "atributos">, valor: string | boolean) => {
     setForm((previo) => ({ ...previo, variantes: previo.variantes.map((variante) => variante.clave === clave ? { ...variante, [campo]: valor } : variante) }));
-  }
-  function actualizarAtributoVariante(claveVariante: string, claveOpcion: string, valor: string) {
+  }, []);
+  const actualizarAtributoVariante = useCallback((claveVariante: string, claveOpcion: string, valor: string) => {
     setForm((previo) => ({
       ...previo,
       variantes: previo.variantes.map((variante) => {
@@ -288,10 +415,10 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
         return { ...variante, atributos, sku: skuParaVariante(previo.sku, atributos) };
       }),
     }));
-  }
-  function quitarVariante(clave: string) {
+  }, []);
+  const quitarVariante = useCallback((clave: string) => {
     setForm((previo) => ({ ...previo, variantes: previo.variantes.filter((variante) => variante.clave !== clave) }));
-  }
+  }, []);
   function agregarVarianteManual() {
     const opcionSinValores = form.opciones.find((opcion) => opcion.valores.length === 0);
     if (opcionSinValores) {
@@ -309,13 +436,23 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
       ],
     }));
   }
-  function regenerarSkusVariantes() {
+  // Cambiar de modo descarta lo que no aplica al otro: los atributos no tienen
+  // sentido en un producto único, y la presentación única tampoco en uno con
+  // variantes. Se avisa antes porque se pierde el stock ya cargado.
+  function cambiarModo(aVariantes: boolean) {
+    const hayTrabajo = form.opciones.length > 0 || form.variantes.some((variante) => Number(variante.cantidad) > 0);
+    if (hayTrabajo && !window.confirm(aVariantes
+      ? "Se convertirá en un producto con variantes. La presentación única actual se reemplazará por las combinaciones que definas. ¿Continuar?"
+      : "Se convertirá en un producto único. Se eliminarán los atributos y todas las variantes con su stock. ¿Continuar?",
+    )) return;
+
+    setError(null);
+    setPestaña(aVariantes ? "variantes" : "informacion");
     setForm((previo) => ({
       ...previo,
-      variantes: previo.variantes.map((variante) => ({
-        ...variante,
-        sku: skuParaVariante(previo.sku, variante.atributos),
-      })),
+      modoVariantes: aVariantes,
+      opciones: aVariantes ? previo.opciones : [],
+      variantes: aVariantes ? [] : [{ ...(previo.variantes[0] ?? varianteVacia()), atributos: [], sku: previo.sku }],
     }));
   }
 
@@ -355,10 +492,10 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
   // en la fila de la variante en vez de en la galería. El archivo ya está en
   // Cloudinary; si el formulario se cancela queda huérfano, igual que hoy pasa
   // con las imágenes del producto.
-  async function onSeleccionarImagenVariante(
+  const onSeleccionarImagenVariante = useCallback(async (
     claveVariante: string,
     evento: React.ChangeEvent<HTMLInputElement>,
-  ) {
+  ) => {
     const archivo = evento.target.files?.[0];
     evento.target.value = "";
     if (!archivo) return;
@@ -373,22 +510,39 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
     if (!resultado.ok) return setError(resultado.error);
     actualizarVariante(claveVariante, "imagenUrl", resultado.datos.url);
     actualizarVariante(claveVariante, "imagenPublicId", resultado.datos.publicId);
-  }
+  }, [actualizarVariante]);
 
-  function quitarImagenVariante(claveVariante: string) {
+  const quitarImagenVariante = useCallback((claveVariante: string) => {
     actualizarVariante(claveVariante, "imagenUrl", "");
     actualizarVariante(claveVariante, "imagenPublicId", "");
-  }
+  }, [actualizarVariante]);
 
   function quitarImagen(publicId: string) {
     setForm((previo) => ({ ...previo, imagenes: previo.imagenes.filter((imagen) => imagen.publicId !== publicId) }));
   }
   function onSubmit(evento: React.FormEvent) {
     evento.preventDefault(); setError(null);
+
+    // Antes de ir al servidor: si algo falta, se salta a la pestaña donde se
+    // arregla en vez de devolver un error suelto sin contexto.
+    const primeraPestañaConFallo = pestañasVisibles.find((opcion) => problemas[opcion.clave].length > 0);
+    if (primeraPestañaConFallo) {
+      setPestaña(primeraPestañaConFallo.clave);
+      return setError(problemas[primeraPestañaConFallo.clave][0]);
+    }
+
+    // Producto único: sin opciones y con una sola variante sin atributos, para
+    // que la ficha pública no muestre un selector de una sola alternativa.
+    const variantes = form.modoVariantes
+      ? form.variantes
+      : [{ ...(varianteUnica ?? varianteVacia()), atributos: [] }];
+
     const datos = {
       ...form,
-      opciones: form.opciones.map(({ clave, nombre, valores }) => ({ clave, nombre, valores })),
-      variantes: form.variantes.map(({ id, atributos, precio, costo, cantidad, stockMinimo, activo, imagenUrl, imagenPublicId }) => ({
+      opciones: form.modoVariantes
+        ? form.opciones.map(({ clave, nombre, valores }) => ({ clave, nombre, valores }))
+        : [],
+      variantes: variantes.map(({ id, atributos, precio, costo, cantidad, stockMinimo, activo, imagenUrl, imagenPublicId }) => ({
         id,
         atributos,
         sku: skuParaVariante(form.sku, atributos),
@@ -425,16 +579,42 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
               <span className={styles.productoContextoPrecio}>{form.precio ? formatearPrecio(form.precio) : "S/ —"}</span>
             </div>
             <div className={styles.pestañas}>
-              {PESTAÑAS.map((opcion) => <button key={opcion.clave} type="button" className={opcion.clave === pestaña ? `${styles.pestaña} ${styles.pestañaActiva}` : styles.pestaña} onClick={() => setPestaña(opcion.clave)}>{opcion.etiqueta}</button>)}
+              {pestañasVisibles.map((opcion) => {
+                const faltantes = problemas[opcion.clave].length;
+                return (
+                  <button
+                    key={opcion.clave}
+                    type="button"
+                    className={opcion.clave === pestaña ? `${styles.pestaña} ${styles.pestañaActiva}` : styles.pestaña}
+                    onClick={() => setPestaña(opcion.clave)}
+                  >
+                    {opcion.etiqueta}
+                    {faltantes > 0 && <span className={styles.pestañaAviso} title={`${faltantes} campo(s) por completar`}>{faltantes}</span>}
+                  </button>
+                );
+              })}
             </div>
 
+            {problemas[pestaña].length > 0 && <ul className={styles.listaFaltantes}>
+              {problemas[pestaña].map((problema) => <li key={problema}>{problema}</li>)}
+            </ul>}
+
             {pestaña === "informacion" && <>
+              <div className={styles.modoElegido}>
+                <div>
+                  <strong>{form.modoVariantes ? "Producto con variantes" : "Producto único"}</strong>
+                  <span>{form.modoVariantes ? "Cada combinación tiene su SKU, stock y precio." : "Un solo SKU, un solo stock."}</span>
+                </div>
+                <button type="button" className={styles.botonChico} onClick={() => cambiarModo(!form.modoVariantes)}>
+                  Cambiar a {form.modoVariantes ? "único" : "variantes"}
+                </button>
+              </div>
               <div className={styles.fila}>
                 <label className={styles.campo}><span className={styles.etiqueta}>Nombre</span><input className={styles.control} value={form.nombre} required onChange={(evento) => { const nombre = evento.target.value; setForm((previo) => ({ ...previo, nombre, slug: slugManual ? previo.slug : slugificar(nombre) })); }} /></label>
                 <label className={styles.campo}><span className={styles.etiqueta}>Slug (URL)</span><input className={styles.control} value={form.slug} required onChange={(evento) => { setSlugManual(true); actualizar("slug", evento.target.value); }} /></label>
               </div>
               <div className={styles.fila}>
-                <label className={styles.campo}><span className={styles.etiqueta}>SKU base (automático)</span><input className={styles.control} value={form.sku} readOnly /></label>
+                <label className={styles.campo}><span className={styles.etiqueta}>{form.modoVariantes ? "Código de modelo (automático)" : "SKU (automático)"}</span><input className={styles.control} value={form.sku} readOnly title={form.modoVariantes ? "Cada variante deriva su SKU de este código" : "Este es el SKU con el que se vende y se busca el producto"} /></label>
                 <label className={styles.campo}><span className={styles.etiqueta}>SKU interno</span><input className={styles.control} value={form.skuInterno} placeholder="Código interno de almacén" onChange={(evento) => actualizar("skuInterno", evento.target.value)} /></label>
               </div>
               <div className={styles.fila}>
@@ -482,30 +662,44 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
                   </div>
                 </details>)}
               </div>
-            </>}
 
-            {pestaña === "variantes" && <>
-              <p className={styles.bloqueAyuda}>Crea las combinaciones que se venderán. Cada variante tendrá su propio SKU, stock, precio y estado.</p>
               <div className={styles.resumenBase}>
-                <div><span>Producto base</span><strong>{form.nombre || "Producto sin nombre"}</strong></div>
-                <div><span>SKU base</span><strong>{form.sku || "—"}</strong></div>
+                <div><span>Código de modelo</span><strong>{form.sku || "—"}</strong></div>
                 <div><span>Combinaciones posibles</span><strong>{combinacionesPosibles}</strong></div>
+                <div><span>Variantes creadas</span><strong>{form.variantes.length}</strong></div>
               </div>
-              <div className={styles.botones}><button type="button" className={styles.boton} onClick={generarCombinaciones}>Generar {combinacionesPosibles || ""} combinaciones</button><button type="button" className={styles.botonSecundario} onClick={agregarVarianteManual}>Agregar variante</button><button type="button" className={styles.botonSecundario} onClick={regenerarSkusVariantes} disabled={form.variantes.length === 0}>Regenerar SKU</button></div>
+              <div className={styles.botones}>
+                <button type="button" className={styles.boton} disabled={combinacionesPosibles === 0} onClick={generarCombinaciones}>Generar {combinacionesPosibles || ""} combinaciones</button>
+                <button type="button" className={styles.botonSecundario} onClick={agregarVarianteManual}>Agregar variante suelta</button>
+              </div>
             </>}
 
             {pestaña === "precios" && <>
-              <p className={styles.bloqueAyuda}>El costo permite calcular ganancia y margen. Una variante puede sobrescribir ambos valores.</p>
+              <p className={styles.bloqueAyuda}>{form.modoVariantes ? "El costo permite calcular ganancia y margen. Una variante puede sobrescribir ambos valores." : "El costo permite calcular ganancia y margen."}</p>
               <div className={styles.fila}>
                 <label className={styles.campo}><span className={styles.etiqueta}>Precio de venta (S/)</span><input className={styles.control} type="number" step="0.01" min="0" value={form.precio} required onChange={(evento) => actualizar("precio", evento.target.value)} /></label>
                 <label className={styles.campo}><span className={styles.etiqueta}>Costo base (S/)</span><input className={styles.control} type="number" step="0.01" min="0" value={form.costo} onChange={(evento) => actualizar("costo", evento.target.value)} /></label>
               </div>
               <label className={styles.campo}><span className={styles.etiqueta}>Precio de oferta (opcional)</span><input className={styles.control} type="number" step="0.01" min="0" value={form.precioOferta} onChange={(evento) => actualizar("precioOferta", evento.target.value)} /></label>
               {margenBase !== null && <div className={styles.resumenMargen}><span>Ganancia base: {formatearPrecio(Number(form.precioOferta || form.precio) - Number(form.costo))}</span><strong className={margenBase >= 0 ? styles.margenPositivo : styles.margenNegativo}>Margen {margenBase.toFixed(1)}%</strong></div>}
+
+              {/* Producto único: el stock es un campo más, no una tabla. La fila
+                  de variante que hay detrás se arma sola al guardar. */}
+              {!form.modoVariantes && <>
+                <h3 className={styles.bloqueTitulo}>Inventario</h3>
+                <p className={styles.bloqueAyuda}>Este producto se vende con el SKU <strong>{form.sku || "—"}</strong>.</p>
+                <div className={styles.fila}>
+                  <label className={styles.campo}><span className={styles.etiqueta}>Stock disponible</span><input className={styles.control} type="number" min="0" value={varianteUnica?.cantidad ?? "0"} required onChange={(evento) => actualizarVariante(varianteUnica.clave, "cantidad", evento.target.value)} /></label>
+                  <label className={styles.campo}><span className={styles.etiqueta}>Stock mínimo (alerta)</span><input className={styles.control} type="number" min="0" value={varianteUnica?.stockMinimo ?? "0"} required onChange={(evento) => actualizarVariante(varianteUnica.clave, "stockMinimo", evento.target.value)} /></label>
+                </div>
+              </>}
+
+              {form.modoVariantes && <>
               <h3 className={styles.bloqueTitulo}>Ajustes por variante</h3>
               <div className={styles.tablaWrap}><table className={`${styles.variantes} ${styles.variantesPrecios}`}><thead><tr><th>Variante</th><th>Precio propio</th><th>Costo propio</th><th>Margen</th></tr></thead><tbody>
                 {form.variantes.map((variante) => { const precio = variante.precio || form.precioOferta || form.precio; const costo = variante.costo || form.costo; const margen = calcularMargen(precio, costo); return <tr key={variante.clave}><td>{etiquetaAtributos(variante.atributos)}</td><td><input className={styles.control} type="number" step="0.01" min="0" placeholder={form.precio || "—"} value={variante.precio} onChange={(evento) => actualizarVariante(variante.clave, "precio", evento.target.value)} /></td><td><input className={styles.control} type="number" step="0.01" min="0" placeholder={form.costo || "—"} value={variante.costo} onChange={(evento) => actualizarVariante(variante.clave, "costo", evento.target.value)} /></td><td className={margen !== null && margen < 0 ? styles.margenNegativo : styles.margenPositivo}>{margen === null ? "—" : `${margen.toFixed(1)}%`}</td></tr>; })}
               </tbody></table></div>
+              </>}
             </>}
 
             {pestaña === "imagenes" && (() => {
@@ -588,26 +782,33 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
             <div className={styles.previewCard}>{form.imagenes[0] ? <Image src={form.imagenes[0].url} alt="" width={320} height={320} unoptimized className={styles.previewCardImagen} /> : <div className={styles.previewCardImagenVacia} aria-hidden />}<div className={styles.previewCardCuerpo}>{form.destacado && <span className={styles.badge}>Destacado</span>}<p className={styles.previewCardNombre}>{form.nombre || "Nombre del producto"}</p><div className={styles.previewCardEtiquetas}><span>{form.categoriaId ? categorias.find((categoria) => categoria.id === form.categoriaId)?.nombre : "Sin categoría"}</span>{form.marcaId && <span>{marcas.find((marca) => marca.id === form.marcaId)?.nombre}</span>}</div><p className={styles.previewCardDescripcion}>{form.descripcionCorta || form.descripcion || "Agrega una descripción para mostrarla aquí."}</p><div className={styles.previewCardDatos}><span>SKU <strong>{form.sku || "—"}</strong></span><span>Stock <strong>{stockTotal}</strong></span><span>Variantes <strong>{form.variantes.length}</strong></span></div><p className={styles.previewCardPrecio}>{form.precioOferta ? <><span className={styles.previewCardPrecioTachado}>{formatearPrecio(form.precio || 0)}</span><span>{formatearPrecio(form.precioOferta)}</span></> : <span>{form.precio ? formatearPrecio(form.precio) : "S/ —"}</span>}</p></div></div>
           </div>
         </div>
-        {pestaña === "variantes" && <div className={`${styles.bloque} ${styles.variantesBloque}`}>
+        {pestaña === "variantes" && form.variantes.length > 0 && <div className={`${styles.bloque} ${styles.variantesBloque}`}>
           <div className={styles.variantesCabecera}>
             <h2 className={styles.bloqueTitulo}>Variantes del producto</h2>
-            <p className={styles.bloqueAyuda}>{form.variantes.length} variante(s) configurada(s). Ajusta aquí SKU, stock y estado.</p>
+            <p className={styles.bloqueAyuda}>{form.variantes.length} variante(s) · el SKU se genera solo a partir del código de modelo y los atributos.</p>
           </div>
           <div className={styles.tablaWrap}><table className={styles.variantes}><thead><tr><th className={styles.columnaFoto}>Foto</th>{form.opciones.map((opcion) => <th key={opcion.clave} className={COLUMNA_ATRIBUTO[opcion.clave]}>{opcion.nombre}</th>)}<th className={styles.columnaSku}>SKU</th><th className={styles.columnaStock}>Stock</th><th className={styles.columnaMinimo}>Mínimo</th><th className={styles.columnaActiva}>Activa</th><th className={styles.columnaAcciones} /></tr></thead><tbody>
-            {form.variantes.map((variante) => <tr key={variante.clave}>
-              <td className={styles.columnaFoto}><div className={styles.fotoVariante}><label className={styles.fotoVarianteCaja} title={variante.imagenUrl ? "Cambiar la foto de esta variante" : "Subir una foto para esta variante"}>{variante.imagenUrl ? <Image src={variante.imagenUrl} alt="" width={80} height={80} unoptimized className={styles.fotoVarianteImagen} /> : <span className={styles.fotoVarianteVacia} aria-hidden>+</span>}<input type="file" accept="image/*" className={styles.fotoVarianteInput} disabled={subiendo} onChange={(evento) => onSeleccionarImagenVariante(variante.clave, evento)} /><span className={styles.soloLectores}>Foto de la variante</span></label>{variante.imagenUrl && <button type="button" className={styles.fotoVarianteQuitar} onClick={() => quitarImagenVariante(variante.clave)} title="Quitar la foto" aria-label="Quitar la foto de la variante">✕</button>}</div></td>
-              {form.opciones.map((opcion) => <td key={opcion.clave} className={COLUMNA_ATRIBUTO[opcion.clave]}><SelectConFlecha className={styles.control} value={variante.atributos.find((atributo) => atributo.clave === opcion.clave)?.valor ?? ""} onChange={(evento) => actualizarAtributoVariante(variante.clave, opcion.clave, evento.target.value)}>{opcion.valores.map((valor) => <option key={valor} value={valor}>{valor}</option>)}</SelectConFlecha></td>)}
-              <td className={styles.columnaSku}><input className={styles.control} value={variante.sku} required onChange={(evento) => actualizarVariante(variante.clave, "sku", evento.target.value)} /></td>
-              <td className={styles.columnaStock}><input className={styles.control} type="number" min="0" value={variante.cantidad} required onChange={(evento) => actualizarVariante(variante.clave, "cantidad", evento.target.value)} /></td>
-              <td className={styles.columnaMinimo}><input className={styles.control} type="number" min="0" value={variante.stockMinimo} required onChange={(evento) => actualizarVariante(variante.clave, "stockMinimo", evento.target.value)} /></td>
-              <td className={styles.columnaActiva}><button type="button" className={`${styles.switch} ${variante.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={variante.activo} onClick={() => actualizarVariante(variante.clave, "activo", !variante.activo)}><span className={styles.switchPunto} aria-hidden="true" /></button></td>
-              <td className={styles.columnaAcciones}><button type="button" className={styles.miniaturaBoton} disabled={form.variantes.length === 1} onClick={() => quitarVariante(variante.clave)} aria-label="Quitar variante">✕</button></td>
-            </tr>)}
+            {form.variantes.map((variante) => <FilaVariante
+              key={variante.clave}
+              variante={variante}
+              opciones={form.opciones}
+              subiendo={subiendo}
+              puedeQuitar={form.variantes.length > 1}
+              onCampo={actualizarVariante}
+              onAtributo={actualizarAtributoVariante}
+              onFoto={onSeleccionarImagenVariante}
+              onQuitarFoto={quitarImagenVariante}
+              onQuitar={quitarVariante}
+            />)}
           </tbody></table></div>
         </div>}
       </div>
 
-      <div className={styles.botones}><button type="submit" className={styles.boton} disabled={pendiente || subiendo}>{pendiente ? "Guardando..." : productoId ? "Guardar cambios" : "Crear producto"}</button><button type="button" className={styles.botonSecundario} onClick={() => router.push("/admin/productos")}>Cancelar</button></div>
+      <div className={styles.botones}>
+        <button type="submit" className={styles.boton} disabled={pendiente || subiendo}>{pendiente ? "Guardando..." : productoId ? "Guardar cambios" : "Crear producto"}</button>
+        <button type="button" className={styles.botonSecundario} onClick={() => router.push("/admin/productos")}>Cancelar</button>
+        {totalProblemas > 0 && <span className={styles.bloqueAyuda}>Falta{totalProblemas === 1 ? "" : "n"} {totalProblemas} campo(s) por completar.</span>}
+      </div>
     </form>
   );
 }

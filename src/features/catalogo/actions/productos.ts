@@ -16,6 +16,7 @@ import {
 } from "../schemas/productos";
 import {
   claveAtributos,
+  definicionCodigoTipo,
   etiquetaAtributos,
   obtenerAtributo,
 } from "../opciones";
@@ -65,7 +66,10 @@ function datosEscalaresVariante(variante: VarianteValidada) {
   const sinColor = variante.atributos.filter((atributo) => atributo.clave !== "color");
 
   return {
-    talla: etiquetaAtributos(sinColor),
+    // Sin atributos (producto único) la talla queda vacía a propósito: así la
+    // ficha pública no dibuja un selector con un solo valor y el filtro de
+    // tallas del catálogo no se llena de "Única".
+    talla: sinColor.length > 0 ? etiquetaAtributos(sinColor) : "",
     color: obtenerAtributo(variante.atributos, "color"),
     claveOpciones: claveAtributos(variante.atributos),
     sku: variante.sku,
@@ -117,9 +121,46 @@ export async function subirImagenProducto(formData: FormData) {
 // ── Productos ─────────────────────────────────────────────
 
 /**
+ * Siguiente correlativo libre para un código de tipo.
+ *
+ * Solo cuentan los SKU con la forma exacta `ME-001`: los de las copias
+ * (`ME-001-COPIA-12345`) también empiezan por `ME-` y antes inflaban el
+ * contador, dejando huecos en la numeración.
+ */
+async function siguienteNumeroSku(codigoTipo: string) {
+  const existentes = await db.producto.findMany({
+    where: { sku: { startsWith: `${codigoTipo}-` } },
+    select: { sku: true },
+  });
+  const patron = new RegExp(`^${codigoTipo}-(\\d+)$`);
+  const mayor = existentes.reduce((maximo, { sku }) => {
+    const numero = Number(patron.exec(sku)?.[1]);
+    return Number.isFinite(numero) && numero > maximo ? numero : maximo;
+  }, 0);
+  return mayor + 1;
+}
+
+/** El slug es UNIQUE: dos productos con el mismo nombre reventaban al crearse. */
+async function slugDisponible(nombre: string) {
+  const base = slugificar(nombre) || "producto";
+  const tomados = new Set(
+    (await db.producto.findMany({ where: { slug: { startsWith: base } }, select: { slug: true } }))
+      .map((producto) => producto.slug),
+  );
+  if (!tomados.has(base)) return base;
+  let sufijo = 2;
+  while (tomados.has(`${base}-${sufijo}`)) sufijo += 1;
+  return `${base}-${sufijo}`;
+}
+
+/**
  * Crea solamente el registro base para que el administrador pueda continuar
- * completando el producto y sus variantes en una segunda pantalla.
- * El SKU se reserva desde el primer clic y no vuelve a cambiar.
+ * completando el producto en una segunda pantalla.
+ *
+ * El SKU se reserva desde el primer clic y no vuelve a cambiar. Un producto
+ * único nace además con su presentación creada: es la fila que lleva el stock
+ * y a la que apuntan el carrito y los pedidos, así que sin ella el producto no
+ * se podría vender.
  */
 export async function crearProductoBorrador(datos: ProductoBorradorInput) {
   return ejecutar(async () => {
@@ -128,37 +169,47 @@ export async function crearProductoBorrador(datos: ProductoBorradorInput) {
     const categoria = await db.categoria.findFirst({ where: { id: validado.categoriaId, activo: true }, select: { id: true } });
     if (!categoria) throw new Error("Selecciona una categoría activa");
 
-    const creado = await db.$transaction(async (tx) => {
-      // El contador se calcula dentro de la transacción y se confirma contra
-      // la restricción UNIQUE para que el SKU quede reservado inmediatamente.
-      let numero = (await tx.producto.count({ where: { sku: { startsWith: `${validado.codigoTipo}-` } } })) + 1;
-      while (true) {
-        const sku = `${validado.codigoTipo}-${String(numero).padStart(3, "0")}`;
-        const existente = await tx.producto.findUnique({ where: { sku }, select: { id: true } });
-        if (!existente) {
-          return tx.producto.create({
-            data: {
-              nombre: validado.nombre,
-              slug: slugificar(validado.nombre),
-              descripcion: "",
-              precio: 0,
-              sku,
-              borrador: true,
-              modoVariantes: validado.modoVariantes,
-              tipoProducto: validado.codigoTipo === "ME" ? "MEDIAS_MUJER" : validado.codigoTipo === "BO" ? "BOXER_ADULTO" : validado.codigoTipo === "PR" ? "ROPA_ADULTO" : validado.codigoTipo === "BR" ? "BRASIER" : "PERSONALIZADO",
-              categoriaId: categoria.id,
-              activo: false,
-              destacado: false,
-            },
-            select: { id: true, sku: true },
-          });
-        }
-        numero += 1;
-      }
-    });
+    const tipo = definicionCodigoTipo(validado.codigoTipo);
+    let slug = await slugDisponible(validado.nombre);
+    let numero = await siguienteNumeroSku(validado.codigoTipo);
 
-    revalidarCatalogo();
-    return creado;
+    // Entre el cálculo y el insert otro administrador pudo tomar el mismo
+    // número o slug; la restricción UNIQUE es la que decide y acá se reintenta.
+    for (let intento = 0; intento < 5; intento += 1) {
+      const sku = `${validado.codigoTipo}-${String(numero).padStart(3, "0")}`;
+      try {
+        const creado = await db.producto.create({
+          data: {
+            nombre: validado.nombre,
+            slug,
+            descripcion: "",
+            precio: 0,
+            sku,
+            borrador: true,
+            modoVariantes: validado.modoVariantes,
+            tipoProducto: tipo.tipoProducto,
+            perfilOpciones: tipo.perfil,
+            categoriaId: categoria.id,
+            activo: false,
+            destacado: false,
+            ...(validado.modoVariantes
+              ? {}
+              : { variantes: { create: [{ talla: "", color: "", claveOpciones: "", sku }] } }),
+          },
+          select: { id: true, sku: true },
+        });
+
+        revalidarCatalogo();
+        return creado;
+      } catch (error) {
+        const conflicto = error as { code?: string; meta?: { target?: string[] } };
+        if (conflicto.code !== "P2002") throw error;
+        if (conflicto.meta?.target?.includes("slug")) slug = await slugDisponible(`${slug}-2`);
+        else numero += 1;
+      }
+    }
+
+    throw new Error("No se pudo reservar un código para el producto; vuelve a intentarlo");
   });
 }
 
@@ -420,6 +471,7 @@ export async function duplicarProducto(id: string) {
         sku: `${original.sku}-COPIA-${sufijo}`,
         tipoProducto: original.tipoProducto,
         perfilOpciones: original.perfilOpciones,
+        modoVariantes: original.modoVariantes,
         categoriaId: original.categoriaId,
         marcaId: original.marcaId,
         material: original.material,
