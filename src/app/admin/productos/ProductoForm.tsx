@@ -31,6 +31,9 @@ export type VarianteForm = {
   cantidad: string;
   stockMinimo: string;
   activo: boolean;
+  // Portada propia; cadena vacía = la variante hereda la del producto.
+  imagenUrl: string;
+  imagenPublicId: string;
 };
 export type ProductoFormValores = {
   nombre: string;
@@ -82,7 +85,7 @@ function nuevaClave() {
   return `nueva-${contadorClave}`;
 }
 function varianteVacia(atributos: AtributoVariante[] = []): VarianteForm {
-  return { clave: nuevaClave(), atributos, sku: "", precio: "", costo: "", cantidad: "0", stockMinimo: "0", activo: true };
+  return { clave: nuevaClave(), atributos, sku: "", precio: "", costo: "", cantidad: "0", stockMinimo: "0", activo: true, imagenUrl: "", imagenPublicId: "" };
 }
 const VACIO: ProductoFormValores = {
   nombre: "", slug: "", descripcion: "", descripcionCorta: "", skuInterno: "", codigoBarras: "", proveedor: "", precio: "", precioOferta: "", costo: "", sku: "",
@@ -101,6 +104,15 @@ const CODIGOS_DISENO: Record<string, string> = {
   lisa: "LI", liso: "LI", rayas: "RY", puntos: "PT", flores: "FL",
   caricatura: "CA", estampado: "ES", deportivo: "DP", animalitos: "AN",
   personajes: "PJ", encaje: "EN", floral: "FL",
+};
+
+// Ancho de cada columna de atributo en la tabla de variantes. Una opción sin
+// entrada acá cae al ancho genérico del nth-child, que es angosto: si agregas
+// un atributo nuevo y su columna se ve apretada, agrégalo también aquí.
+const COLUMNA_ATRIBUTO: Record<string, string | undefined> = {
+  color: styles.columnaColor,
+  talla: styles.columnaTalla,
+  diseno: styles.columnaDiseno,
 };
 
 function claveNormalizada(valor: string) {
@@ -190,6 +202,10 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
     return base;
   });
   const [pestaña, setPestaña] = useState<Pestaña>("informacion");
+  const [arrastrando, setArrastrando] = useState(false);
+  // Se guarda el publicId y no el índice: reordenar cambia los índices y la
+  // selección saltaría a otra foto.
+  const [imagenActiva, setImagenActiva] = useState<string | null>(null);
   const [slugManual, setSlugManual] = useState(Boolean(valoresIniciales) && !esBorradorInicial);
   const [subiendo, setSubiendo] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -303,8 +319,9 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
     }));
   }
 
-  async function onSeleccionarArchivos(evento: React.ChangeEvent<HTMLInputElement>) {
-    const archivos = Array.from(evento.target.files ?? []);
+  // Se sube de a una para poder cortar en la primera que falle y decir cuál
+  // fue; Cloudinary no tiene subida por lote en el plan que usamos.
+  async function subirArchivos(archivos: File[]) {
     if (archivos.length === 0) return;
     setError(null); setSubiendo(true);
     for (const archivo of archivos) {
@@ -315,9 +332,54 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
     }
     setSubiendo(false); if (inputArchivo.current) inputArchivo.current.value = "";
   }
+
+  async function onSeleccionarArchivos(evento: React.ChangeEvent<HTMLInputElement>) {
+    await subirArchivos(Array.from(evento.target.files ?? []));
+  }
+
+  function onSoltarArchivos(evento: React.DragEvent) {
+    evento.preventDefault();
+    setArrastrando(false);
+    // El navegador deja soltar cualquier cosa; el servidor igual valida, pero
+    // filtrar acá evita subir un PDF para que lo rechacen tres segundos después.
+    const archivos = Array.from(evento.dataTransfer.files).filter((archivo) =>
+      archivo.type.startsWith("image/"),
+    );
+    void subirArchivos(archivos);
+  }
+
   function moverImagen(indice: number, direccion: -1 | 1) {
     setForm((previo) => { const destino = indice + direccion; if (destino < 0 || destino >= previo.imagenes.length) return previo; const imagenes = [...previo.imagenes]; [imagenes[indice], imagenes[destino]] = [imagenes[destino], imagenes[indice]]; return { ...previo, imagenes }; });
   }
+  // La foto de una variante se sube igual que las del producto, pero se guarda
+  // en la fila de la variante en vez de en la galería. El archivo ya está en
+  // Cloudinary; si el formulario se cancela queda huérfano, igual que hoy pasa
+  // con las imágenes del producto.
+  async function onSeleccionarImagenVariante(
+    claveVariante: string,
+    evento: React.ChangeEvent<HTMLInputElement>,
+  ) {
+    const archivo = evento.target.files?.[0];
+    evento.target.value = "";
+    if (!archivo) return;
+
+    setError(null);
+    setSubiendo(true);
+    const formData = new FormData();
+    formData.append("archivo", archivo);
+    const resultado = await subirImagenProducto(formData);
+    setSubiendo(false);
+
+    if (!resultado.ok) return setError(resultado.error);
+    actualizarVariante(claveVariante, "imagenUrl", resultado.datos.url);
+    actualizarVariante(claveVariante, "imagenPublicId", resultado.datos.publicId);
+  }
+
+  function quitarImagenVariante(claveVariante: string) {
+    actualizarVariante(claveVariante, "imagenUrl", "");
+    actualizarVariante(claveVariante, "imagenPublicId", "");
+  }
+
   function quitarImagen(publicId: string) {
     setForm((previo) => ({ ...previo, imagenes: previo.imagenes.filter((imagen) => imagen.publicId !== publicId) }));
   }
@@ -326,7 +388,7 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
     const datos = {
       ...form,
       opciones: form.opciones.map(({ clave, nombre, valores }) => ({ clave, nombre, valores })),
-      variantes: form.variantes.map(({ id, atributos, precio, costo, cantidad, stockMinimo, activo }) => ({
+      variantes: form.variantes.map(({ id, atributos, precio, costo, cantidad, stockMinimo, activo, imagenUrl, imagenPublicId }) => ({
         id,
         atributos,
         sku: skuParaVariante(form.sku, atributos),
@@ -335,6 +397,8 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
         cantidad,
         stockMinimo,
         activo,
+        imagenUrl,
+        imagenPublicId,
       })),
     };
     iniciarTransicion(async () => {
@@ -444,12 +508,58 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
               </tbody></table></div>
             </>}
 
-            {pestaña === "imagenes" && <>
-              <p className={styles.bloqueAyuda}>La primera imagen es la portada. Máximo 5 MB por imagen.</p>
-              <input ref={inputArchivo} type="file" accept="image/*" multiple disabled={subiendo} onChange={onSeleccionarArchivos} />
-              {subiendo && <p className={styles.bloqueAyuda}>Subiendo imágenes...</p>}
-              {form.imagenes.length > 0 && <div className={styles.galeria}>{form.imagenes.map((imagen, indice) => <div key={imagen.publicId} className={styles.miniatura}><Image className={styles.miniaturaImagen} src={imagen.url} alt="" width={160} height={112} unoptimized /><div className={styles.miniaturaBarra}><span className={styles.portada}>{indice === 0 ? "Portada" : indice + 1}</span><span><button type="button" className={styles.miniaturaBoton} disabled={indice === 0} onClick={() => moverImagen(indice, -1)} aria-label="Mover a la izquierda">←</button><button type="button" className={styles.miniaturaBoton} disabled={indice === form.imagenes.length - 1} onClick={() => moverImagen(indice, 1)} aria-label="Mover a la derecha">→</button><button type="button" className={styles.miniaturaBoton} onClick={() => quitarImagen(imagen.publicId)} aria-label="Quitar imagen">✕</button></span></div></div>)}</div>}
-            </>}
+            {pestaña === "imagenes" && (() => {
+              // La previa replica la ficha pública: imagen grande y tira de
+              // miniaturas. Así se ve cómo va a quedar antes de publicar.
+              const indiceActivo = Math.max(0, form.imagenes.findIndex((imagen) => imagen.publicId === imagenActiva));
+              const seleccionada = form.imagenes[indiceActivo];
+
+              return <>
+                <p className={styles.bloqueAyuda}>Estas imágenes acompañan a las fotos de cada variante en la galería del producto. Ordénalas como quieras que aparezcan. Máximo 5 MB por imagen.</p>
+
+                <label
+                  className={`${styles.zonaSoltar} ${arrastrando ? styles.zonaSoltarActiva : ""}`}
+                  onDragOver={(evento) => { evento.preventDefault(); setArrastrando(true); }}
+                  onDragLeave={() => setArrastrando(false)}
+                  onDrop={onSoltarArchivos}
+                >
+                  <span className={styles.zonaSoltarTitulo}>{subiendo ? "Subiendo imágenes..." : "Arrastra tus imágenes o haz clic para elegirlas"}</span>
+                  <span className={styles.zonaSoltarAyuda}>{form.imagenes.length === 0 ? "JPG, PNG o WEBP" : `${form.imagenes.length} imagen(es) cargada(s)`}</span>
+                  <input ref={inputArchivo} className={styles.zonaSoltarInput} type="file" accept="image/*" multiple disabled={subiendo} onChange={onSeleccionarArchivos} />
+                </label>
+
+                {seleccionada && <div className={styles.previa}>
+                  <div className={styles.previaPrincipal}>
+                    <Image className={styles.previaPrincipalImagen} src={seleccionada.url} alt="" width={640} height={640} unoptimized />
+                  </div>
+
+                  <ul className={styles.previaTira}>
+                    {form.imagenes.map((imagen, indice) => <li key={imagen.publicId}>
+                      <button
+                        type="button"
+                        className={`${styles.previaMiniatura} ${indice === indiceActivo ? styles.previaMiniaturaActiva : ""}`}
+                        onClick={() => setImagenActiva(imagen.publicId)}
+                        aria-label={`Ver la imagen ${indice + 1} de ${form.imagenes.length}`}
+                        aria-current={indice === indiceActivo}
+                      >
+                        <Image className={styles.previaMiniaturaImagen} src={imagen.url} alt="" width={160} height={160} unoptimized />
+                      </button>
+                    </li>)}
+                  </ul>
+
+                  {/* Las acciones actúan sobre la imagen que se está viendo, no
+                      sobre cada miniatura: con cuatro por fila no cabrían. */}
+                  <div className={styles.previaAcciones}>
+                    <span className={styles.previaPosicion}>Imagen {indiceActivo + 1} de {form.imagenes.length}</span>
+                    <span className={styles.previaBotones}>
+                      <button type="button" className={styles.miniaturaBoton} disabled={indiceActivo === 0} onClick={() => moverImagen(indiceActivo, -1)} aria-label="Mover antes">←</button>
+                      <button type="button" className={styles.miniaturaBoton} disabled={indiceActivo === form.imagenes.length - 1} onClick={() => moverImagen(indiceActivo, 1)} aria-label="Mover después">→</button>
+                      <button type="button" className={styles.miniaturaBoton} onClick={() => quitarImagen(seleccionada.publicId)} aria-label="Quitar imagen">✕</button>
+                    </span>
+                  </div>
+                </div>}
+              </>;
+            })()}
 
             {pestaña === "envio" && <>
               <p className={styles.bloqueAyuda}>Completa estos datos cuando el costo o la tarifa de entrega dependan del producto.</p>
@@ -483,14 +593,15 @@ export function ProductoForm({ categorias, marcas, atributosCatalogo, productoId
             <h2 className={styles.bloqueTitulo}>Variantes del producto</h2>
             <p className={styles.bloqueAyuda}>{form.variantes.length} variante(s) configurada(s). Ajusta aquí SKU, stock y estado.</p>
           </div>
-          <div className={styles.tablaWrap}><table className={styles.variantes}><thead><tr>{form.opciones.map((opcion) => <th key={opcion.clave} className={opcion.clave === "color" ? styles.columnaColor : opcion.clave === "diseno" ? styles.columnaDiseno : undefined}>{opcion.nombre}</th>)}<th className={styles.columnaSku}>SKU</th><th className={styles.columnaStock}>Stock</th><th>Mínimo</th><th>Activa</th><th /></tr></thead><tbody>
+          <div className={styles.tablaWrap}><table className={styles.variantes}><thead><tr><th className={styles.columnaFoto}>Foto</th>{form.opciones.map((opcion) => <th key={opcion.clave} className={COLUMNA_ATRIBUTO[opcion.clave]}>{opcion.nombre}</th>)}<th className={styles.columnaSku}>SKU</th><th className={styles.columnaStock}>Stock</th><th className={styles.columnaMinimo}>Mínimo</th><th className={styles.columnaActiva}>Activa</th><th className={styles.columnaAcciones} /></tr></thead><tbody>
             {form.variantes.map((variante) => <tr key={variante.clave}>
-              {form.opciones.map((opcion) => <td key={opcion.clave} className={opcion.clave === "color" ? styles.columnaColor : opcion.clave === "diseno" ? styles.columnaDiseno : undefined}><SelectConFlecha className={styles.control} value={variante.atributos.find((atributo) => atributo.clave === opcion.clave)?.valor ?? ""} onChange={(evento) => actualizarAtributoVariante(variante.clave, opcion.clave, evento.target.value)}>{opcion.valores.map((valor) => <option key={valor} value={valor}>{valor}</option>)}</SelectConFlecha></td>)}
+              <td className={styles.columnaFoto}><div className={styles.fotoVariante}><label className={styles.fotoVarianteCaja} title={variante.imagenUrl ? "Cambiar la foto de esta variante" : "Subir una foto para esta variante"}>{variante.imagenUrl ? <Image src={variante.imagenUrl} alt="" width={80} height={80} unoptimized className={styles.fotoVarianteImagen} /> : <span className={styles.fotoVarianteVacia} aria-hidden>+</span>}<input type="file" accept="image/*" className={styles.fotoVarianteInput} disabled={subiendo} onChange={(evento) => onSeleccionarImagenVariante(variante.clave, evento)} /><span className={styles.soloLectores}>Foto de la variante</span></label>{variante.imagenUrl && <button type="button" className={styles.fotoVarianteQuitar} onClick={() => quitarImagenVariante(variante.clave)} title="Quitar la foto" aria-label="Quitar la foto de la variante">✕</button>}</div></td>
+              {form.opciones.map((opcion) => <td key={opcion.clave} className={COLUMNA_ATRIBUTO[opcion.clave]}><SelectConFlecha className={styles.control} value={variante.atributos.find((atributo) => atributo.clave === opcion.clave)?.valor ?? ""} onChange={(evento) => actualizarAtributoVariante(variante.clave, opcion.clave, evento.target.value)}>{opcion.valores.map((valor) => <option key={valor} value={valor}>{valor}</option>)}</SelectConFlecha></td>)}
               <td className={styles.columnaSku}><input className={styles.control} value={variante.sku} required onChange={(evento) => actualizarVariante(variante.clave, "sku", evento.target.value)} /></td>
               <td className={styles.columnaStock}><input className={styles.control} type="number" min="0" value={variante.cantidad} required onChange={(evento) => actualizarVariante(variante.clave, "cantidad", evento.target.value)} /></td>
-              <td><input className={styles.control} type="number" min="0" value={variante.stockMinimo} required onChange={(evento) => actualizarVariante(variante.clave, "stockMinimo", evento.target.value)} /></td>
-              <td><button type="button" className={`${styles.switch} ${variante.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={variante.activo} onClick={() => actualizarVariante(variante.clave, "activo", !variante.activo)}><span className={styles.switchPunto} aria-hidden="true" /></button></td>
-              <td><button type="button" className={styles.miniaturaBoton} disabled={form.variantes.length === 1} onClick={() => quitarVariante(variante.clave)} aria-label="Quitar variante">✕</button></td>
+              <td className={styles.columnaMinimo}><input className={styles.control} type="number" min="0" value={variante.stockMinimo} required onChange={(evento) => actualizarVariante(variante.clave, "stockMinimo", evento.target.value)} /></td>
+              <td className={styles.columnaActiva}><button type="button" className={`${styles.switch} ${variante.activo ? styles.switchActivo : ""}`} role="switch" aria-checked={variante.activo} onClick={() => actualizarVariante(variante.clave, "activo", !variante.activo)}><span className={styles.switchPunto} aria-hidden="true" /></button></td>
+              <td className={styles.columnaAcciones}><button type="button" className={styles.miniaturaBoton} disabled={form.variantes.length === 1} onClick={() => quitarVariante(variante.clave)} aria-label="Quitar variante">✕</button></td>
             </tr>)}
           </tbody></table></div>
         </div>}

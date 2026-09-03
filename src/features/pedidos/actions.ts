@@ -8,6 +8,7 @@ import { ejecutar } from "@/lib/acciones";
 import { precioEfectivo } from "@/features/carrito/revision";
 import { calcularDescuentoCupon } from "@/features/cupones/calculo";
 import { buscarCuponVigente } from "@/features/cupones/servidor";
+import { sePuedeEliminar } from "./estado";
 import { crearPedidoSchema, type CrearPedidoInput } from "./schemas";
 
 export async function cambiarEstadoPedido(id: string, estado: EstadoPedido) {
@@ -21,6 +22,60 @@ export async function cambiarEstadoPedido(id: string, estado: EstadoPedido) {
     await db.pedido.update({ where: { id }, data: { estado } });
 
     revalidatePath("/admin/pedidos");
+  });
+}
+
+/**
+ * Borra un pedido y deshace lo que su creación consumió.
+ *
+ * `crearPedido` descuenta stock y suma un uso al cupón, y cancelar no revierte
+ * ninguna de las dos cosas. Si el borrado no las devolviera, cada pedido
+ * eliminado dejaría unidades bloqueadas que ya no existen en ningún lado.
+ */
+export async function eliminarPedido(id: string) {
+  return ejecutar(async () => {
+    await requirePermiso("pedidos.eliminar");
+
+    const pedido = await db.pedido.findUnique({
+      where: { id },
+      select: {
+        estado: true,
+        cuponId: true,
+        items: { select: { varianteId: true, cantidad: true } },
+      },
+    });
+
+    if (!pedido) throw new Error("El pedido ya no existe");
+
+    if (!sePuedeEliminar(pedido.estado)) {
+      throw new Error(
+        "Solo se pueden eliminar pedidos pendientes o cancelados. Cambia el estado a CANCELADO si ya no va a completarse.",
+      );
+    }
+
+    await db.$transaction(async (tx) => {
+      for (const item of pedido.items) {
+        await tx.variante.update({
+          where: { id: item.varianteId },
+          data: { cantidad: { increment: item.cantidad } },
+        });
+      }
+
+      if (pedido.cuponId) {
+        // updateMany con la condición dentro: si el contador ya estaba en cero
+        // por un arreglo manual, no lo deja en negativo.
+        await tx.cupon.updateMany({
+          where: { id: pedido.cuponId, usosActuales: { gt: 0 } },
+          data: { usosActuales: { decrement: 1 } },
+        });
+      }
+
+      // Los items caen solos: ItemPedido declara onDelete: Cascade.
+      await tx.pedido.delete({ where: { id } });
+    });
+
+    revalidatePath("/admin/pedidos");
+    revalidatePath("/cuenta/pedidos");
   });
 }
 

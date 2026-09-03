@@ -16,11 +16,11 @@
     "prisma:seed": "node prisma/seed.js"
   },
   "dependencies": {
-    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.9.1",
-    "@supabase/ssr": "^0.12.4",
-    "@supabase/supabase-js": "^2.112.3",
-    "cloudinary": "^2.10.1",
+    "@supabase/ssr": "^0.12.5",
+    "@supabase/supabase-js": "^2.114.0",
+    "cloudinary": "^2.11.0",
     "flag-icons": "^7.5.0",
     "libphonenumber-js": "^1.13.12",
     "next": "^16.3.4",
@@ -30,23 +30,23 @@
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "server-only": "^0.0.1",
-    "zod": "^4.4.3",
+    "zod": "^4.5.4",
     "zustand": "^5.0.15"
   },
   "devDependencies": {
     "@types/node": "^20",
     "@types/pg": "^8.23.1",
     "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@types/react-dom": "^19.2.5",
     "dotenv": "^17.4.2",
     "eslint": "^9",
     "eslint-config-next": "^16.3.4",
-    "tsx": "^4.23.12",
+    "tsx": "^4.23.13",
     "typescript": "^5"
   },
   "overrides": {
     "deepmerge-ts": "^8.0.0",
-    "mysql2": "3.22.0"
+    "mysql2": "3.24.3"
   },
   "allowScripts": {
     "unrs-resolver@1.12.2": true,

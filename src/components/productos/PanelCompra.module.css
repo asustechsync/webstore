@@ -1,36 +1,40 @@
-.panel {
+/*
+ * Zona interactiva de la ficha (mobile first).
+ *
+ * En móvil todo baja en una columna: primero se conoce el producto, luego se
+ * elige la talla y al final se compra. Desde 1280 px el configurador y la caja
+ * de compra se ponen lado a lado y la caja queda fija al desplazar, que es la
+ * lectura de escritorio.
+ */
+
+.columnas {
+  display: grid;
+  gap: var(--espacio-6);
+  min-width: 0;
+}
+
+.info {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--espacio-6);
+}
+
+/* ── Configurador ── */
+
+.configurador {
   display: flex;
   flex-direction: column;
   gap: var(--espacio-4);
+  padding-top: var(--espacio-6);
+  border-top: 1px solid var(--borde-sutil);
 }
 
-/* ── Precio ── */
-
-.precios {
-  composes: precios from "@/styles/ui.module.css";
-  align-items: baseline;
-}
-
-.precio {
-  composes: precio from "@/styles/ui.module.css";
-  font-size: var(--texto-2xl);
-}
-
-.precioRebajado {
-  composes: precioRebajado from "@/styles/ui.module.css";
-  font-size: var(--texto-2xl);
-}
-
-.precioAnterior {
-  composes: precioAnterior from "@/styles/ui.module.css";
+.configuradorTitulo {
+  margin: 0;
   font-size: var(--texto-base);
+  font-weight: var(--peso-semibold);
 }
-
-.etiquetaOferta {
-  composes: etiquetaOferta from "@/styles/ui.module.css";
-}
-
-/* ── Opciones ── */
 
 .opcion {
   min-width: 0;
@@ -51,6 +55,7 @@
 
 .opcionElegida {
   color: var(--texto-principal);
+  font-weight: var(--peso-medio);
   text-transform: none;
   letter-spacing: 0;
 }
@@ -104,6 +109,117 @@
   border-radius: var(--radio-full);
 }
 
+/* ── Caja de compra ── */
+
+.caja {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: var(--espacio-3);
+  padding: var(--tarjeta-padding);
+  border: 1px solid var(--tarjeta-borde);
+  border-radius: var(--radio-lg);
+  background: var(--tarjeta-fondo);
+}
+
+.cajaTitulo {
+  margin: 0 0 var(--espacio-2);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-semibold);
+}
+
+.precios {
+  composes: precios from "@/styles/ui.module.css";
+  align-items: baseline;
+}
+
+.precio {
+  composes: precio from "@/styles/ui.module.css";
+  font-size: var(--texto-2xl);
+}
+
+.precioRebajado {
+  composes: precioRebajado from "@/styles/ui.module.css";
+  font-size: var(--texto-2xl);
+}
+
+.precioAnterior {
+  composes: precioAnterior from "@/styles/ui.module.css";
+  font-size: var(--texto-base);
+}
+
+.ahorro {
+  display: inline-flex;
+  align-self: flex-start;
+  padding: var(--espacio-1) var(--espacio-2);
+  border-radius: var(--radio-sm);
+  margin: 0;
+  background: color-mix(in srgb, var(--estado-exito) 12%, transparent);
+  color: var(--estado-exito);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+}
+
+.cuotas {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+/* ── Disponibilidad ── */
+
+.disponibilidad {
+  padding-top: var(--espacio-3);
+  border-top: 1px solid var(--borde-sutil);
+}
+
+.entregas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--espacio-2);
+}
+
+.entrega {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-1);
+  padding: var(--espacio-3);
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--control-radio);
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+}
+
+/* La opción que el cliente sí puede usar se marca con el borde de la marca. */
+.entregaActiva {
+  border-color: var(--texto-principal);
+  color: var(--texto-principal);
+}
+
+.entregaApagada {
+  opacity: 0.55;
+}
+
+.entregaNombre {
+  color: var(--texto-principal);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+}
+
+.entregaApagada .entregaNombre {
+  color: var(--texto-secundario);
+}
+
+.entregaDato {
+  line-height: var(--interlineado-base);
+}
+
+.envio {
+  margin: var(--espacio-2) 0 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
 /* ── Stock ── */
 
 .stock {
@@ -129,7 +245,7 @@
 .compra {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--espacio-3);
+  gap: var(--espacio-2);
 }
 
 .cantidad {
@@ -166,7 +282,7 @@
 
 .botonAgregar {
   flex: 1;
-  min-width: 12rem;
+  min-width: 9rem;
 }
 
 .confirmacion {
@@ -181,14 +297,14 @@
   text-underline-offset: 0.2em;
 }
 
-/* ── Ficha ── */
+/* ── Pie de la caja ── */
 
 .ficha {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: var(--espacio-3);
   margin: 0;
-  padding-top: var(--espacio-4);
+  padding-top: var(--espacio-3);
   border-top: 1px solid var(--borde-sutil);
 }
 
@@ -203,4 +319,24 @@
   margin: var(--espacio-1) 0 0;
   font-size: var(--texto-sm);
   overflow-wrap: anywhere;
+}
+
+.vendido {
+  margin: 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+}
+
+@media (min-width: 80rem) {
+  /* Tercera columna: el configurador y la caja dejan de apilarse. */
+  .columnas {
+    grid-template-columns: minmax(0, 1fr) minmax(17rem, 22rem);
+    gap: var(--portada-gap);
+    align-items: start;
+  }
+
+  .caja {
+    position: sticky;
+    top: var(--espacio-6);
+  }
 }

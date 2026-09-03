@@ -1,0 +1,43 @@
+.paginacion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+  margin-top: var(--espacio-8);
+}
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-height: var(--control-alto);
+  padding: 0 var(--control-padding-x);
+  border: 1px solid var(--borde-sutil);
+  border-radius: var(--control-radio);
+  color: var(--texto-principal);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  transition:
+    border-color var(--transicion-rapida),
+    background-color var(--transicion-rapida);
+}
+
+.boton:hover,
+.boton:focus-visible {
+  border-color: var(--control-borde-hover);
+  background: var(--superficie-suave);
+  outline: none;
+}
+
+/* Extremo del listado: el botón sigue ocupando su sitio para que la barra no
+   se descuadre al llegar a la primera o a la última página. */
+.inactivo {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+.posicion {
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  text-align: center;
+}

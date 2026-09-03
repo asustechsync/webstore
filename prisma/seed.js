@@ -36,6 +36,7 @@ const PERMISOS = [
   "pedidos.ver",
   "pedidos.gestionar",
   "pedidos.despachar",
+  "pedidos.eliminar",
   "facturacion.emitir",
   "cupones.crear",
   "cupones.editar",

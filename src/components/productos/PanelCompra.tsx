@@ -1,53 +1,30 @@
 "use client";
 
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { IconoAgregar, IconoQuitar } from "@/components/ui/ActionIcons";
+import { IconoAgregar, IconoBolsa, IconoQuitar } from "@/components/ui/ActionIcons";
 import { Button } from "@/components/ui/Button";
-import type { DetalleVista, VarianteVista } from "@/features/catalogo/detalle";
+import { ENTREGA, type RangoEntrega } from "@/features/catalogo/entrega";
+import { useVariante } from "./ContextoVariante";
+import type { DetalleVista } from "@/features/catalogo/detalle";
 import { calcularDescuento, formatearPrecio } from "@/lib/utils";
 import { CANTIDAD_MAXIMA, useCartStore } from "@/store/cartStore";
 import styles from "./PanelCompra.module.css";
 
-type Seleccion = Record<string, string>;
-
-/** Variante que corresponde exactamente a los valores elegidos. */
-function buscarVariante(detalle: DetalleVista, seleccion: Seleccion) {
-  const elegidos = detalle.opciones.map((opcion) => seleccion[opcion.clave]);
-  if (elegidos.some((valor) => !valor)) return null;
-  return (
-    detalle.variantes.find((variante) =>
-      elegidos.every((valorId) => variante.valores.includes(valorId)),
-    ) ?? null
-  );
-}
-
-function seleccionDeVariante(detalle: DetalleVista, variante: VarianteVista): Seleccion {
-  const seleccion: Seleccion = {};
-  for (const opcion of detalle.opciones) {
-    const valor = opcion.valores.find((v) => variante.valores.includes(v.id));
-    if (valor) seleccion[opcion.clave] = valor.id;
-  }
-  return seleccion;
-}
-
-/** Primera variante con stock; si están todas agotadas, la primera de la lista. */
-function varianteInicial(detalle: DetalleVista, varianteId: string | null) {
-  const pedida = varianteId
-    ? detalle.variantes.find((variante) => variante.id === varianteId)
-    : undefined;
-  return (
-    pedida ??
-    detalle.variantes.find((variante) => variante.cantidad > 0) ??
-    detalle.variantes[0] ??
-    null
-  );
-}
-
+/**
+ * Zona interactiva de la ficha de producto.
+ *
+ * Reúne el configurador y la caja de compra en un solo componente porque
+ * comparten la variante elegida: el precio, el stock y la fecha de entrega de
+ * la derecha dependen de la talla y el color que se elijan en el centro.
+ * `children` es el encabezado que arma el servidor (marca, título, SKU), que
+ * entra tal cual arriba de la columna central.
+ */
 export function PanelCompra({
   producto,
   detalle,
+  entrega,
+  children,
 }: {
   producto: {
     id: string;
@@ -58,18 +35,15 @@ export function PanelCompra({
     imagenUrl: string | null;
   };
   detalle: DetalleVista;
+  entrega: RangoEntrega;
+  children?: React.ReactNode;
 }) {
-  const parametros = useSearchParams();
   const agregarItem = useCartStore((estado) => estado.agregarItem);
+  const { seleccion, elegir: elegirVariante, variante } = useVariante();
 
-  const [seleccion, setSeleccion] = useState<Seleccion>(() => {
-    const inicial = varianteInicial(detalle, parametros.get("variante"));
-    return inicial ? seleccionDeVariante(detalle, inicial) : {};
-  });
   const [cantidad, setCantidad] = useState(1);
   const [agregado, setAgregado] = useState(false);
 
-  const variante = buscarVariante(detalle, seleccion);
   const precio = variante?.precio ?? producto.precio;
   const oferta = variante?.precioOferta ?? producto.precioOferta;
   const descuento = calcularDescuento(precio, oferta);
@@ -83,8 +57,13 @@ export function PanelCompra({
   const agotado = variante != null && stock === 0;
   const quedanPocas = variante != null && stock > 0 && stock <= Math.max(variante.stockMinimo, 3);
 
+  const ahorro = descuento != null ? precio - precioFinal : 0;
+  const totalLinea = precioFinal * cantidadFinal;
+  const envioGratis = totalLinea >= ENTREGA.envioGratisDesde;
+  const cuota = precioFinal >= ENTREGA.cuotasDesde ? precioFinal / ENTREGA.cuotasMaximas : null;
+
   function elegir(clave: string, valorId: string) {
-    setSeleccion((actual) => ({ ...actual, [clave]: valorId }));
+    elegirVariante(clave, valorId);
     setAgregado(false);
   }
 
@@ -119,7 +98,9 @@ export function PanelCompra({
         talla: variante.talla,
         color: variante.color,
         precio: precioFinal,
-        imagenUrl: producto.imagenUrl,
+        // La miniatura del carrito y del pedido debe ser la del color que
+        // se compró; solo cae a la del producto si la variante no tiene.
+        imagenUrl: variante.imagenUrl ?? producto.imagenUrl,
       },
       cantidadFinal,
     );
@@ -127,129 +108,190 @@ export function PanelCompra({
   }
 
   return (
-    <div className={styles.panel}>
-      <div className={styles.precios}>
-        {descuento != null ? (
-          <>
-            <span className={styles.precioRebajado}>{formatearPrecio(precioFinal)}</span>
-            <span className={styles.precioAnterior}>{formatearPrecio(precio)}</span>
-            <span className={styles.etiquetaOferta}>-{descuento}%</span>
-          </>
-        ) : (
-          <span className={styles.precio}>{formatearPrecio(precio)}</span>
-        )}
+    <div className={styles.columnas}>
+      <div className={styles.info}>
+        {children}
+
+        {detalle.opciones.length > 0 ? (
+          <section className={styles.configurador} aria-labelledby="titulo-configurador">
+            <h2 id="titulo-configurador" className={styles.configuradorTitulo}>
+              Arma tu pedido
+            </h2>
+
+            {detalle.opciones.map((opcion) => {
+              const elegido = seleccion[opcion.clave];
+              const nombreElegido = opcion.valores.find((valor) => valor.id === elegido)?.valor;
+
+              return (
+                <fieldset key={opcion.clave} className={styles.opcion}>
+                  <legend className={styles.opcionTitulo}>
+                    {opcion.nombre}:
+                    <span className={styles.opcionElegida}>{nombreElegido ?? "elige una"}</span>
+                  </legend>
+
+                  <div className={styles.valores}>
+                    {opcion.valores.map((valor) => {
+                      const estado = estadoValor(opcion.clave, valor.id);
+                      const activo = elegido === valor.id;
+
+                      return (
+                        <button
+                          key={valor.id}
+                          type="button"
+                          className={`${styles.valor} ${activo ? styles.valorActivo : ""} ${
+                            estado.existe && !estado.conStock ? styles.valorAgotado : ""
+                          }`}
+                          onClick={() => elegir(opcion.clave, valor.id)}
+                          disabled={!estado.existe}
+                          aria-pressed={activo}
+                        >
+                          {opcion.esColor && valor.hex ? (
+                            <span
+                              className={styles.muestra}
+                              style={{ background: valor.hex }}
+                              aria-hidden="true"
+                            />
+                          ) : null}
+                          {valor.valor}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </fieldset>
+              );
+            })}
+          </section>
+        ) : null}
       </div>
 
-      {detalle.opciones.map((opcion) => {
-        const elegido = seleccion[opcion.clave];
-        const nombreElegido = opcion.valores.find((valor) => valor.id === elegido)?.valor;
-
-        return (
-          <fieldset key={opcion.clave} className={styles.opcion}>
-            <legend className={styles.opcionTitulo}>
-              {opcion.nombre}
-              {nombreElegido ? <span className={styles.opcionElegida}>{nombreElegido}</span> : null}
-            </legend>
-
-            <div className={styles.valores}>
-              {opcion.valores.map((valor) => {
-                const estado = estadoValor(opcion.clave, valor.id);
-                const activo = elegido === valor.id;
-
-                return (
-                  <button
-                    key={valor.id}
-                    type="button"
-                    className={`${styles.valor} ${activo ? styles.valorActivo : ""} ${
-                      estado.existe && !estado.conStock ? styles.valorAgotado : ""
-                    }`}
-                    onClick={() => elegir(opcion.clave, valor.id)}
-                    disabled={!estado.existe}
-                    aria-pressed={activo}
-                  >
-                    {opcion.esColor && valor.hex ? (
-                      <span
-                        className={styles.muestra}
-                        style={{ background: valor.hex }}
-                        aria-hidden="true"
-                      />
-                    ) : null}
-                    {valor.valor}
-                  </button>
-                );
-              })}
-            </div>
-          </fieldset>
-        );
-      })}
-
-      <p className={styles.stock} aria-live="polite">
-        {variante == null ? (
-          <span className={styles.sinCombinacion}>Esa combinación no está disponible</span>
-        ) : agotado ? (
-          <span className={styles.agotado}>Sin stock</span>
-        ) : quedanPocas ? (
-          <span className={styles.pocas}>
-            Quedan {stock} unidad{stock === 1 ? "" : "es"}
-          </span>
-        ) : (
-          <span className={styles.disponible}>Disponible</span>
-        )}
-      </p>
-
-      <div className={styles.compra}>
-        <div className={styles.cantidad}>
-          <button
-            type="button"
-            className={styles.cantidadBoton}
-            onClick={() => cambiarCantidad(cantidadFinal - 1)}
-            disabled={cantidadFinal <= 1 || agotado}
-            aria-label="Quitar una unidad"
-          >
-            <IconoQuitar />
-          </button>
-          <span className={styles.cantidadValor}>{cantidadFinal}</span>
-          <button
-            type="button"
-            className={styles.cantidadBoton}
-            onClick={() => cambiarCantidad(cantidadFinal + 1)}
-            disabled={cantidadFinal >= maximo || agotado}
-            aria-label="Agregar una unidad"
-          >
-            <IconoAgregar />
-          </button>
+      <aside className={styles.caja} aria-label="Compra">
+        <div className={styles.precios}>
+          {descuento != null ? (
+            <>
+              <span className={styles.precioRebajado}>{formatearPrecio(precioFinal)}</span>
+              <span className={styles.precioAnterior}>{formatearPrecio(precio)}</span>
+            </>
+          ) : (
+            <span className={styles.precio}>{formatearPrecio(precio)}</span>
+          )}
         </div>
 
-        <Button
-          onClick={agregar}
-          disabled={variante == null || agotado}
-          className={styles.botonAgregar}
-        >
-          {agotado ? "Sin stock" : "Agregar al carrito"}
-        </Button>
-      </div>
+        {descuento != null ? (
+          <p className={styles.ahorro}>
+            Ahorras {formatearPrecio(ahorro)} · {descuento}% de descuento
+          </p>
+        ) : null}
 
-      {agregado ? (
-        <p className={styles.confirmacion} role="status">
-          Agregado al carrito.{" "}
-          <Link href="/carrito" className={styles.enlaceCarrito}>
-            Ver carrito
-          </Link>
+        {cuota ? (
+          <p className={styles.cuotas}>
+            o hasta {ENTREGA.cuotasMaximas} cuotas de {formatearPrecio(cuota)} con tu tarjeta
+          </p>
+        ) : null}
+
+        <section className={styles.disponibilidad}>
+          <h2 className={styles.cajaTitulo}>Disponibilidad</h2>
+
+          <div className={styles.entregas}>
+            <div
+              className={`${styles.entrega} ${ENTREGA.recojoEnTienda ? "" : styles.entregaApagada}`}
+            >
+              <IconoBolsa />
+              <span className={styles.entregaNombre}>Recojo en tienda</span>
+              <span className={styles.entregaDato}>
+                {ENTREGA.recojoEnTienda ? "Disponible" : "No disponible"}
+              </span>
+            </div>
+
+            <div
+              className={`${styles.entrega} ${agotado ? styles.entregaApagada : styles.entregaActiva}`}
+            >
+              <IconoBolsa />
+              <span className={styles.entregaNombre}>Envío a domicilio</span>
+              <span className={styles.entregaDato}>
+                {agotado ? "Sin stock" : `Llega del ${entrega.desde} al ${entrega.hasta}`}
+              </span>
+            </div>
+          </div>
+
+          <p className={styles.envio}>
+            {envioGratis
+              ? "Envío gratis en este pedido"
+              : `Envío gratis desde ${formatearPrecio(ENTREGA.envioGratisDesde)}`}
+          </p>
+        </section>
+
+        <p className={styles.stock} aria-live="polite">
+          {variante == null ? (
+            <span className={styles.sinCombinacion}>Esa combinación no está disponible</span>
+          ) : agotado ? (
+            <span className={styles.agotado}>Sin stock</span>
+          ) : quedanPocas ? (
+            <span className={styles.pocas}>
+              Quedan {stock} unidad{stock === 1 ? "" : "es"}
+            </span>
+          ) : (
+            <span className={styles.disponible}>Disponible</span>
+          )}
         </p>
-      ) : null}
 
-      {variante ? (
-        <dl className={styles.ficha}>
-          <div>
-            <dt>SKU</dt>
-            <dd>{variante.sku}</dd>
+        <div className={styles.compra}>
+          <div className={styles.cantidad}>
+            <button
+              type="button"
+              className={styles.cantidadBoton}
+              onClick={() => cambiarCantidad(cantidadFinal - 1)}
+              disabled={cantidadFinal <= 1 || agotado}
+              aria-label="Quitar una unidad"
+            >
+              <IconoQuitar />
+            </button>
+            <span className={styles.cantidadValor}>{cantidadFinal}</span>
+            <button
+              type="button"
+              className={styles.cantidadBoton}
+              onClick={() => cambiarCantidad(cantidadFinal + 1)}
+              disabled={cantidadFinal >= maximo || agotado}
+              aria-label="Agregar una unidad"
+            >
+              <IconoAgregar />
+            </button>
           </div>
-          <div>
-            <dt>Selección</dt>
-            <dd>{variante.etiqueta}</dd>
-          </div>
-        </dl>
-      ) : null}
+
+          <Button
+            onClick={agregar}
+            disabled={variante == null || agotado}
+            className={styles.botonAgregar}
+          >
+            {agotado ? "Sin stock" : "Agregar al carrito"}
+          </Button>
+        </div>
+
+        {agregado ? (
+          <p className={styles.confirmacion} role="status">
+            Agregado al carrito.{" "}
+            <Link href="/carrito" className={styles.enlaceCarrito}>
+              Ver carrito
+            </Link>
+          </p>
+        ) : null}
+
+        {variante ? (
+          <dl className={styles.ficha}>
+            <div>
+              <dt>SKU</dt>
+              <dd>{variante.sku}</dd>
+            </div>
+            <div>
+              <dt>Selección</dt>
+              <dd>{variante.etiqueta}</dd>
+            </div>
+          </dl>
+        ) : null}
+
+        <p className={styles.vendido}>
+          Vendido por <strong>Webstore</strong> · Pago seguro con Izipay
+        </p>
+      </aside>
     </div>
   );
 }

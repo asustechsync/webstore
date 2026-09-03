@@ -31,6 +31,9 @@ export const varianteSchema = z.object({
   cantidad: z.coerce.number().int().min(0, "La cantidad no puede ser negativa"),
   stockMinimo: z.coerce.number().int().min(0, "El mínimo no puede ser negativo"),
   activo: z.boolean().default(true),
+  // Portada propia: sin ella la variante muestra la primera imagen del producto.
+  imagenUrl: opcional(z.url("La imagen de la variante no tiene una URL válida")),
+  imagenPublicId: opcional(z.string().min(1)),
 });
 
 export const productoSchema = z.object({

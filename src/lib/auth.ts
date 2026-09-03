@@ -17,7 +17,15 @@ export const getUsuarioActual = cache(async () => {
   const supabase = await createClient();
   // getClaims() verifica la firma del JWT localmente (clave asimétrica del
   // proyecto) — sin llamar a la API de Supabase, a diferencia de getUser().
-  const { data } = await supabase.auth.getClaims();
+  let data: Awaited<ReturnType<typeof supabase.auth.getClaims>>["data"] = null;
+  try {
+    ({ data } = await supabase.auth.getClaims());
+  } catch (error) {
+    // El refresh de la sesión ocurre en el proxy (único punto que persiste las
+    // cookies). Si el refresh token quedó inválido/rotado, aquí solo se refleja
+    // como "sin sesión" y la página redirige a /ingresar.
+    if ((error as { code?: string }).code !== "refresh_token_not_found") throw error;
+  }
 
   if (!data) return null;
 

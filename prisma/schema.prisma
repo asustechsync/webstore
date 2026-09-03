@@ -9,25 +9,25 @@ datasource db {
 // ── Usuarios, roles y permisos ─────────────────────────────
 
 model Usuario {
-  id            String      @id @default(uuid())
-  authId        String      @unique // id del usuario en Supabase Auth
-  email         String      @unique
-  nombre        String
+  id              String      @id @default(uuid())
+  authId          String      @unique // id del usuario en Supabase Auth
+  email           String      @unique
+  nombre          String
   apellidoPaterno String?
   apellidoMaterno String?
-  telefono      String?
-  codigoPais    String?     @default("+51")
+  telefono        String?
+  codigoPais      String?     @default("+51")
   fechaNacimiento DateTime?
-  genero        String?
-  tipoDocumento String?
-  documento     String?     @unique
-  rolId         String
-  rol           Rol         @relation(fields: [rolId], references: [id])
-  direcciones   Direccion[]
-  pedidos       Pedido[]
-  carrito       Carrito?
-  creadoEn      DateTime    @default(now())
-  actualizadoEn DateTime    @updatedAt
+  genero          String?
+  tipoDocumento   String?
+  documento       String?     @unique
+  rolId           String
+  rol             Rol         @relation(fields: [rolId], references: [id])
+  direcciones     Direccion[]
+  pedidos         Pedido[]
+  carrito         Carrito?
+  creadoEn        DateTime    @default(now())
+  actualizadoEn   DateTime    @updatedAt
 
   @@map("usuarios")
 }
@@ -92,21 +92,21 @@ model Marca {
 }
 
 model Categoria {
-  id            String      @id @default(uuid())
-  nombre        String
-  slug          String      @unique
-  descripcion   String?
-  imagenUrl     String? // URL de Cloudinary
-  orden         Int         @default(0) // menor número = aparece primero
-  destacada     Boolean     @default(false) // se muestra en la portada
-  tituloSeo     String?     @map("titulo_seo")
-  descripcionSeo String?    @map("descripcion_seo")
-  padreId       String?
-  padre         Categoria?  @relation("SubCategorias", fields: [padreId], references: [id])
-  subcategorias Categoria[] @relation("SubCategorias")
-  productos     Producto[]
-  activo        Boolean     @default(true)
-  creadoEn      DateTime    @default(now())
+  id             String      @id @default(uuid())
+  nombre         String
+  slug           String      @unique
+  descripcion    String?
+  imagenUrl      String? // URL de Cloudinary
+  orden          Int         @default(0) // menor número = aparece primero
+  destacada      Boolean     @default(false) // se muestra en la portada
+  tituloSeo      String?     @map("titulo_seo")
+  descripcionSeo String?     @map("descripcion_seo")
+  padreId        String?
+  padre          Categoria?  @relation("SubCategorias", fields: [padreId], references: [id])
+  subcategorias  Categoria[] @relation("SubCategorias")
+  productos      Producto[]
+  activo         Boolean     @default(true)
+  creadoEn       DateTime    @default(now())
 
   @@index([activo, orden])
   @@map("categorias")
@@ -129,12 +129,12 @@ model AtributoCatalogo {
 }
 
 model ValorAtributoCatalogo {
-  id          String            @id @default(uuid())
-  atributoId  String            @map("atributo_id")
-  atributo    AtributoCatalogo @relation(fields: [atributoId], references: [id], onDelete: Cascade)
-  valor       String
-  colorHex    String?           @map("color_hex")
-  orden       Int               @default(0)
+  id         String           @id @default(uuid())
+  atributoId String           @map("atributo_id")
+  atributo   AtributoCatalogo @relation(fields: [atributoId], references: [id], onDelete: Cascade)
+  valor      String
+  colorHex   String?          @map("color_hex")
+  orden      Int              @default(0)
 
   @@unique([atributoId, valor])
   @@index([atributoId])
@@ -142,42 +142,42 @@ model ValorAtributoCatalogo {
 }
 
 model Producto {
-  id             String           @id @default(uuid())
-  nombre         String
-  slug           String           @unique
-  descripcion    String
+  id               String           @id @default(uuid())
+  nombre           String
+  slug             String           @unique
+  descripcion      String
   descripcionCorta String?
-  skuInterno     String?          @unique
-  codigoBarras   String?          @unique
-  proveedor      String?
-  precio         Decimal          @db.Decimal(10, 2)
-  precioOferta   Decimal?         @db.Decimal(10, 2)
-  costo          Decimal?         @db.Decimal(10, 2) // costo base actual; la variante puede sobrescribirlo
-  sku            String           @unique // código base; cada variante tiene el suyo
-  borrador       Boolean          @default(true)
-  modoVariantes  Boolean          @default(false)
-  tipoProducto   String? // MEDIAS_MUJER, BOXER_ADULTO, BRASIER, PERSONALIZADO...
-  perfilOpciones String? // preset usado por el editor; no limita opciones futuras
-  categoriaId    String
-  categoria      Categoria        @relation(fields: [categoriaId], references: [id])
-  marcaId        String?
-  marca          Marca?           @relation(fields: [marcaId], references: [id])
-  imagenes       ImagenProducto[]
-  opciones       OpcionProducto[]
-  variantes      Variante[]
-  material       String? // "95% algodón, 5% elastano"
-  cuidados       String? // "Lavar a máquina en frío, no usar secadora"
-  guiaTallas     String?
-  pesoKg         Decimal?         @db.Decimal(8, 3)
-  anchoCm        Decimal?         @db.Decimal(8, 2)
-  altoCm         Decimal?         @db.Decimal(8, 2)
-  largoCm        Decimal?         @db.Decimal(8, 2)
-  tituloSeo      String?
-  descripcionSeo String?
-  activo         Boolean          @default(true)
-  destacado      Boolean          @default(false)
-  creadoEn       DateTime         @default(now())
-  actualizadoEn  DateTime         @updatedAt
+  skuInterno       String?          @unique
+  codigoBarras     String?          @unique
+  proveedor        String?
+  precio           Decimal          @db.Decimal(10, 2)
+  precioOferta     Decimal?         @db.Decimal(10, 2)
+  costo            Decimal?         @db.Decimal(10, 2) // costo base actual; la variante puede sobrescribirlo
+  sku              String           @unique // código base; cada variante tiene el suyo
+  borrador         Boolean          @default(true)
+  modoVariantes    Boolean          @default(false)
+  tipoProducto     String? // MEDIAS_MUJER, BOXER_ADULTO, BRASIER, PERSONALIZADO...
+  perfilOpciones   String? // preset usado por el editor; no limita opciones futuras
+  categoriaId      String
+  categoria        Categoria        @relation(fields: [categoriaId], references: [id])
+  marcaId          String?
+  marca            Marca?           @relation(fields: [marcaId], references: [id])
+  imagenes         ImagenProducto[]
+  opciones         OpcionProducto[]
+  variantes        Variante[]
+  material         String? // "95% algodón, 5% elastano"
+  cuidados         String? // "Lavar a máquina en frío, no usar secadora"
+  guiaTallas       String?
+  pesoKg           Decimal?         @db.Decimal(8, 3)
+  anchoCm          Decimal?         @db.Decimal(8, 2)
+  altoCm           Decimal?         @db.Decimal(8, 2)
+  largoCm          Decimal?         @db.Decimal(8, 2)
+  tituloSeo        String?
+  descripcionSeo   String?
+  activo           Boolean          @default(true)
+  destacado        Boolean          @default(false)
+  creadoEn         DateTime         @default(now())
+  actualizadoEn    DateTime         @updatedAt
 
   @@index([categoriaId])
   @@index([marcaId])
@@ -230,23 +230,26 @@ model ValorOpcionProducto {
 // color, así que el carrito y los pedidos apuntan acá, no a Producto.
 
 model Variante {
-  id            String          @id @default(uuid())
-  productoId    String
-  producto      Producto        @relation(fields: [productoId], references: [id], onDelete: Cascade)
-  talla         String // S, M, L, XL, 28, 30, Única...
-  color         String          @default("") // "" = sin color; evita NULLs en el índice único
-  claveOpciones String // representación canónica para impedir combinaciones duplicadas
-  sku           String          @unique
-  precio        Decimal?        @db.Decimal(10, 2) // opcional: sobrescribe el precio del producto
-  costo         Decimal?        @db.Decimal(10, 2) // opcional: sobrescribe el costo base
-  cantidad      Int             @default(0)
-  stockMinimo   Int             @default(0)
-  activo        Boolean         @default(true)
-  itemsCarrito  ItemCarrito[]
-  itemsPedido   ItemPedido[]
-  valores       ValorVariante[]
-  creadoEn      DateTime        @default(now())
-  actualizadoEn DateTime        @updatedAt
+  id             String          @id @default(uuid())
+  productoId     String
+  producto       Producto        @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  talla          String // S, M, L, XL, 28, 30, Única...
+  color          String          @default("") // "" = sin color; evita NULLs en el índice único
+  claveOpciones  String // representación canónica para impedir combinaciones duplicadas
+  sku            String          @unique
+  precio         Decimal?        @db.Decimal(10, 2) // opcional: sobrescribe el precio del producto
+  costo          Decimal?        @db.Decimal(10, 2) // opcional: sobrescribe el costo base
+  cantidad       Int             @default(0)
+  stockMinimo    Int             @default(0)
+  activo         Boolean         @default(true)
+  // Portada propia de la variante; si es null se usa la del producto.
+  imagenUrl      String?
+  imagenPublicId String?
+  itemsCarrito   ItemCarrito[]
+  itemsPedido    ItemPedido[]
+  valores        ValorVariante[]
+  creadoEn       DateTime        @default(now())
+  actualizadoEn  DateTime        @updatedAt
 
   @@unique([productoId, claveOpciones])
   @@index([productoId])
@@ -293,18 +296,18 @@ model ItemCarrito {
 // ── Pedidos (base para checkout / fase 3 facturación y envíos) ─
 
 model Pedido {
-  id            String       @id @default(uuid())
-  usuarioId     String
-  usuario       Usuario      @relation(fields: [usuarioId], references: [id])
-  items         ItemPedido[]
-  estado        EstadoPedido @default(PENDIENTE)
-  subtotal      Decimal      @default(0) @db.Decimal(10, 2)
-  costoEnvio    Decimal      @default(0) @db.Decimal(10, 2)
-  total         Decimal      @db.Decimal(10, 2)
-  descuento     Decimal      @default(0) @db.Decimal(10, 2)
-  metodoPago    MetodoPago?
-  cuponId       String?
-  cupon         Cupon?       @relation(fields: [cuponId], references: [id])
+  id                String       @id @default(uuid())
+  usuarioId         String
+  usuario           Usuario      @relation(fields: [usuarioId], references: [id])
+  items             ItemPedido[]
+  estado            EstadoPedido @default(PENDIENTE)
+  subtotal          Decimal      @default(0) @db.Decimal(10, 2)
+  costoEnvio        Decimal      @default(0) @db.Decimal(10, 2)
+  total             Decimal      @db.Decimal(10, 2)
+  descuento         Decimal      @default(0) @db.Decimal(10, 2)
+  metodoPago        MetodoPago?
+  cuponId           String?
+  cupon             Cupon?       @relation(fields: [cuponId], references: [id])
   // Copia de la dirección al comprar: el pedido no debe cambiar si luego se
   // edita o elimina la dirección del cliente.
   envioDestinatario String?
@@ -315,8 +318,8 @@ model Pedido {
   envioDireccion    String?
   envioReferencia   String?
   envioCodigoPostal String?
-  creadoEn      DateTime     @default(now())
-  actualizadoEn DateTime     @updatedAt
+  creadoEn          DateTime     @default(now())
+  actualizadoEn     DateTime     @updatedAt
 
   @@index([usuarioId])
   @@index([estado, creadoEn])

@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Container } from "@/components/ui/Container";
 import { MigasDePan } from "@/components/ui/MigasDePan";
@@ -7,19 +7,24 @@ import { Section } from "@/components/ui/Section";
 import { CarruselProductos } from "@/components/productos/CarruselProductos";
 import { DetallesProducto, type BloqueDetalle } from "@/components/productos/DetallesProducto";
 import { GaleriaProducto } from "@/components/productos/GaleriaProducto";
+import { ProveedorVariante } from "@/components/productos/ContextoVariante";
 import { PanelCompra } from "@/components/productos/PanelCompra";
 import { aProductoCardData } from "@/components/productos/ProductoCard";
 import { construirDetalle } from "@/features/catalogo/detalle";
+import { estimarEntrega } from "@/features/catalogo/entrega";
 import {
   listarProductos,
   obtenerProductoPorSlug,
 } from "@/features/catalogo/queries/productos";
-import { formatearPrecio } from "@/lib/utils";
 import styles from "./page.module.css";
 
-export const revalidate = 300; // ISR: 5 minutos
+// Sin ISR: `?variante=` decide qué color se muestra, y eso se resuelve en el
+// servidor para que el HTML llegue ya con la foto y el precio correctos.
 
-type Props = { params: Promise<{ slug: string }> };
+type Props = {
+  params: Promise<{ slug: string }>;
+  searchParams: Promise<{ variante?: string | string[] }>;
+};
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
@@ -56,19 +61,23 @@ function construirBloques(producto: {
   ].filter((bloque) => bloque.contenido.trim().length > 0);
 }
 
-export default async function ProductoPage({ params }: Props) {
-  const { slug } = await params;
+export default async function ProductoPage({ params, searchParams }: Props) {
+  const [{ slug }, parametros] = await Promise.all([params, searchParams]);
+  const varianteInicialId = Array.isArray(parametros.variante)
+    ? parametros.variante[0]
+    : parametros.variante;
   const producto = await obtenerProductoPorSlug(slug);
   if (!producto) notFound();
 
   const detalle = construirDetalle(producto);
+  const bloques = construirBloques(producto);
   const precio = Number(producto.precio);
   const precioOferta = producto.precioOferta != null ? Number(producto.precioOferta) : null;
   const imagenPrincipal = producto.imagenes[0]?.url ?? null;
 
   // Productos de la misma categoría, sin repetir el que se está viendo.
   const { productos: relacionados } = await listarProductos({
-    categoriaSlug: producto.categoria.slug,
+    categoria: producto.categoria.slug,
     porPagina: 9,
   });
   const relacionadosCard = relacionados
@@ -106,60 +115,78 @@ export default async function ProductoPage({ params }: Props) {
           dangerouslySetInnerHTML={{ __html: JSON.stringify(datosEstructurados) }}
         />
 
-        <MigasDePan
-          migas={[
-            { texto: "Inicio", href: "/" },
-            { texto: "Productos", href: "/productos" },
-            { texto: producto.categoria.nombre, href: `/categorias/${producto.categoria.slug}` },
-            { texto: producto.nombre },
-          ]}
-        />
+        {/* Igual que en la referencia: la ruta a la izquierda y el atajo a
+            todo el catálogo de la marca a la derecha. */}
+        <div className={styles.cabecera}>
+          <MigasDePan
+            migas={[
+              { texto: "Inicio", href: "/" },
+              { texto: "Productos", href: "/productos" },
+              { texto: producto.categoria.nombre, href: `/categorias/${producto.categoria.slug}` },
+              { texto: producto.nombre },
+            ]}
+          />
+          {producto.marca ? (
+            <Link href={`/marcas/${producto.marca.slug}`} className={styles.enlaceMarca}>
+              Ver todo de {producto.marca.nombre}
+            </Link>
+          ) : null}
+        </div>
 
-        <div className={styles.ficha}>
-          <div className={styles.galeria}>
-            <GaleriaProducto imagenes={producto.imagenes} nombre={producto.nombre} />
-          </div>
+        {/* El proveedor envuelve las dos columnas porque la galería y la caja
+            de compra comparten la variante elegida. */}
+        <ProveedorVariante detalle={detalle} varianteInicialId={varianteInicialId}>
+          <div className={styles.ficha}>
+            <div className={styles.galeria}>
+              <GaleriaProducto imagenes={producto.imagenes} nombre={producto.nombre} />
+            </div>
 
-          <div className={styles.compra}>
-            <header className={styles.encabezado}>
-              {producto.marca ? <p className={styles.marca}>{producto.marca.nombre}</p> : null}
-              <h1 className={styles.titulo}>{producto.nombre}</h1>
-              {producto.descripcionCorta ? (
-                <p className={styles.bajada}>{producto.descripcionCorta}</p>
-              ) : null}
-            </header>
-
-            <Suspense
-              fallback={
-                <p className={styles.precioEstatico}>
-                  {formatearPrecio(precioOferta ?? precio)}
-                </p>
-              }
+            <PanelCompra
+              producto={{
+                id: producto.id,
+                nombre: producto.nombre,
+                slug: producto.slug,
+                precio,
+                precioOferta,
+                imagenUrl: imagenPrincipal,
+              }}
+              detalle={detalle}
+              entrega={estimarEntrega()}
             >
-              <PanelCompra
-                producto={{
-                  id: producto.id,
-                  nombre: producto.nombre,
-                  slug: producto.slug,
-                  precio,
-                  precioOferta,
-                  imagenUrl: imagenPrincipal,
-                }}
-                detalle={detalle}
-              />
-            </Suspense>
+              <header className={styles.encabezado}>
+                {producto.marca ? <p className={styles.marca}>{producto.marca.nombre}</p> : null}
+                <h1 className={styles.titulo}>{producto.nombre}</h1>
 
-            <ul className={styles.garantias}>
-              <li>Envío a todo el Perú con Shalom</li>
-              <li>Pago seguro con Izipay</li>
-              <li>Stock real por talla y color</li>
-            </ul>
+                <p className={styles.identificadores}>
+                  {producto.skuInterno ? <span>Modelo: {producto.skuInterno}</span> : null}
+                  <span>SKU: {producto.sku}</span>
+                  <span>
+                    Categoría:{" "}
+                    <Link href={`/categorias/${producto.categoria.slug}`}>
+                      {producto.categoria.nombre}
+                    </Link>
+                  </span>
+                </p>
+
+                {producto.descripcionCorta ? (
+                  <p className={styles.bajada}>{producto.descripcionCorta}</p>
+                ) : null}
+
+                {bloques.length > 0 ? (
+                  <a href="#detalles" className={styles.verDetalles}>
+                    Ver ficha completa
+                  </a>
+                ) : null}
+              </header>
+            </PanelCompra>
           </div>
-        </div>
+        </ProveedorVariante>
 
-        <div className={styles.fichas}>
-          <DetallesProducto bloques={construirBloques(producto)} />
-        </div>
+        {bloques.length > 0 ? (
+          <div id="detalles" className={styles.fichas}>
+            <DetallesProducto bloques={bloques} />
+          </div>
+        ) : null}
 
         {relacionadosCard.length > 0 ? (
           <Section

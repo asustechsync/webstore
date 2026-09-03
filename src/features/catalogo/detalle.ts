@@ -24,6 +24,8 @@ export type VarianteVista = {
   precioOferta: number | null;
   cantidad: number;
   stockMinimo: number;
+  /** Portada propia de la variante; null = se usa la galería del producto. */
+  imagenUrl: string | null;
   /** Ids de los valores de opción que identifican esta combinación. */
   valores: string[];
 };
@@ -59,6 +61,7 @@ export function construirDetalle(producto: ProductoDetalle): DetalleVista {
     precioOferta,
     cantidad: variante.cantidad,
     stockMinimo: variante.stockMinimo,
+    imagenUrl: variante.imagenUrl,
   });
 
   if (producto.opciones.length > 0) {

@@ -3,9 +3,10 @@
 import { Fragment, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { EstadoPedido } from "@prisma/client";
-import { cambiarEstadoPedido } from "@/features/pedidos/actions";
+import { cambiarEstadoPedido, eliminarPedido } from "@/features/pedidos/actions";
+import { sePuedeEliminar } from "@/features/pedidos/estado";
 import { SelectConFlecha } from "@/components/ui/SelectConFlecha";
-import { IconoFlecha } from "@/components/ui/ActionIcons";
+import { IconoEliminar, IconoFlecha } from "@/components/ui/ActionIcons";
 import styles from "../admin.module.css";
 
 type ProductoResumen = {
@@ -58,7 +59,7 @@ const ESTADOS: EstadoPedido[] = [
   "CANCELADO",
 ];
 
-const COLUMNAS = 7;
+const COLUMNAS = 8;
 
 export function PedidosTabla({ pedidos }: { pedidos: Fila[] }) {
   const router = useRouter();
@@ -71,6 +72,26 @@ export function PedidosTabla({ pedidos }: { pedidos: Fila[] }) {
     iniciarTransicion(async () => {
       const resultado = await cambiarEstadoPedido(id, estado);
       if (!resultado.ok) setError(resultado.error);
+      router.refresh();
+    });
+  }
+
+  function onEliminar(pedido: Fila) {
+    const aviso =
+      `¿Eliminar el pedido ${pedido.id.slice(0, 8)} de ${pedido.cliente || pedido.correo}?\n\n` +
+      "Se devolverán las unidades al stock y el uso del cupón. " +
+      "El pedido no se podrá recuperar.";
+    if (!confirm(aviso)) return;
+
+    setError(null);
+    iniciarTransicion(async () => {
+      const resultado = await eliminarPedido(pedido.id);
+      if (!resultado.ok) {
+        setError(resultado.error);
+        return;
+      }
+      // La fila desaparece: si era la expandida, el detalle ya no existe.
+      setExpandidoId((actual) => (actual === pedido.id ? null : actual));
       router.refresh();
     });
   }
@@ -94,6 +115,7 @@ export function PedidosTabla({ pedidos }: { pedidos: Fila[] }) {
               <th>Total</th>
               <th>Fecha</th>
               <th>Estado</th>
+              <th />
             </tr>
           </thead>
           <tbody>
@@ -132,6 +154,27 @@ export function PedidosTabla({ pedidos }: { pedidos: Fila[] }) {
                           </option>
                         ))}
                       </SelectConFlecha>
+                    </td>
+                    <td onClick={(evento) => evento.stopPropagation()}>
+                      <div className={styles.acciones}>
+                        {/* Un pedido pagado o entregado ya es historial de
+                            ventas: se deshabilita en vez de ocultarse para que
+                            el motivo quede a la vista. */}
+                        <button
+                          type="button"
+                          className={styles.botonIcono}
+                          disabled={pendiente || !sePuedeEliminar(pedido.estado)}
+                          title={
+                            sePuedeEliminar(pedido.estado)
+                              ? "Eliminar pedido"
+                              : "Solo se pueden eliminar pedidos pendientes o cancelados"
+                          }
+                          aria-label={`Eliminar el pedido ${pedido.id.slice(0, 8)}`}
+                          onClick={() => onEliminar(pedido)}
+                        >
+                          <IconoEliminar />
+                        </button>
+                      </div>
                     </td>
                   </tr>
 

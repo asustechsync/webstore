@@ -1,0 +1,49 @@
+.cabecera {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-4);
+  margin-bottom: var(--espacio-6);
+}
+
+.titulo {
+  margin: 0;
+  font-size: var(--texto-xl);
+  font-weight: var(--peso-semibold);
+  line-height: var(--interlineado-compacto);
+}
+
+.descripcion {
+  margin: var(--espacio-2) 0 0;
+  color: var(--texto-secundario);
+  font-size: var(--texto-sm);
+}
+
+.conteo {
+  display: block;
+  margin-top: var(--espacio-1);
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+}
+
+.imagen {
+  flex: 0 0 auto;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: var(--radio-lg);
+  background: var(--superficie-suave);
+  object-fit: cover;
+}
+
+.imagenContenida {
+  composes: imagen;
+  padding: var(--espacio-2);
+  object-fit: contain;
+}
+
+@media (min-width: 40rem) {
+  .imagen,
+  .imagenContenida {
+    width: 7rem;
+    height: 7rem;
+  }
+}

@@ -74,6 +74,8 @@ function datosEscalaresVariante(variante: VarianteValidada) {
     cantidad: variante.cantidad,
     stockMinimo: variante.stockMinimo,
     activo: variante.activo,
+    imagenUrl: variante.imagenUrl ?? null,
+    imagenPublicId: variante.imagenPublicId ?? null,
   };
 }
 
@@ -222,7 +224,10 @@ export async function actualizarProducto(id: string, datos: ProductoInput) {
 
     const actual = await db.producto.findUnique({
       where: { id },
-      include: { imagenes: true },
+      include: {
+        imagenes: true,
+        variantes: { select: { id: true, imagenPublicId: true } },
+      },
     });
     if (!actual) throw new Error("El producto ya no existe");
 
@@ -245,6 +250,18 @@ export async function actualizarProducto(id: string, datos: ProductoInput) {
     const imagenesAEliminar = actual.imagenes.filter(
       (imagen) => !publicIdsConservados.includes(imagen.publicId),
     );
+
+    // Portadas de variante que dejaron de usarse: la variante se borró, se
+    // le quitó la foto o se reemplazó por otra. Se juntan acá para borrarlas
+    // de Cloudinary recién cuando la base haya confirmado los cambios.
+    const portadasEnUso = new Set(
+      variantes
+        .map((variante) => variante.imagenPublicId)
+        .filter((publicId): publicId is string => Boolean(publicId)),
+    );
+    const portadasAEliminar = actual.variantes
+      .map((variante) => variante.imagenPublicId)
+      .filter((publicId): publicId is string => Boolean(publicId) && !portadasEnUso.has(publicId!));
 
     await db.$transaction(async (tx) => {
       await tx.variante.deleteMany({
@@ -327,9 +344,10 @@ export async function actualizarProducto(id: string, datos: ProductoInput) {
     });
 
     // Recién cuando la base confirmó, se borran los archivos de Cloudinary.
-    await Promise.allSettled(
-      imagenesAEliminar.map((imagen) => eliminarImagen(imagen.publicId)),
-    );
+    await Promise.allSettled([
+      ...imagenesAEliminar.map((imagen) => eliminarImagen(imagen.publicId)),
+      ...portadasAEliminar.map((publicId) => eliminarImagen(publicId)),
+    ]);
 
     revalidarCatalogo(producto.slug);
     if (actual.slug !== producto.slug) revalidatePath(`/productos/${actual.slug}`);
@@ -343,7 +361,10 @@ export async function eliminarProducto(id: string) {
 
     const producto = await db.producto.findUnique({
       where: { id },
-      include: { imagenes: true },
+      include: {
+        imagenes: true,
+        variantes: { select: { imagenPublicId: true } },
+      },
     });
     if (!producto) throw new Error("El producto ya no existe");
 
@@ -356,9 +377,13 @@ export async function eliminarProducto(id: string) {
 
     await db.producto.delete({ where: { id } });
 
-    await Promise.allSettled(
-      producto.imagenes.map((imagen) => eliminarImagen(imagen.publicId)),
-    );
+    await Promise.allSettled([
+      ...producto.imagenes.map((imagen) => eliminarImagen(imagen.publicId)),
+      ...producto.variantes
+        .map((variante) => variante.imagenPublicId)
+        .filter((publicId): publicId is string => Boolean(publicId))
+        .map((publicId) => eliminarImagen(publicId)),
+    ]);
 
     revalidarCatalogo(producto.slug);
   });
@@ -441,6 +466,10 @@ export async function duplicarProducto(id: string) {
             cantidad: 0,
             stockMinimo: variante.stockMinimo,
             activo: variante.activo,
+            // La portada de variante no se copia a propósito: duplicar sirve
+            // para el mismo modelo en otro color, así que esas fotos son
+            // justo lo que hay que reemplazar. Copiar el publicId además
+            // dejaría dos productos apuntando al mismo archivo de Cloudinary.
             valores: { create: idsValores.map((valorId) => ({ valorId })) },
           },
         });

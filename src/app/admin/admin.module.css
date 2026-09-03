@@ -1473,33 +1473,133 @@
 
 /* ── Galería de imágenes ───────────────────────────────── */
 
-.galeria {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
-  gap: var(--espacio-3);
-  margin-top: var(--espacio-3);
+/* ── Pestaña Imágenes ──────────────────────────────────
+   Reproduce la galería de la ficha pública (imagen grande + tira de
+   miniaturas) para que el administrador vea el resultado antes de publicar,
+   y añade encima la zona de carga. */
+
+.zonaSoltar {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-1);
+  min-height: 6rem;
+  padding: var(--espacio-4);
+  border: 1px dashed var(--color-borde);
+  border-radius: var(--radio-lg);
+  background: var(--color-bg-suave);
+  cursor: pointer;
+  text-align: center;
+  transition: border-color var(--transicion-rapida), background-color var(--transicion-rapida);
 }
 
-.miniatura {
-  border: 1px solid var(--color-borde);
-  border-radius: var(--radio-borde);
+.zonaSoltar:hover,
+.zonaSoltar:focus-within,
+.zonaSoltarActiva {
+  border-color: var(--control-borde-hover);
+  background: var(--superficie-elevada);
+}
+
+.zonaSoltarTitulo {
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+}
+
+.zonaSoltarAyuda {
+  color: var(--color-texto-suave);
+  font-size: var(--texto-2xs);
+}
+
+/* El input cubre toda la caja para que el clic funcione en cualquier punto,
+   sin tapar el texto (queda debajo en el orden de pintado). */
+.zonaSoltarInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* La previa es cuadrada como en la tienda; sin tope crecería tanto como la
+   columna del formulario y empujaría el resto de la pestaña fuera de vista. */
+.previa {
+  max-width: 26rem;
+  margin-top: var(--espacio-4);
+}
+
+.previaPrincipal {
+  position: relative;
   overflow: hidden;
-}
-
-.miniaturaImagen {
-  display: block;
-  width: 100%;
-  height: 7rem;
-  object-fit: cover;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-lg);
   background: var(--color-bg-suave);
 }
 
-.miniaturaBarra {
+.previaPrincipalImagen {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+
+/* Cuatro por fila, igual que en la tienda; desde la quinta baja otra fila. */
+.previaTira {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-2);
+}
+
+.previaMiniatura {
+  display: block;
+  width: 100%;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--color-bg-suave);
+  cursor: pointer;
+  transition: border-color var(--transicion-rapida);
+}
+
+.previaMiniatura:hover {
+  border-color: var(--control-borde-hover);
+}
+
+.previaMiniaturaActiva {
+  border-color: var(--color-texto);
+  box-shadow: inset 0 0 0 1px var(--color-texto);
+}
+
+.previaMiniaturaImagen {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+}
+
+.previaAcciones {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-3);
+}
+
+.previaPosicion {
+  color: var(--color-texto-suave);
+  font-size: var(--texto-2xs);
+}
+
+.previaBotones {
+  display: inline-flex;
+  align-items: center;
   gap: var(--espacio-1);
-  padding: var(--espacio-1);
 }
 
 .miniaturaBoton {
@@ -1516,10 +1616,6 @@
   cursor: not-allowed;
 }
 
-.portada {
-  font-size: var(--texto-2xs);
-  color: var(--color-texto-suave);
-}
 
 /* ── Variantes (tallas) ────────────────────────────────── */
 
@@ -1602,9 +1698,107 @@
 
 /* El SKU suele ser más largo que una cantidad de stock; estas clases se
    mantienen correctas aunque el producto tenga más o menos atributos. */
+/* La miniatura manda el alto de la fila; 8% alcanza para 80 px de foto
+   en el ancho habitual del panel. */
+.variantes th.columnaFoto,
+.variantes td.columnaFoto {
+  width: 8%;
+}
+
+.fotoVariante {
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-1);
+}
+
+/* El label envuelve un input file oculto: toda la miniatura es el botón de
+   subir, que es más fácil de acertar que un botón aparte. */
+.fotoVarianteCaja {
+  position: relative;
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: 0 0 auto;
+  place-items: center;
+  overflow: hidden;
+  border: 1px dashed var(--color-borde);
+  border-radius: var(--radio-borde);
+  background: var(--superficie-suave);
+  cursor: pointer;
+  transition: border-color var(--transicion-rapida);
+}
+
+.fotoVarianteCaja:hover,
+.fotoVarianteCaja:focus-within {
+  border-color: var(--control-borde-hover);
+}
+
+.fotoVarianteImagen {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fotoVarianteVacia {
+  color: var(--color-texto-suave);
+  font-size: var(--texto-base);
+  line-height: 1;
+}
+
+.fotoVarianteInput {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+/* Texto que solo leen los lectores de pantalla: la miniatura no tiene
+   etiqueta visible porque el encabezado de la columna ya dice "Foto". */
+.soloLectores {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.fotoVarianteQuitar {
+  border: 0;
+  background: none;
+  color: var(--color-texto-suave);
+  cursor: pointer;
+  font-size: var(--texto-2xs);
+  line-height: 1;
+}
+
+.fotoVarianteQuitar:hover {
+  color: var(--estado-error);
+}
+
 .variantes th.columnaSku,
 .variantes td.columnaSku {
-  width: 18%;
+  width: 22%;
+}
+
+/* Stock y Mínimo guardan números de una o dos cifras: no necesitan más
+   ancho que el de su propio encabezado. Activa es un interruptor y la
+   última columna un solo botón. Lo que sobraba se fue al SKU. */
+.variantes th.columnaMinimo,
+.variantes td.columnaMinimo {
+  width: 9%;
+}
+
+.variantes th.columnaActiva,
+.variantes td.columnaActiva {
+  width: 7%;
+  text-align: center;
+}
+
+.variantes th.columnaAcciones,
+.variantes td.columnaAcciones {
+  width: 4%;
+  text-align: center;
 }
 
 .variantes th.columnaStock,
@@ -1614,12 +1808,20 @@
 
 .variantes th.columnaColor,
 .variantes td.columnaColor {
+  width: 13%;
+}
+
+/* "40-45" o "XL/XXL" no entran en el ancho que Talla hereda del nth-child
+   genérico y se parten en dos líneas. El espacio sale de Diseño, que iba
+   sobrado para los valores que guarda (Liso, Rayas, Estampado...). */
+.variantes th.columnaTalla,
+.variantes td.columnaTalla {
   width: 14%;
 }
 
 .variantes th.columnaDiseno,
 .variantes td.columnaDiseno {
-  width: 23%;
+  width: 15%;
 }
 
 .tallasRapidas {

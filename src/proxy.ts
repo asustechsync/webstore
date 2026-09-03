@@ -27,13 +27,19 @@ export async function proxy(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/admin") ||
     request.nextUrl.pathname.startsWith("/cuenta");
 
-  // Verificación rápida (firma del JWT, sin llamar a la API de Supabase) solo
-  // para decidir si redirigir a /ingresar. La verificación completa (y el
-  // chequeo de rol/permisos) ocurre en cada página/acción vía getUsuarioActual().
+  // Se llama en cada request (no solo en rutas protegidas): getClaims() verifica
+  // la firma del JWT localmente —sin red mientras el token siga vigente— y, si
+  // expiró, refresca la sesión. El proxy es el único punto que refresca porque
+  // es el único que puede persistir las cookies nuevas en la respuesta; hacerlo
+  // desde un Server Component consume el refresh token sin poder guardarlo y
+  // provoca "refresh_token_not_found" en el siguiente request.
   let haySesion = false;
-  if (rutaProtegida) {
+  try {
     const { data } = await supabase.auth.getClaims();
     haySesion = data !== null;
+  } catch (error) {
+    // Refresh token inválido/rotado: se trata como sesión ausente.
+    if ((error as { code?: string }).code !== "refresh_token_not_found") throw error;
   }
 
   if (rutaProtegida && !haySesion) {

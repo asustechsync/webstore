@@ -25,7 +25,14 @@ type ProductoOrigen = {
   precioOferta: unknown;
   marca?: { nombre: string } | null;
   imagenes: { url: string }[];
-  variantes?: { id: string; sku: string; talla: string; color: string; precio: unknown }[];
+  variantes?: {
+    id: string;
+    sku: string;
+    talla: string;
+    color: string;
+    precio: unknown;
+    imagenUrl?: string | null;
+  }[];
 };
 
 export function aProductoCardData(producto: ProductoOrigen): ProductoCardData {
@@ -37,7 +44,11 @@ export function aProductoCardData(producto: ProductoOrigen): ProductoCardData {
     precio: String(producto.precio),
     precioOferta: producto.precioOferta != null ? String(producto.precioOferta) : null,
     marca: producto.marca ? { nombre: producto.marca.nombre } : null,
-    imagenes: producto.imagenes.map((img) => ({ url: img.url })),
+    // La variante principal es la que se muestra en la tarjeta: si tiene
+    // portada propia, esa manda sobre la del producto.
+    imagenes: producto.variantes?.[0]?.imagenUrl
+      ? [{ url: producto.variantes[0].imagenUrl }]
+      : producto.imagenes.map((img) => ({ url: img.url })),
     tallas: Array.from(new Set((producto.variantes ?? []).map((v) => v.talla))),
   };
 }
@@ -61,6 +72,9 @@ export function aProductosCardData(producto: ProductoOrigen): ProductoCardData[]
     varianteId: variante.id,
     opciones: [variante.talla, variante.color].filter(Boolean).join(" / "),
     precio: variante.precio != null ? String(variante.precio) : base.precio,
+    // Sin foto propia la variante hereda la portada del producto; con ella,
+    // cada color se ve como es en vez de repetir la misma imagen.
+    imagenes: variante.imagenUrl ? [{ url: variante.imagenUrl }] : base.imagenes,
   }));
 }
 

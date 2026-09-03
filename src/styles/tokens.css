@@ -83,6 +83,9 @@
   --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.12);
 
+  /* Velo detrás de las capas que se superponen a la página (hojas y diálogos) */
+  --fondo-velo: rgb(0 0 0 / 0.4);
+
   /* Layout */
   --ancho-maximo: 84rem;
   --ancho-formulario: 34rem;
@@ -244,6 +247,8 @@
     --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
     --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.45);
     --sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+    --fondo-velo: rgb(0 0 0 / 0.6);
   }
 }
 
@@ -266,4 +271,6 @@
   --sombra-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
   --sombra-md: 0 4px 12px rgba(0, 0, 0, 0.45);
   --sombra-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+
+  --fondo-velo: rgb(0 0 0 / 0.6);
 }

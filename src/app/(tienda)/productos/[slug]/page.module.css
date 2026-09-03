@@ -1,5 +1,35 @@
-/* Detalle: galería y compra en dos columnas desde 1024 px; debajo, las fichas
-   de texto en una columna de lectura y los productos relacionados. */
+/*
+ * Ficha de producto (mobile first).
+ *
+ * Móvil: galería, datos, configurador y caja de compra en una sola columna.
+ * Desde 768 px la galería se separa a la izquierda; desde 1280 px el panel se
+ * abre a su vez en dos, y la página queda en las tres columnas de la
+ * referencia: galería · datos · compra.
+ */
+
+.cabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-3);
+}
+
+.enlaceMarca {
+  flex: 0 0 auto;
+  /* Al envolverse en móvil queda solo en su línea: sin esto se pegaría a la
+     izquierda y se leería como un título más, no como un atajo. */
+  margin-left: auto;
+  color: var(--texto-secundario);
+  font-size: var(--texto-xs);
+  font-weight: var(--peso-medio);
+  white-space: nowrap;
+}
+
+.enlaceMarca:hover {
+  color: var(--texto-principal);
+  text-decoration: underline;
+}
 
 .ficha {
   display: grid;
@@ -10,13 +40,6 @@
 
 .galeria {
   min-width: 0;
-}
-
-.compra {
-  display: flex;
-  min-width: 0;
-  flex-direction: column;
-  gap: var(--espacio-4);
 }
 
 .encabezado {
@@ -37,11 +60,41 @@
   letter-spacing: -0.01em;
 }
 
-.bajada {
-  max-width: 46ch;
+/* Modelo, SKU y categoría: la línea de identificación bajo el título. */
+.identificadores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--espacio-1) var(--espacio-3);
   margin: 0;
   color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+}
+
+.identificadores a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.identificadores a:hover {
+  color: var(--texto-principal);
+}
+
+.bajada {
+  max-width: 52ch;
+  margin: var(--espacio-2) 0 0;
+  color: var(--texto-secundario);
   font-size: var(--texto-sm);
+  line-height: var(--interlineado-base);
+}
+
+.verDetalles {
+  align-self: flex-start;
+  color: var(--texto-principal);
+  font-size: var(--texto-sm);
+  font-weight: var(--peso-medio);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
 }
 
 /* Se ve solo el instante previo a que el panel interactivo tome el relevo. */
@@ -51,35 +104,28 @@
   font-weight: var(--peso-semibold);
 }
 
-.garantias {
-  display: flex;
-  flex-direction: column;
-  gap: var(--espacio-1);
-  padding-top: var(--espacio-4);
-  border-top: 1px solid var(--borde-sutil);
-  color: var(--texto-secundario);
-  font-size: var(--texto-xs);
-}
-
 .fichas {
   max-width: 48rem;
   margin-bottom: var(--seccion-espacio);
+  scroll-margin-top: var(--espacio-6);
 }
 
-@media (min-width: 64rem) {
+@media (min-width: 48rem) {
   .ficha {
-    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: var(--portada-gap);
     align-items: start;
   }
+}
 
-  .galeria {
-    grid-column: span 7;
-  }
-
-  .compra {
-    grid-column: span 5;
-    position: sticky;
-    top: var(--espacio-6);
+@media (min-width: 80rem) {
+  /*
+   * El panel ocupa más porque adentro se reparte en datos + caja de compra.
+   * La proporción está calibrada para que las tres columnas resultantes
+   * queden parejas —galería, datos y compra rondan el mismo ancho— y la
+   * imagen no sea la más chica de las tres.
+   */
+  .ficha {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.65fr);
   }
 }

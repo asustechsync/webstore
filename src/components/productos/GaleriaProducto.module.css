@@ -1,3 +1,12 @@
+/*
+ * Galería del detalle.
+ *
+ * La imagen principal manda y las miniaturas van siempre debajo, en cuatro
+ * columnas: así la imagen conserva todo el ancho de su columna en cualquier
+ * tamaño de pantalla y la tira se lee como una fila ordenada, no como una
+ * lista que se desliza.
+ */
+
 .galeria {
   display: flex;
   flex-direction: column;
@@ -6,7 +15,6 @@
 
 .principal {
   position: relative;
-  order: 1;
   aspect-ratio: var(--catalogo-imagen-ratio);
   overflow: hidden;
   border-radius: var(--radio-lg);
@@ -25,23 +33,18 @@
   font-size: var(--texto-sm);
 }
 
+/* Cuatro por fila; a partir de la quinta imagen se abre una segunda fila. */
 .miniaturas {
-  display: flex;
-  order: 2;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: var(--espacio-2);
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.miniaturas::-webkit-scrollbar {
-  display: none;
 }
 
 .miniatura {
   position: relative;
   display: block;
-  width: 4rem;
-  height: 4rem;
+  width: 100%;
+  aspect-ratio: var(--catalogo-imagen-ratio);
   padding: 0;
   overflow: hidden;
   border: 1px solid var(--borde-sutil);
@@ -57,31 +60,5 @@
 
 .miniaturaActiva {
   border-color: var(--texto-principal);
-}
-
-@media (min-width: 64rem) {
-  .galeria {
-    flex-direction: row;
-    align-items: flex-start;
-  }
-
-  /* La tira pasa a la izquierda y la imagen ocupa el resto. */
-  .miniaturas {
-    order: 0;
-    flex: 0 0 auto;
-    flex-direction: column;
-    max-height: 32rem;
-    overflow-x: visible;
-    overflow-y: auto;
-  }
-
-  .principal {
-    flex: 1;
-    min-width: 0;
-  }
-
-  .miniatura {
-    width: 4.5rem;
-    height: 4.5rem;
-  }
+  box-shadow: inset 0 0 0 1px var(--texto-principal);
 }

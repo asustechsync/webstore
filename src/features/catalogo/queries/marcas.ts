@@ -6,3 +6,7 @@ export function listarMarcasAdmin() {
     include: { _count: { select: { productos: true } } },
   });
 }
+
+export function obtenerMarcaPorSlug(slug: string) {
+  return db.marca.findFirst({ where: { slug, activo: true } });
+}

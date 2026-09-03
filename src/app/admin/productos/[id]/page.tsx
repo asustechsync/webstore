@@ -108,6 +108,8 @@ export default async function AdminEditarProductoPage({
             cantidad: String(variante.cantidad),
             stockMinimo: String(variante.stockMinimo),
             activo: variante.activo,
+            imagenUrl: variante.imagenUrl ?? "",
+            imagenPublicId: variante.imagenPublicId ?? "",
           })),
           imagenes: producto.imagenes.map((imagen) => ({
             url: imagen.url,
