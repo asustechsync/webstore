@@ -101,6 +101,7 @@ export default async function AdminProductosPage({
   // estado en sí: son la base sobre la que ese filtro se aplica.
   const totalActivos = filas.filter((fila) => fila.activo).length;
   const totalStockBajo = filas.filter((fila) => fila.stockBajo).length;
+  const totalVariantes = filas.reduce((suma, fila) => suma + fila.variantes.length, 0);
   const valorInventarioTotal = filas.reduce((suma, fila) => suma + fila.valorInventario, 0);
 
   const parametrosStockBajo = new URLSearchParams();
@@ -117,7 +118,7 @@ export default async function AdminProductosPage({
         </Link>
       </PageHeader>
 
-      <div className={styles.tarjetas}>
+      <div className={`${styles.tarjetas} ${styles.tarjetasProductos}`}>
         <div className={styles.tarjeta}>
           <div className={styles.tarjetaNumero}>{filas.length}</div>
           <div className={styles.tarjetaLabel}>Productos en total</div>
@@ -130,6 +131,10 @@ export default async function AdminProductosPage({
           <div className={styles.tarjetaNumero}>{totalStockBajo}</div>
           <div className={styles.tarjetaLabel}>Con stock bajo o agotado</div>
         </Link>
+        <div className={styles.tarjeta}>
+          <div className={styles.tarjetaNumero}>{totalVariantes}</div>
+          <div className={styles.tarjetaLabel}>Variantes de talla y color</div>
+        </div>
         <div className={styles.tarjeta}>
           <div className={styles.tarjetaNumero}>{formatearPrecio(valorInventarioTotal)}</div>
           <div className={styles.tarjetaLabel}>Costo de inventario</div>

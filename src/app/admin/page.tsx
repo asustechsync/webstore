@@ -2,17 +2,12 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { formatearPrecio } from "@/lib/utils";
 import styles from "./admin.module.css";
+import { DashboardControles } from "./DashboardControles";
 
 // Mismo criterio que en Reportes: solo estos estados cuentan como venta real.
 const ESTADOS_VENTA = ["PAGADO", "EN_PREPARACION", "ENVIADO", "ENTREGADO"] as const;
 // Un pedido en estos estados todavía necesita que alguien lo mueva.
 const ESTADOS_PENDIENTES = ["PENDIENTE", "PAGADO"] as const;
-
-function inicioDeHoy() {
-  const fecha = new Date();
-  fecha.setHours(0, 0, 0, 0);
-  return fecha;
-}
 
 function haceDias(dias: number) {
   const fecha = new Date();
@@ -30,17 +25,7 @@ function variacion(actual: number, anterior: number) {
   return Math.round(((actual - anterior) / anterior) * 100);
 }
 
-// Puntos de un <polyline> a partir de una serie de números, sin librería.
-function puntosSparkline(valores: number[]) {
-  const maximo = Math.max(...valores, 1);
-  const paso = 100 / (valores.length - 1 || 1);
-  return valores
-    .map((valor, indice) => `${indice * paso},${24 - (valor / maximo) * 20 - 2}`)
-    .join(" ");
-}
-
 export default async function AdminDashboardPage() {
-  const hoy = inicioDeHoy();
   const hace7Dias = haceDias(7);
   const hace14Dias = haceDias(14);
   const en7Dias = new Date();
@@ -52,6 +37,9 @@ export default async function AdminDashboardPage() {
     cuponesPorVencer,
     pedidosSemana,
     pedidosSemanaAnterior,
+    clientesNuevosSemana,
+    clientesNuevosSemanaAnterior,
+    clientesRecurrentes,
     ultimosPedidos,
     ultimosUsuarios,
   ] = await Promise.all([
@@ -87,6 +75,16 @@ export default async function AdminDashboardPage() {
       _sum: { total: true },
       _count: true,
     }),
+    db.usuario.count({ where: { creadoEn: { gte: hace7Dias } } }),
+    db.usuario.count({ where: { creadoEn: { gte: hace14Dias, lt: hace7Dias } } }),
+    db.usuario.count({
+      where: {
+        AND: [
+          { pedidos: { some: { estado: { in: [...ESTADOS_VENTA] }, creadoEn: { gte: hace7Dias } } } },
+          { pedidos: { some: { estado: { in: [...ESTADOS_VENTA] }, creadoEn: { lt: hace7Dias } } } },
+        ],
+      },
+    }),
     db.pedido.findMany({
       orderBy: { creadoEn: "desc" },
       take: 8,
@@ -119,42 +117,16 @@ export default async function AdminDashboardPage() {
     .sort((a, b) => b.unidades - a.unidades)
     .slice(0, 5);
 
-  // Ventas y pedidos por día (para las mini-ondas), ventas de hoy y de la
-  // semana: todo sale de la misma lista liviana ya traída arriba.
-  const ventasPorDia = new Array(7).fill(0) as number[];
-  const pedidosPorDia = new Array(7).fill(0) as number[];
-  let ventasHoy = 0;
-  let pedidosHoy = 0;
-
-  for (const pedido of pedidosSemana) {
-    const total = Number(pedido.total);
-    ventasPorDia[pedido.creadoEn.getDay()] += total;
-    pedidosPorDia[pedido.creadoEn.getDay()] += 1;
-
-    if (pedido.creadoEn >= hoy) {
-      ventasHoy += total;
-      pedidosHoy += 1;
-    }
-  }
-
-  const ayer = new Date(hoy);
-  ayer.setDate(ayer.getDate() - 1);
-  const ventasAyer = ventasPorDia[ayer.getDay()];
-
-  const ticketPorDia = ventasPorDia.map((monto, indice) =>
-    pedidosPorDia[indice] > 0 ? monto / pedidosPorDia[indice] : 0,
-  );
-
   const ventasSemana = pedidosSemana.reduce((suma, p) => suma + Number(p.total), 0);
   const ventasSemanaAnterior = Number(pedidosSemanaAnterior._sum.total ?? 0);
   const ticketPromedioSemana = pedidosSemana.length > 0 ? ventasSemana / pedidosSemana.length : 0;
   const ticketPromedioSemanaAnterior =
     pedidosSemanaAnterior._count > 0 ? ventasSemanaAnterior / pedidosSemanaAnterior._count : 0;
 
-  const cambioHoyVsAyer = variacion(ventasHoy, ventasAyer);
   const cambioVsSemanaAnterior = variacion(ventasSemana, ventasSemanaAnterior);
   const cambioTicket = variacion(ticketPromedioSemana, ticketPromedioSemanaAnterior);
   const cambioPedidos = variacion(pedidosSemana.length, pedidosSemanaAnterior._count);
+  const cambioClientesNuevos = variacion(clientesNuevosSemana, clientesNuevosSemanaAnterior);
 
   const hayAlertas =
     pedidosPendientes.length > 0 || variantesBajas.length > 0 || cuponesPorVencer.length > 0;
@@ -232,66 +204,80 @@ export default async function AdminDashboardPage() {
             </div>
           )}
         </div>
-      ) : (
-        <p className={styles.mensajeExito}>
-          Todo al día: sin pedidos pendientes, stock bajo ni cupones por vencer.
-        </p>
-      )}
+      ) : null}
 
       {/* ── Nivel 2: pulso del negocio ──────────────────────── */}
-      <h2 className={styles.tituloSeccionDashboard}>Ventas</h2>
-      <div className={styles.tarjetas}>
-        <div className={styles.tarjeta}>
-          <div className={styles.tarjetaNumero}>{formatearPrecio(ventasHoy)}</div>
-          <div className={styles.tarjetaLabel}>Ventas de hoy · {pedidosHoy} pedido(s)</div>
-          <span className={cambioHoyVsAyer >= 0 ? styles.variacionPositiva : styles.variacionNegativa}>
-            {cambioHoyVsAyer >= 0 ? "↑" : "↓"}
-            {Math.abs(cambioHoyVsAyer)}% <span className={styles.tarjetaComparacion}>vs. ayer</span>
-          </span>
-          <svg className={styles.tarjetaOnda} viewBox="0 0 100 24" preserveAspectRatio="none">
-            <polyline points={puntosSparkline(ventasPorDia)} />
-          </svg>
+      <div className={styles.dashboardCabecera}>
+        <h2 className={styles.tituloSeccionDashboard}>Ventas</h2>
+        <DashboardControles />
+      </div>
+      <div className={`${styles.tarjetas} ${styles.tarjetasDashboard}`}>
+        <div className={`${styles.tarjeta} ${styles.tarjetaDashboard}`}>
+          <div className={styles.tarjetaDashboardEncabezado}>
+            <div className={styles.tarjetaLabel}>Clientes nuevos</div>
+            <span className={`${styles.tarjetaVariacion} ${cambioClientesNuevos >= 0 ? styles.tarjetaVariacionPositiva : styles.tarjetaVariacionNegativa}`}>
+              {cambioClientesNuevos >= 0 ? "+" : "−"}{Math.abs(cambioClientesNuevos)}%
+            </span>
+          </div>
+          <div className={styles.tarjetaDashboardValor}>
+            {clientesNuevosSemana}
+            <span className={`${styles.tarjetaDireccion} ${cambioClientesNuevos >= 0 ? styles.tarjetaDireccionPositiva : styles.tarjetaDireccionNegativa}`} aria-hidden="true">{cambioClientesNuevos >= 0 ? "↑" : "↓"}</span>
+          </div>
+          <div className={styles.tarjetaDashboardContexto}>{cambioClientesNuevos >= 0 ? "Subió" : "Bajó"} {Math.abs(cambioClientesNuevos)}% vs. semana anterior</div>
         </div>
 
-        <div className={styles.tarjeta}>
-          <div className={styles.tarjetaNumero}>{formatearPrecio(ventasSemana)}</div>
-          <div className={styles.tarjetaLabel}>Ventas 7 días</div>
-          <span
-            className={
-              cambioVsSemanaAnterior >= 0 ? styles.variacionPositiva : styles.variacionNegativa
-            }
-          >
-            {cambioVsSemanaAnterior >= 0 ? "↑" : "↓"}
-            {Math.abs(cambioVsSemanaAnterior)}%{" "}
-            <span className={styles.tarjetaComparacion}>vs. semana anterior</span>
-          </span>
-          <svg className={styles.tarjetaOnda} viewBox="0 0 100 24" preserveAspectRatio="none">
-            <polyline points={puntosSparkline(ventasPorDia)} />
-          </svg>
+        <div className={`${styles.tarjeta} ${styles.tarjetaDashboard}`}>
+          <div className={styles.tarjetaDashboardEncabezado}>
+            <div className={styles.tarjetaLabel}>Ventas 7 días</div>
+            <span className={`${styles.tarjetaVariacion} ${cambioVsSemanaAnterior >= 0 ? styles.tarjetaVariacionPositiva : styles.tarjetaVariacionNegativa}`}>
+              {cambioVsSemanaAnterior >= 0 ? "+" : "−"}{Math.abs(cambioVsSemanaAnterior)}%
+            </span>
+          </div>
+          <div className={styles.tarjetaDashboardValor}>
+            {formatearPrecio(ventasSemana)}
+            <span className={`${styles.tarjetaDireccion} ${cambioVsSemanaAnterior >= 0 ? styles.tarjetaDireccionPositiva : styles.tarjetaDireccionNegativa}`} aria-hidden="true">{cambioVsSemanaAnterior >= 0 ? "↑" : "↓"}</span>
+          </div>
+          <div className={styles.tarjetaDashboardContexto}>{cambioVsSemanaAnterior >= 0 ? "Subió" : "Bajó"} {Math.abs(cambioVsSemanaAnterior)}% vs. semana anterior</div>
         </div>
 
-        <div className={styles.tarjeta}>
-          <div className={styles.tarjetaNumero}>{formatearPrecio(ticketPromedioSemana)}</div>
-          <div className={styles.tarjetaLabel}>Ticket promedio</div>
-          <span className={cambioTicket >= 0 ? styles.variacionPositiva : styles.variacionNegativa}>
-            {cambioTicket >= 0 ? "↑" : "↓"}
-            {Math.abs(cambioTicket)}% <span className={styles.tarjetaComparacion}>vs. semana anterior</span>
-          </span>
-          <svg className={styles.tarjetaOnda} viewBox="0 0 100 24" preserveAspectRatio="none">
-            <polyline points={puntosSparkline(ticketPorDia)} />
-          </svg>
+        <div className={`${styles.tarjeta} ${styles.tarjetaDashboard}`}>
+          <div className={styles.tarjetaDashboardEncabezado}>
+            <div className={styles.tarjetaLabel}>Ticket promedio</div>
+            <span className={`${styles.tarjetaVariacion} ${cambioTicket >= 0 ? styles.tarjetaVariacionPositiva : styles.tarjetaVariacionNegativa}`}>
+              {cambioTicket >= 0 ? "+" : "−"}{Math.abs(cambioTicket)}%
+            </span>
+          </div>
+          <div className={styles.tarjetaDashboardValor}>
+            {formatearPrecio(ticketPromedioSemana)}
+            <span className={`${styles.tarjetaDireccion} ${cambioTicket >= 0 ? styles.tarjetaDireccionPositiva : styles.tarjetaDireccionNegativa}`} aria-hidden="true">{cambioTicket >= 0 ? "↑" : "↓"}</span>
+          </div>
+          <div className={styles.tarjetaDashboardContexto}>{cambioTicket >= 0 ? "Subió" : "Bajó"} {Math.abs(cambioTicket)}% vs. semana anterior</div>
         </div>
 
-        <Link href="/admin/reportes" className={styles.tarjeta}>
-          <div className={styles.tarjetaNumero}>{pedidosSemana.length}</div>
-          <div className={styles.tarjetaLabel}>Pedidos esta semana</div>
-          <span className={cambioPedidos >= 0 ? styles.variacionPositiva : styles.variacionNegativa}>
-            {cambioPedidos >= 0 ? "↑" : "↓"}
-            {Math.abs(cambioPedidos)}% <span className={styles.tarjetaComparacion}>vs. semana anterior</span>
-          </span>
-          <svg className={styles.tarjetaOnda} viewBox="0 0 100 24" preserveAspectRatio="none">
-            <polyline points={puntosSparkline(pedidosPorDia)} />
-          </svg>
+        <Link href="/admin/reportes" className={`${styles.tarjeta} ${styles.tarjetaDashboard}`}>
+          <div className={styles.tarjetaDashboardEncabezado}>
+            <div className={styles.tarjetaLabel}>Pedidos semanales</div>
+            <span className={`${styles.tarjetaVariacion} ${cambioPedidos >= 0 ? styles.tarjetaVariacionPositiva : styles.tarjetaVariacionNegativa}`}>
+              {cambioPedidos >= 0 ? "+" : "−"}{Math.abs(cambioPedidos)}%
+            </span>
+          </div>
+          <div className={styles.tarjetaDashboardValor}>
+            {pedidosSemana.length}
+            <span className={`${styles.tarjetaDireccion} ${cambioPedidos >= 0 ? styles.tarjetaDireccionPositiva : styles.tarjetaDireccionNegativa}`} aria-hidden="true">{cambioPedidos >= 0 ? "↑" : "↓"}</span>
+          </div>
+          <div className={styles.tarjetaDashboardContexto}>{cambioPedidos >= 0 ? "Subió" : "Bajó"} {Math.abs(cambioPedidos)}% vs. semana anterior</div>
+        </Link>
+
+        <Link href="/admin/clientes" className={`${styles.tarjeta} ${styles.tarjetaDashboard}`}>
+          <div className={styles.tarjetaDashboardEncabezado}>
+            <div className={styles.tarjetaLabel}>Clientes recurrentes</div>
+            <span className={`${styles.tarjetaVariacion} ${styles.tarjetaVariacionPositiva}`}>Activo</span>
+          </div>
+          <div className={styles.tarjetaDashboardValor}>
+            {clientesRecurrentes}
+            <span className={`${styles.tarjetaDireccion} ${styles.tarjetaDireccionPositiva}`} aria-hidden="true">↗</span>
+          </div>
+          <div className={styles.tarjetaDashboardContexto}>Compraron esta semana y ya habían comprado antes</div>
         </Link>
       </div>
 

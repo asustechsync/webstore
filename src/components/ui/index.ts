@@ -4,6 +4,7 @@ export { Button } from "./Button";
 export { Card } from "./Card";
 export { Container } from "./Container";
 export { DatePicker } from "./DatePicker";
+export { DateRangePicker, type RangoFechas } from "./DateRangePicker";
 export { DateSelectPicker } from "./DateSelectPicker";
 export { EstadoVacio } from "./EstadoVacio";
 export { Field } from "./Field";
