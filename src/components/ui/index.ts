@@ -6,6 +6,17 @@ export { Container } from "./Container";
 export { DatePicker } from "./DatePicker";
 export { DateRangePicker, type RangoFechas } from "./DateRangePicker";
 export { DateSelectPicker } from "./DateSelectPicker";
+export { ErrorRuta } from "./ErrorRuta";
+export {
+  Cargando,
+  Esqueleto,
+  EsqueletoCabecera,
+  EsqueletoFicha,
+  EsqueletoFormulario,
+  EsqueletoGrid,
+  EsqueletoTabla,
+  EsqueletoTexto,
+} from "./Esqueleto";
 export { EstadoVacio } from "./EstadoVacio";
 export { Field } from "./Field";
 export { Input } from "./Input";

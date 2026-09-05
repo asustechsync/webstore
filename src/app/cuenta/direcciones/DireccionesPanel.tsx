@@ -5,16 +5,11 @@ import { useRouter } from "next/navigation";
 import { IconoEditar, IconoEliminar } from "@/components/ui/ActionIcons";
 import { Select } from "@/components/ui/Select";
 import { eliminarMiDireccion, guardarMiDireccion } from "@/features/usuarios/cuenta-actions";
-import departamentosData from "@/data/ubigeos/1_ubigeo_departamentos.json";
-import provinciasData from "@/data/ubigeos/2_ubigeo_provincias.json";
-import distritosData from "@/data/ubigeos/3_ubigeo_distritos.json";
+import { useUbigeo } from "@/components/ubicaciones/useUbigeo";
 import styles from "../cuenta.module.css";
 
 type Direccion = { id: string; departamento: string; provincia: string; distrito: string; direccion: string; codigoPostal: string; referencia: string; predeterminada: boolean };
 const VACIA = { departamento: "", provincia: "", distrito: "", direccion: "", codigoPostal: "", referencia: "", predeterminada: false };
-const DEPARTAMENTOS = departamentosData.ubigeo_departamentos;
-const PROVINCIAS = provinciasData.ubigeo_provincias;
-const DISTRITOS = distritosData.ubigeo_distritos;
 
 export function DireccionesPanel({ direcciones }: { direcciones: Direccion[] }) {
   const router = useRouter();
@@ -28,10 +23,8 @@ export function DireccionesPanel({ direcciones }: { direcciones: Direccion[] }) 
   function editar(d: Direccion) { setEditandoId(d.id); setForm({ ...d, codigoPostal: d.codigoPostal || "", referencia: d.referencia || "" }); setError(null); setMostrar(true); }
   function cancelar() { setMostrar(false); setEditandoId(null); setError(null); }
   function cambiar(campo: keyof typeof VACIA, valor: string | boolean) { setForm((p) => ({ ...p, [campo]: valor })); }
-  const departamento = DEPARTAMENTOS.find((item) => item.departamento === form.departamento);
-  const provincia = PROVINCIAS.find((item) => item.provincia === form.provincia && item.departamento_id === departamento?.id);
-  const provinciasDisponibles = PROVINCIAS.filter((item) => item.departamento_id === departamento?.id);
-  const distritosDisponibles = DISTRITOS.filter((item) => item.provincia_id === provincia?.id);
+  // Mismo hook que el checkout: los distritos se descargan al elegir provincia.
+  const { departamentos, departamento, provincia, provinciasDisponibles, distritosDisponibles, cargandoProvincias, cargandoDistritos } = useUbigeo(form.departamento, form.provincia);
   function onSubmit(e: React.FormEvent) {
     e.preventDefault(); setError(null);
     iniciarTransicion(async () => {
@@ -54,9 +47,9 @@ export function DireccionesPanel({ direcciones }: { direcciones: Direccion[] }) 
       <div className={styles.formGrid}>
         <label className={styles.campo}><span>Dirección</span><input required placeholder="Av., calle, número, interior" value={form.direccion} onChange={(e) => cambiar("direccion", e.target.value)} /></label>
         <label className={styles.campo}><span>Referencia (opcional)</span><input value={form.referencia} onChange={(e) => cambiar("referencia", e.target.value)} /></label>
-        <div className={styles.campo}><span>Departamento</span><Select value={departamento ? String(departamento.id) : ""} placeholder="Selecciona departamento" ariaLabel="Departamento" options={DEPARTAMENTOS.map((item) => ({ valor: String(item.id), etiqueta: item.departamento }))} onChange={(valor) => { const seleccionado = DEPARTAMENTOS.find((item) => String(item.id) === valor); cambiar("departamento", seleccionado?.departamento ?? ""); cambiar("provincia", ""); cambiar("distrito", ""); }} /></div>
-        <div className={styles.campo}><span>Provincia</span><Select value={provincia ? String(provincia.id) : ""} placeholder="Selecciona provincia" ariaLabel="Provincia" disabled={!departamento} options={provinciasDisponibles.map((item) => ({ valor: String(item.id), etiqueta: item.provincia }))} onChange={(valor) => { const seleccionado = provinciasDisponibles.find((item) => String(item.id) === valor); cambiar("provincia", seleccionado?.provincia ?? ""); cambiar("distrito", ""); }} /></div>
-        <div className={styles.campo}><span>Distrito</span><Select value={distritosDisponibles.find((item) => item.distrito === form.distrito) ? String(distritosDisponibles.find((item) => item.distrito === form.distrito)?.id) : ""} placeholder="Selecciona distrito" ariaLabel="Distrito" disabled={!provincia} options={distritosDisponibles.map((item) => ({ valor: String(item.id), etiqueta: item.distrito }))} onChange={(valor) => { const seleccionado = distritosDisponibles.find((item) => String(item.id) === valor); cambiar("distrito", seleccionado?.distrito ?? ""); }} /></div>
+        <div className={styles.campo}><span>Departamento</span><Select value={departamento ? String(departamento.id) : ""} placeholder="Selecciona departamento" ariaLabel="Departamento" options={departamentos.map((item) => ({ valor: String(item.id), etiqueta: item.departamento }))} onChange={(valor) => { const seleccionado = departamentos.find((item) => String(item.id) === valor); cambiar("departamento", seleccionado?.departamento ?? ""); cambiar("provincia", ""); cambiar("distrito", ""); }} /></div>
+        <div className={styles.campo}><span>Provincia</span><Select value={provincia ? String(provincia.id) : ""} placeholder="Selecciona provincia" ariaLabel="Provincia" disabled={!departamento || cargandoProvincias} options={provinciasDisponibles.map((item) => ({ valor: String(item.id), etiqueta: item.provincia }))} onChange={(valor) => { const seleccionado = provinciasDisponibles.find((item) => String(item.id) === valor); cambiar("provincia", seleccionado?.provincia ?? ""); cambiar("distrito", ""); }} /></div>
+        <div className={styles.campo}><span>Distrito</span><Select value={distritosDisponibles.find((item) => item.distrito === form.distrito) ? String(distritosDisponibles.find((item) => item.distrito === form.distrito)?.id) : ""} placeholder="Selecciona distrito" ariaLabel="Distrito" disabled={!provincia || cargandoDistritos} options={distritosDisponibles.map((item) => ({ valor: String(item.id), etiqueta: item.distrito }))} onChange={(valor) => { const seleccionado = distritosDisponibles.find((item) => String(item.id) === valor); cambiar("distrito", seleccionado?.distrito ?? ""); }} /></div>
         <label className={styles.campo}><span>Código postal (opcional)</span><input value={form.codigoPostal} maxLength={20} inputMode="numeric" onChange={(e) => cambiar("codigoPostal", e.target.value.replace(/\D/g, ""))} /></label>
       </div>
       <label className={styles.check}><input type="checkbox" checked={form.predeterminada} onChange={(e) => cambiar("predeterminada", e.target.checked)} /> Usar como principal</label>

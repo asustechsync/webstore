@@ -1,29 +1,13 @@
-import { db } from "@/lib/db";
 import { formatearPrecio } from "@/lib/utils";
 import { PageHeader } from "@/components/ui";
-import { obtenerMetodoPago } from "@/features/pedidos/metodos-pago";
+import { listarPedidosAdmin } from "@/features/pedidos/queries";
 import { PedidosTabla } from "./PedidosTabla";
 
 export default async function AdminPedidosPage() {
-  const pedidos = await db.pedido.findMany({
-    orderBy: { creadoEn: "desc" },
-    include: {
-      usuario: { select: { nombre: true, apellidoPaterno: true, email: true, telefono: true } },
-      cupon: { select: { codigo: true } },
-      // Mismo shape que la ficha de pedido del cliente: la variante trae sus
-      // valores de opción para armar "Talla: M · Color: Negro" en el resumen.
-      items: {
-        include: {
-          variante: {
-            include: {
-              producto: { select: { nombre: true } },
-              valores: { include: { valor: { include: { opcion: true } } } },
-            },
-          },
-        },
-      },
-    },
-  });
+  // Antes: `db.pedido.findMany` con 3 niveles de `include` en cada carga.
+  // Ahora la consulta vive cacheada en `listarPedidosAdmin`; las acciones que
+  // crean, cambian o borran un pedido invalidan esa caché al guardar.
+  const pedidos = await listarPedidosAdmin();
 
   return (
     <>
@@ -33,59 +17,33 @@ export default async function AdminPedidosPage() {
       />
 
       <PedidosTabla
-        pedidos={pedidos.map((pedido) => {
-          const metodo = obtenerMetodoPago(pedido.metodoPago);
-          const subtotal = Number(pedido.subtotal);
-          const descuento = Number(pedido.descuento);
-          const costoEnvio = Number(pedido.costoEnvio);
-          const tieneEnvio = Boolean(pedido.envioDireccion);
-
-          return {
-            id: pedido.id,
-            cliente: [pedido.usuario.nombre, pedido.usuario.apellidoPaterno].filter(Boolean).join(" "),
-            correo: pedido.usuario.email,
-            telefono: pedido.usuario.telefono,
-            // Decimal no es serializable hacia un componente cliente.
-            total: formatearPrecio(pedido.total.toString()),
-            estado: pedido.estado,
-            items: pedido.items.length,
-            creadoEn: pedido.creadoEn.toLocaleDateString("es-PE"),
-            resumen: {
-              subtotal: formatearPrecio(subtotal),
-              descuento: descuento > 0 ? formatearPrecio(descuento) : null,
-              costoEnvio: costoEnvio > 0 ? formatearPrecio(costoEnvio) : null,
-              total: formatearPrecio(pedido.total.toString()),
-              cupon: pedido.cupon?.codigo ?? null,
-              metodoPago: metodo?.nombre ?? "Por definir",
-              envio: tieneEnvio
-                ? {
-                    destinatario: pedido.envioDestinatario ?? "",
-                    telefono: pedido.envioTelefono ?? "",
-                    direccion: pedido.envioDireccion ?? "",
-                    referencia: pedido.envioReferencia ?? "",
-                    distrito: pedido.envioDistrito ?? "",
-                    provincia: pedido.envioProvincia ?? "",
-                    departamento: pedido.envioDepartamento ?? "",
-                  }
-                : null,
-              productos: pedido.items.map((item) => {
-                const atributos = item.variante.valores
-                  .map(({ valor }) => `${valor.opcion.nombre}: ${valor.valor}`)
-                  .join(" · ");
-                const precioUnit = Number(item.precioUnit);
-
-                return {
-                  id: item.id,
-                  nombre: item.variante.producto.nombre,
-                  opciones: atributos || item.variante.sku,
-                  cantidad: item.cantidad,
-                  precioUnit: formatearPrecio(precioUnit),
-                  subtotal: formatearPrecio(precioUnit * item.cantidad),
-                };
-              }),
-            },
-          };
-        })}
+        pedidos={pedidos.map((pedido) => ({
+          id: pedido.id,
+          cliente: pedido.cliente,
+          correo: pedido.correo,
+          telefono: pedido.telefono,
+          total: formatearPrecio(pedido.total),
+          estado: pedido.estado,
+          items: pedido.items,
+          creadoEn: new Date(pedido.creadoEn).toLocaleDateString("es-PE"),
+          resumen: {
+            subtotal: formatearPrecio(pedido.resumen.subtotal),
+            descuento: pedido.resumen.descuento != null ? formatearPrecio(pedido.resumen.descuento) : null,
+            costoEnvio: pedido.resumen.costoEnvio != null ? formatearPrecio(pedido.resumen.costoEnvio) : null,
+            total: formatearPrecio(pedido.resumen.total),
+            cupon: pedido.resumen.cupon,
+            metodoPago: pedido.resumen.metodoPago,
+            envio: pedido.resumen.envio,
+            productos: pedido.resumen.productos.map((producto) => ({
+              id: producto.id,
+              nombre: producto.nombre,
+              opciones: producto.opciones,
+              cantidad: producto.cantidad,
+              precioUnit: formatearPrecio(producto.precioUnit),
+              subtotal: formatearPrecio(producto.subtotal),
+            })),
+          },
+        }))}
       />
     </>
   );

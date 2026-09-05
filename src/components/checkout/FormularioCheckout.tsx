@@ -9,9 +9,7 @@ import { useCarritoHidratado } from "@/components/carrito/useCarritoHidratado";
 import { calcularDescuentoCupon } from "@/features/cupones/calculo";
 import { METODOS_PAGO } from "@/features/pedidos/metodos-pago";
 import { crearPedido } from "@/features/pedidos/actions";
-import departamentosData from "@/data/ubigeos/1_ubigeo_departamentos.json";
-import provinciasData from "@/data/ubigeos/2_ubigeo_provincias.json";
-import distritosData from "@/data/ubigeos/3_ubigeo_distritos.json";
+import { useUbigeo } from "@/components/ubicaciones/useUbigeo";
 import {
   calcularSubtotal,
   contarUnidades,
@@ -20,10 +18,6 @@ import {
 } from "@/store/cartStore";
 import { formatearPrecio } from "@/lib/utils";
 import styles from "./checkout.module.css";
-
-const DEPARTAMENTOS = departamentosData.ubigeo_departamentos;
-const PROVINCIAS = provinciasData.ubigeo_provincias;
-const DISTRITOS = distritosData.ubigeo_distritos;
 
 export type DireccionGuardada = {
   id: string;
@@ -103,14 +97,18 @@ export function FormularioCheckout({
   const total = Math.max(subtotal - descuento, 0);
   const unidades = contarUnidades(items);
 
-  const departamento = DEPARTAMENTOS.find((item) => item.departamento === envio.departamento);
-  const provincia = PROVINCIAS.find(
-    (item) => item.provincia === envio.provincia && item.departamento_id === departamento?.id,
-  );
-  const provinciasDisponibles = PROVINCIAS.filter(
-    (item) => item.departamento_id === departamento?.id,
-  );
-  const distritosDisponibles = DISTRITOS.filter((item) => item.provincia_id === provincia?.id);
+  // Provincias y distritos se descargan al elegir el nivel anterior, no al
+  // abrir el checkout: son 255 KB que no tienen por qué costar la primera
+  // pintada de la página donde se cobra.
+  const {
+    departamentos,
+    departamento,
+    provincia,
+    provinciasDisponibles,
+    distritosDisponibles,
+    cargandoProvincias,
+    cargandoDistritos,
+  } = useUbigeo(envio.departamento, envio.provincia);
   const distritoElegido = distritosDisponibles.find((item) => item.distrito === envio.distrito);
 
   function cambiar(campo: keyof typeof ENVIO_VACIO, valor: string) {
@@ -246,12 +244,12 @@ export function FormularioCheckout({
                   value={departamento ? String(departamento.id) : ""}
                   placeholder="Selecciona departamento"
                   ariaLabel="Departamento"
-                  options={DEPARTAMENTOS.map((item) => ({
+                  options={departamentos.map((item) => ({
                     valor: String(item.id),
                     etiqueta: item.departamento,
                   }))}
                   onChange={(valor) => {
-                    const elegido = DEPARTAMENTOS.find((item) => String(item.id) === valor);
+                    const elegido = departamentos.find((item) => String(item.id) === valor);
                     setEnvio((actual) => ({
                       ...actual,
                       departamento: elegido?.departamento ?? "",
@@ -269,7 +267,7 @@ export function FormularioCheckout({
                   value={provincia ? String(provincia.id) : ""}
                   placeholder="Selecciona provincia"
                   ariaLabel="Provincia"
-                  disabled={!departamento}
+                  disabled={!departamento || cargandoProvincias}
                   options={provinciasDisponibles.map((item) => ({
                     valor: String(item.id),
                     etiqueta: item.provincia,
@@ -292,7 +290,7 @@ export function FormularioCheckout({
                   value={distritoElegido ? String(distritoElegido.id) : ""}
                   placeholder="Selecciona distrito"
                   ariaLabel="Distrito"
-                  disabled={!provincia}
+                  disabled={!provincia || cargandoDistritos}
                   options={distritosDisponibles.map((item) => ({
                     valor: String(item.id),
                     etiqueta: item.distrito,

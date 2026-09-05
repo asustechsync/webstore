@@ -11,19 +11,44 @@ import { ProveedorVariante } from "@/components/productos/ContextoVariante";
 import { PanelCompra } from "@/components/productos/PanelCompra";
 import { aProductoCardData } from "@/components/productos/ProductoCard";
 import { construirDetalle } from "@/features/catalogo/detalle";
-import { estimarEntrega } from "@/features/catalogo/entrega";
 import {
   listarProductos,
+  listarSlugsPublicados,
   obtenerProductoPorSlug,
 } from "@/features/catalogo/queries/productos";
 import styles from "./page.module.css";
 
-// Sin ISR: `?variante=` decide qué color se muestra, y eso se resuelve en el
-// servidor para que el HTML llegue ya con la foto y el precio correctos.
+/*
+ * Ficha pre-construida. Cada producto publicado se genera como HTML en el
+ * build y se sirve sin tocar la base, que es lo que la lleva de ~220 ms a la
+ * decena de milisegundos.
+ *
+ * Para lograrlo la página no lee `searchParams`: el `?variante=` lo resuelve
+ * `ProveedorVariante` en el navegador. Leerlo acá volvería la ruta dinámica y
+ * no habría nada que pre-construir.
+ *
+ * El stock y el precio quedan congelados en el HTML hasta la siguiente
+ * regeneración, así que las dos cosas que los cambian —una compra y un ajuste
+ * del panel— llaman a `revalidatePath` de esta ruta. El plazo de caducidad lo
+ * fija `cacheLife` en las consultas del catálogo, como red de seguridad por si
+ * algo se tocara directo en la base.
+ */
+/**
+ * Productos que se pre-construyen. Los que no estén en la lista (uno recién
+ * publicado, por ejemplo) se renderizan igual la primera vez que alguien los
+ * abre y quedan cacheados desde ahí.
+ */
+export async function generateStaticParams() {
+  return listarSlugsPublicados();
+}
+
+// Pre-construida al build y servida desde caché (ver el comentario de arriba);
+// `instant = true` la deja validada aunque el resto del sitio ya no se valide
+// por defecto (ver next.config.ts).
+export const instant = true;
 
 type Props = {
   params: Promise<{ slug: string }>;
-  searchParams: Promise<{ variante?: string | string[] }>;
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -61,11 +86,8 @@ function construirBloques(producto: {
   ].filter((bloque) => bloque.contenido.trim().length > 0);
 }
 
-export default async function ProductoPage({ params, searchParams }: Props) {
-  const [{ slug }, parametros] = await Promise.all([params, searchParams]);
-  const varianteInicialId = Array.isArray(parametros.variante)
-    ? parametros.variante[0]
-    : parametros.variante;
+export default async function ProductoPage({ params }: Props) {
+  const { slug } = await params;
   const producto = await obtenerProductoPorSlug(slug);
   if (!producto) notFound();
 
@@ -135,7 +157,7 @@ export default async function ProductoPage({ params, searchParams }: Props) {
 
         {/* El proveedor envuelve las dos columnas porque la galería y la caja
             de compra comparten la variante elegida. */}
-        <ProveedorVariante detalle={detalle} varianteInicialId={varianteInicialId}>
+        <ProveedorVariante detalle={detalle}>
           <div className={styles.ficha}>
             <div className={styles.galeria}>
               <GaleriaProducto imagenes={producto.imagenes} nombre={producto.nombre} />
@@ -151,7 +173,6 @@ export default async function ProductoPage({ params, searchParams }: Props) {
                 imagenUrl: imagenPrincipal,
               }}
               detalle={detalle}
-              entrega={estimarEntrega()}
             >
               <header className={styles.encabezado}>
                 {producto.marca ? <p className={styles.marca}>{producto.marca.nombre}</p> : null}

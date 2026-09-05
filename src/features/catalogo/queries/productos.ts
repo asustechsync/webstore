@@ -1,11 +1,28 @@
+import { cacheLife, cacheTag } from "next/cache";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { ETIQUETAS, VIDA_CATALOGO } from "@/features/catalogo/cache";
 import {
   ORDENES,
   ORDEN_POR_DEFECTO,
   ordenarTallas,
   type FiltrosCatalogo,
 } from "@/features/catalogo/filtros";
+
+/**
+ * Marca una consulta del catálogo como cacheable.
+ *
+ * Todo lo que se lee acá es público y no depende de quién mire, así que se
+ * guarda una vez y se sirve a todos. Bajo Cache Components esto es además lo
+ * que permite prerenderizar la página: sin un tiempo de vida declarado, Next
+ * no puede incluir el resultado en el armazón estático.
+ *
+ * Las acciones del panel invalidan `ETIQUETAS.productos` al guardar.
+ */
+function cacheDeCatalogo() {
+  cacheTag(ETIQUETAS.productos);
+  cacheLife(VIDA_CATALOGO);
+}
 
 const PRODUCTOS_POR_PAGINA = 24;
 const PRODUCTOS_PORTADA = 8;
@@ -23,6 +40,33 @@ const incluirTarjeta = {
     select: { id: true, sku: true, talla: true, color: true, precio: true, imagenUrl: true },
   },
 } satisfies Prisma.ProductoInclude;
+
+/*
+ * Prisma devuelve los importes como `Decimal`, y esa clase no cruza dos
+ * fronteras: la de `"use cache"` y la de un componente cliente. React solo
+ * serializa objetos planos, así que un Decimal ahí provoca el error
+ * "Only plain objects can be passed to Client Components".
+ *
+ * Se convierten a número dentro de la propia función cacheada, que es lo
+ * único que ve la base: de la frontera para afuera el catálogo ya trabajaba
+ * con `Number(...)` y `String(...)`, así que nada más cambia.
+ */
+const numero = (valor: Prisma.Decimal | null) => (valor == null ? null : Number(valor));
+
+type ProductoTarjeta = Prisma.ProductoGetPayload<{ include: typeof incluirTarjeta }>;
+
+function tarjetaPlana(producto: ProductoTarjeta) {
+  return {
+    ...producto,
+    precio: Number(producto.precio),
+    precioOferta: numero(producto.precioOferta),
+    costo: numero(producto.costo),
+    variantes: producto.variantes.map((variante) => ({
+      ...variante,
+      precio: numero(variante.precio),
+    })),
+  };
+}
 
 /** Producto rebajado de verdad: la comparación entre columnas la hace la base. */
 const enOferta = { precioOferta: { not: null, lt: db.producto.fields.precio } };
@@ -77,9 +121,21 @@ function construirWhere(filtros: Filtros): Prisma.ProductoWhereInput {
   return where;
 }
 
+/**
+ * Catálogo filtrado y paginado.
+ *
+ * Va cacheada aunque dependa de los filtros: los argumentos forman parte de
+ * la clave, así que cada combinación guarda su propio resultado. La primera
+ * persona que aplica "talla M + Negro" paga la consulta; el resto la recibe
+ * de memoria. Es lo que permite que el catálogo responda rápido sin poder
+ * pre-construirse.
+ */
 export async function listarProductos(
   filtros: Filtros & { porPagina?: number } = {},
 ) {
+  "use cache";
+  cacheDeCatalogo();
+
   const { pagina = 1, orden = ORDEN_POR_DEFECTO, porPagina = PRODUCTOS_POR_PAGINA } = filtros;
   const where = construirWhere(filtros);
 
@@ -105,7 +161,7 @@ export async function listarProductos(
   ]);
 
   return {
-    productos,
+    productos: productos.map(tarjetaPlana),
     total,
     pagina,
     totalPaginas: Math.max(1, Math.ceil(total / porPagina)),
@@ -121,6 +177,9 @@ export async function listarProductos(
  * usuario no podría cambiar de opinión sin limpiar todo.
  */
 export async function listarFacetas(alcance: { categoria?: string; marca?: string } = {}) {
+  "use cache";
+  cacheDeCatalogo();
+
   const where = construirWhere(alcance);
   const enElAlcance: Prisma.VarianteWhereInput = { activo: true, producto: where };
 
@@ -168,45 +227,78 @@ export async function listarFacetas(alcance: { categoria?: string; marca?: strin
 export type Facetas = Awaited<ReturnType<typeof listarFacetas>>;
 
 /** Últimos productos publicados, para la sección "Nuevos ingresos". */
-export function listarNuevosIngresos(limite = PRODUCTOS_PORTADA) {
-  return db.producto.findMany({
+export async function listarNuevosIngresos(limite = PRODUCTOS_PORTADA) {
+  "use cache";
+  cacheDeCatalogo();
+
+  const productos = await db.producto.findMany({
     where: { activo: true },
     include: incluirTarjeta,
     orderBy: { creadoEn: "desc" },
     take: limite,
   });
+  return productos.map(tarjetaPlana);
 }
 
 /**
  * Productos con precio rebajado vigente. La comparación entre columnas la
  * resuelve la base de datos, así el límite devuelve ofertas reales.
  */
-export function listarOfertas(limite = PRODUCTOS_PORTADA) {
-  return db.producto.findMany({
+export async function listarOfertas(limite = PRODUCTOS_PORTADA) {
+  "use cache";
+  cacheDeCatalogo();
+
+  const productos = await db.producto.findMany({
     where: { activo: true, ...enOferta },
     include: incluirTarjeta,
     orderBy: { actualizadoEn: "desc" },
     take: limite,
   });
+  return productos.map(tarjetaPlana);
 }
 
 /** Total de productos publicados, para los datos de la portada. */
-export function contarProductosActivos() {
+export async function contarProductosActivos() {
+  "use cache";
+  cacheDeCatalogo();
+
   return db.producto.count({ where: { activo: true } });
 }
 
 /** Productos marcados como destacados por el administrador. */
-export function listarDestacados(limite = 4) {
-  return db.producto.findMany({
+export async function listarDestacados(limite = 4) {
+  "use cache";
+  cacheDeCatalogo();
+
+  const productos = await db.producto.findMany({
     where: { activo: true, destacado: true },
     include: incluirTarjeta,
     orderBy: { actualizadoEn: "desc" },
     take: limite,
   });
+  return productos.map(tarjetaPlana);
 }
 
-export function obtenerProductoPorSlug(slug: string) {
-  return db.producto.findUnique({
+/**
+ * Slugs de todo lo publicado, para pre-construir las fichas en el build.
+ *
+ * Va sin caché a propósito: corre una sola vez por build y ahí interesa la
+ * foto exacta del catálogo, no una guardada de antes.
+ */
+export async function listarSlugsPublicados() {
+  const productos = await db.producto.findMany({
+    where: { activo: true },
+    select: { slug: true },
+  });
+  return productos.map(({ slug }) => ({ slug }));
+}
+
+/** Ficha completa. Es la consulta más pesada y la página con más tráfico. */
+export async function obtenerProductoPorSlug(slug: string) {
+  "use cache";
+  cacheDeCatalogo();
+
+  const producto = await db.producto.findUnique({
     where: { slug, activo: true },
     include: {
       imagenes: { orderBy: { orden: "asc" } },
@@ -224,4 +316,20 @@ export function obtenerProductoPorSlug(slug: string) {
       },
     },
   });
+
+  if (!producto) return null;
+
+  // Mismos importes que en las tarjetas: fuera de Decimal antes de cruzar la
+  // frontera del caché. Acá las variantes traen también su costo.
+  return {
+    ...producto,
+    precio: Number(producto.precio),
+    precioOferta: numero(producto.precioOferta),
+    costo: numero(producto.costo),
+    variantes: producto.variantes.map((variante) => ({
+      ...variante,
+      precio: numero(variante.precio),
+      costo: numero(variante.costo),
+    })),
+  };
 }

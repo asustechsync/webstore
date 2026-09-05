@@ -1,8 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { EstadoPedido, MetodoPago } from "@prisma/client";
 import { db } from "@/lib/db";
+import { ETIQUETAS } from "@/features/catalogo/cache";
+import { ETIQUETAS_ADMIN } from "@/features/admin/cache";
 import { requirePermiso, requireUsuarioActual } from "@/lib/auth";
 import { ejecutar } from "@/lib/acciones";
 import { precioEfectivo } from "@/features/carrito/revision";
@@ -21,6 +23,8 @@ export async function cambiarEstadoPedido(id: string, estado: EstadoPedido) {
 
     await db.pedido.update({ where: { id }, data: { estado } });
 
+    updateTag(ETIQUETAS_ADMIN.dashboard);
+    updateTag(ETIQUETAS_ADMIN.pedidos);
     revalidatePath("/admin/pedidos");
   });
 }
@@ -74,6 +78,8 @@ export async function eliminarPedido(id: string) {
       await tx.pedido.delete({ where: { id } });
     });
 
+    updateTag(ETIQUETAS_ADMIN.dashboard);
+    updateTag(ETIQUETAS_ADMIN.pedidos);
     revalidatePath("/admin/pedidos");
     revalidatePath("/cuenta/pedidos");
   });
@@ -112,7 +118,10 @@ export async function crearPedido(datos: CrearPedidoInput) {
     const variantes = await db.variante.findMany({
       where: { id: { in: validado.items.map((item) => item.varianteId) }, activo: true },
       include: {
-        producto: { select: { nombre: true, precio: true, precioOferta: true, costo: true, activo: true } },
+        // El slug se trae para poder regenerar la ficha: ahora es HTML
+        // pre-construido y, sin esto, seguiría mostrando el stock de antes
+        // de la compra.
+        producto: { select: { nombre: true, slug: true, precio: true, precioOferta: true, costo: true, activo: true } },
       },
     });
 
@@ -196,6 +205,15 @@ export async function crearPedido(datos: CrearPedidoInput) {
       return pedido.id;
     });
 
+    // La compra descontó stock: hay que tirar el caché de las consultas y
+    // regenerar el HTML de cada ficha comprada, que si no seguiría diciendo
+    // que quedan unidades que ya no existen.
+    updateTag(ETIQUETAS.productos);
+    updateTag(ETIQUETAS_ADMIN.dashboard);
+    updateTag(ETIQUETAS_ADMIN.pedidos);
+    for (const slug of new Set(variantes.map((variante) => variante.producto.slug))) {
+      revalidatePath(`/productos/${slug}`);
+    }
     revalidatePath("/cuenta/pedidos");
     revalidatePath("/admin/pedidos");
 

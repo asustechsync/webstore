@@ -1,8 +1,9 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import type { Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
+import { ETIQUETAS } from "../cache";
 import { requireAlgunPermiso, requirePermiso } from "@/lib/auth";
 import { ejecutar } from "@/lib/acciones";
 import { eliminarImagen, subirImagen } from "@/integrations/cloudinary/client";
@@ -24,6 +25,9 @@ import {
 const MAXIMO_IMAGEN_BYTES = 5 * 1024 * 1024;
 
 function revalidarCatalogo(slug?: string) {
+  // Tira el caché de las consultas públicas: sin esto la tienda seguiría
+  // sirviendo el precio o el stock viejo hasta que caduque solo.
+  updateTag(ETIQUETAS.productos);
   revalidatePath("/admin/productos");
   revalidatePath("/admin/stock");
   revalidatePath("/productos");

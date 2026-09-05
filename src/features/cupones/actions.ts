@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requirePermiso } from "@/lib/auth";
 import { ejecutar } from "@/lib/acciones";
+import { ETIQUETAS_ADMIN } from "@/features/admin/cache";
 import { type CuponAplicado } from "./calculo";
 import { buscarCuponVigente } from "./servidor";
 import { cuponSchema, subtotalSchema, type CuponInput } from "./schemas";
@@ -15,6 +16,7 @@ export async function crearCupon(datos: CuponInput) {
 
     await db.cupon.create({ data: validado });
 
+    updateTag(ETIQUETAS_ADMIN.dashboard);
     revalidatePath("/admin/cupones");
   });
 }
@@ -37,6 +39,7 @@ export async function actualizarCupon(id: string, datos: CuponInput) {
       },
     });
 
+    updateTag(ETIQUETAS_ADMIN.dashboard);
     revalidatePath("/admin/cupones");
   });
 }
@@ -54,6 +57,7 @@ export async function eliminarCupon(id: string) {
 
     await db.cupon.delete({ where: { id } });
 
+    updateTag(ETIQUETAS_ADMIN.dashboard);
     revalidatePath("/admin/cupones");
   });
 }
@@ -63,6 +67,7 @@ export async function alternarActivoCupon(id: string, activo: boolean) {
     await requirePermiso("cupones.editar");
     await db.cupon.update({ where: { id }, data: { activo } });
 
+    updateTag(ETIQUETAS_ADMIN.dashboard);
     revalidatePath("/admin/cupones");
   });
 }

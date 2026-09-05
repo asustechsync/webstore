@@ -1,0 +1,19 @@
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--espacio-2);
+  margin-top: var(--espacio-2);
+}
+
+.digest {
+  margin-top: var(--espacio-2);
+  color: var(--texto-secundario);
+  font-size: var(--texto-2xs);
+}
+
+.digest code {
+  font-family: var(--fuente-mono);
+  /* El identificador puede ser largo y la caja del estado vacío es angosta. */
+  word-break: break-all;
+}

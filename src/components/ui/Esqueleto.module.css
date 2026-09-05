@@ -1,0 +1,143 @@
+/*
+ * Piezas de carga. Son la silueta de lo que se está pidiendo al servidor:
+ * mismas columnas, mismas alturas y mismos espacios que el contenido real,
+ * para que al llegar los datos nada salte de sitio.
+ *
+ * Las grillas y las tablas se toman de ui.module.css con `composes` en vez de
+ * repetirse acá: así el esqueleto sigue automáticamente cualquier cambio en
+ * `--catalogo-columnas` y no se desincroniza del catálogo.
+ */
+
+.bloque {
+  background: var(--superficie-suave);
+  border-radius: var(--radio-sm);
+  /* El degradado viaja de izquierda a derecha sobre el fondo del bloque. */
+  background-image: linear-gradient(
+    90deg,
+    transparent 0%,
+    color-mix(in srgb, var(--texto-secundario) 9%, transparent) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: brillo 1.4s ease-in-out infinite;
+}
+
+@keyframes brillo {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* Sin movimiento el esqueleto sigue siendo legible: queda como bloque plano.
+   base.css ya recorta la duración de toda animación, esto además quita el
+   degradado para que no se congele a mitad del barrido. */
+@media (prefers-reduced-motion: reduce) {
+  .bloque {
+    background-image: none;
+    animation: none;
+  }
+}
+
+/* ── Texto ─────────────────────────────────────────────── */
+
+.texto {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+/* La última línea se corta antes, como pasa en un párrafo de verdad. */
+.textoLinea:last-child {
+  width: 60%;
+}
+
+/* ── Cabecera de página ────────────────────────────────── */
+
+.cabecera {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  margin-bottom: var(--espacio-6);
+}
+
+/* ── Grilla de productos ───────────────────────────────── */
+
+.grid {
+  composes: gridProductos from "@/styles/ui.module.css";
+}
+
+.tarjeta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  border: 1px solid var(--tarjeta-borde);
+  border-radius: var(--tarjeta-radio);
+  overflow: hidden;
+}
+
+/* Misma proporción que ProductoCard: la tarjeta real entra sin desplazar. */
+.tarjetaImagen {
+  aspect-ratio: var(--catalogo-imagen-ratio);
+  border-radius: 0;
+}
+
+.tarjetaInfo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+  padding: var(--espacio-3);
+}
+
+/* ── Tabla ─────────────────────────────────────────────── */
+
+.tablaWrap {
+  composes: tablaContenedor from "@/styles/ui.module.css";
+}
+
+.tabla {
+  composes: tabla from "@/styles/ui.module.css";
+}
+
+/* ── Formulario ────────────────────────────────────────── */
+
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}
+
+.campo {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-2);
+}
+
+.control {
+  height: var(--control-alto);
+  border-radius: var(--control-radio);
+}
+
+/* ── Ficha de producto ─────────────────────────────────── */
+
+.ficha {
+  display: grid;
+  gap: var(--espacio-6);
+}
+
+@media (min-width: 48rem) {
+  .ficha {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--espacio-8);
+  }
+}
+
+.fichaGaleria {
+  aspect-ratio: 1 / 1;
+  border-radius: var(--radio-borde);
+}
+
+.fichaPanel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--espacio-4);
+}

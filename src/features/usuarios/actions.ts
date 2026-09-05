@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { revalidatePath, updateTag } from "next/cache";
 import { db } from "@/lib/db";
 import { requirePermiso } from "@/lib/auth";
 import { ejecutar } from "@/lib/acciones";
+import { ETIQUETAS_ADMIN } from "@/features/admin/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   crearUsuarioSchema,
@@ -41,6 +42,7 @@ export async function crearUsuario(datos: CrearUsuarioInput) {
       await db.usuario.update({ where: { authId: data.user.id }, data: { rolId: rol.id } });
     }
 
+    updateTag(ETIQUETAS_ADMIN.dashboard);
     revalidatePath("/admin/usuarios");
   });
 }
@@ -75,6 +77,7 @@ export async function eliminarUsuario(id: string) {
       throw new Error(`El usuario se quitó de la tienda, pero su cuenta de acceso sigue activa: ${error.message}`);
     }
 
+    updateTag(ETIQUETAS_ADMIN.dashboard);
     revalidatePath("/admin/usuarios");
   });
 }
@@ -103,6 +106,7 @@ export async function editarUsuario(id: string, datos: EditarUsuarioInput) {
 
     await db.usuario.update({ where: { id }, data: validado });
 
+    updateTag(ETIQUETAS_ADMIN.dashboard);
     revalidatePath("/admin/usuarios");
   });
 }

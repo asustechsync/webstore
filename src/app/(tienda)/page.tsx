@@ -18,7 +18,12 @@ import { FranjaValores } from "@/components/portada/FranjaValores";
 import { HeroPortada, type PiezaProducto } from "@/components/portada/HeroPortada";
 import styles from "./page.module.css";
 
-export const revalidate = 300; // ISR: 5 minutos
+// Todo lo que pinta esta página sale de consultas `'use cache'` (ver
+// features/catalogo/queries) — nada lee cookies, headers ni searchParams.
+// `instant = true` mantiene la validación activa para esta ruta puntual
+// aunque el resto del sitio dejó de validarse por defecto (next.config.ts),
+// así Next avisa si algo la vuelve a dejar bloqueante sin que nadie lo note.
+export const instant = true;
 
 const CATEGORIAS_PORTADA = 6;
 

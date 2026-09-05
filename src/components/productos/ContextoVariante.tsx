@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useMemo, useState } from "react";
+import { createContext, useContext, useMemo, useState, useSyncExternalStore } from "react";
 import type { DetalleVista, VarianteVista } from "@/features/catalogo/detalle";
 
 /**
@@ -47,7 +47,7 @@ function seleccionDeVariante(detalle: DetalleVista, variante: VarianteVista): Se
 }
 
 /** La pedida por la URL; si no, la primera con stock; si no, la primera. */
-function varianteInicial(detalle: DetalleVista, varianteId?: string) {
+function varianteInicial(detalle: DetalleVista, varianteId: string | null) {
   const pedida = varianteId
     ? detalle.variantes.find((variante) => variante.id === varianteId)
     : undefined;
@@ -59,29 +59,62 @@ function varianteInicial(detalle: DetalleVista, varianteId?: string) {
   );
 }
 
+/*
+ * `?variante=` leído de forma segura para la hidratación.
+ *
+ * El servidor devuelve null porque la ficha se pre-construye y ahí no existe
+ * la URL del visitante; el navegador devuelve el valor real. Así el HTML sale
+ * igual para todos —que es lo que permite cachearlo— y la variante pedida se
+ * aplica al hidratar.
+ */
+const suscribirUrl = (alCambiar: () => void) => {
+  window.addEventListener("popstate", alCambiar);
+  return () => window.removeEventListener("popstate", alCambiar);
+};
+const leerUrlCliente = () => new URLSearchParams(window.location.search).get("variante");
+const leerUrlServidor = () => null;
+
+function useVarianteDeUrl() {
+  return useSyncExternalStore(suscribirUrl, leerUrlCliente, leerUrlServidor);
+}
+
 export function ProveedorVariante({
   detalle,
-  /** Viene de `?variante=` y lo resuelve el servidor, así el HTML ya llega
-      con la combinación correcta en vez de corregirla al hidratar. */
-  varianteInicialId,
   children,
 }: {
   detalle: DetalleVista;
-  varianteInicialId?: string;
   children: React.ReactNode;
 }) {
-  const [seleccion, setSeleccion] = useState<Seleccion>(() => {
-    const inicial = varianteInicial(detalle, varianteInicialId);
+  /*
+   * La selección se deriva, no se corrige.
+   *
+   * Mientras nadie toque el configurador manda la URL (o la primera variante
+   * con stock si no pide ninguna); en cuanto se elige algo, esa elección pisa
+   * a la URL. Derivarla en vez de guardarla y arreglarla después evita un
+   * `setState` dentro de un efecto y un repintado extra al abrir la ficha.
+   *
+   * Se lee de `window.location` y no con `useSearchParams()` porque ese hook
+   * suspende durante el prerender, y esta página se pre-construye.
+   */
+  const varianteDeUrl = useVarianteDeUrl();
+  const [eleccionManual, setEleccionManual] = useState<Seleccion | null>(null);
+
+  const seleccion = useMemo<Seleccion>(() => {
+    if (eleccionManual) return eleccionManual;
+    const inicial = varianteInicial(detalle, varianteDeUrl);
     return inicial ? seleccionDeVariante(detalle, inicial) : {};
-  });
+  }, [eleccionManual, detalle, varianteDeUrl]);
 
   const valor = useMemo<ValorContexto>(
     () => ({
       seleccion,
-      elegir: (clave, valorId) => setSeleccion((actual) => ({ ...actual, [clave]: valorId })),
+      // Parten de la selección ya derivada, no del estado en bruto: hasta el
+      // primer clic ese estado es null y no habría de dónde copiar el resto
+      // de las opciones elegidas.
+      elegir: (clave, valorId) => setEleccionManual({ ...seleccion, [clave]: valorId }),
       seleccionarVariante: (varianteId) => {
         const destino = detalle.variantes.find((variante) => variante.id === varianteId);
-        if (destino) setSeleccion(seleccionDeVariante(detalle, destino));
+        if (destino) setEleccionManual(seleccionDeVariante(detalle, destino));
       },
       variante: buscarVariante(detalle, seleccion),
       detalle,

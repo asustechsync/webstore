@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { IconoAgregar, IconoBolsa, IconoQuitar } from "@/components/ui/ActionIcons";
 import { Button } from "@/components/ui/Button";
-import { ENTREGA, type RangoEntrega } from "@/features/catalogo/entrega";
+import { ENTREGA, estimarEntrega, type RangoEntrega } from "@/features/catalogo/entrega";
+import { useHidratado } from "@/components/ui/useHidratado";
 import { useVariante } from "./ContextoVariante";
 import type { DetalleVista } from "@/features/catalogo/detalle";
 import { calcularDescuento, formatearPrecio } from "@/lib/utils";
@@ -23,7 +24,6 @@ import styles from "./PanelCompra.module.css";
 export function PanelCompra({
   producto,
   detalle,
-  entrega,
   children,
 }: {
   producto: {
@@ -35,7 +35,6 @@ export function PanelCompra({
     imagenUrl: string | null;
   };
   detalle: DetalleVista;
-  entrega: RangoEntrega;
   children?: React.ReactNode;
 }) {
   const agregarItem = useCartStore((estado) => estado.agregarItem);
@@ -43,6 +42,20 @@ export function PanelCompra({
 
   const [cantidad, setCantidad] = useState(1);
   const [agregado, setAgregado] = useState(false);
+
+  /*
+   * La fecha de entrega se calcula en el navegador, no en el servidor.
+   *
+   * La ficha ahora es HTML pre-construido: si el rango se calculara al
+   * renderizar, quedaría congelado en la fecha del build y en dos semanas
+   * seguiría prometiendo la misma semana de entrega. Contando desde el
+   * navegador siempre sale desde hoy.
+   *
+   * Hasta hidratar la tarjeta de envío muestra el plazo en días hábiles, que
+   * es correcto en ambos lados y evita el desajuste.
+   */
+  const hidratado = useHidratado();
+  const entrega: RangoEntrega | null = hidratado ? estimarEntrega() : null;
 
   const precio = variante?.precio ?? producto.precio;
   const oferta = variante?.precioOferta ?? producto.precioOferta;
@@ -208,7 +221,11 @@ export function PanelCompra({
               <IconoBolsa />
               <span className={styles.entregaNombre}>Envío a domicilio</span>
               <span className={styles.entregaDato}>
-                {agotado ? "Sin stock" : `Llega del ${entrega.desde} al ${entrega.hasta}`}
+                {agotado
+                  ? "Sin stock"
+                  : entrega
+                    ? `Llega del ${entrega.desde} al ${entrega.hasta}`
+                    : `Llega en ${ENTREGA.diasHabilesMinimo} a ${ENTREGA.diasHabilesMaximo} días hábiles`}
               </span>
             </div>
           </div>

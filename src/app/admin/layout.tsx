@@ -6,6 +6,14 @@ import { ThemeToggle } from "@/components/ui/ThemeToggle";
 import { AdminNav } from "./AdminNav";
 import styles from "./admin.module.css";
 
+/*
+ * El panel se arma con la sesión de quien entra (rol, permisos, datos de su
+ * tienda), así que no hay armazón estático posible: se declara como ruta que
+ * puede bloquear. No la vuelve más lenta — solo le dice a Next que acá el
+ * render por petición es lo correcto y no una omisión.
+ */
+export const instant = false;
+
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const usuario = await getUsuarioActual();
 
