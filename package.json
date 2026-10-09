@@ -1,0 +1,16 @@
+{
+  "name": "webstore",
+  "private": true,
+  "workspaces": ["apps/*", "packages/*"],
+  "packageManager": "npm@12.2.0",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:generar": "npm run generar -w @webstore/db",
+    "db:migrar": "npm run migrar -w @webstore/db"
+  },
+  "devDependencies": { "turbo": "^2.11.7", "typescript": "^5" }
+}

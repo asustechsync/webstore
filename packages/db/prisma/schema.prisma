@@ -1,0 +1,185 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generado"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Rol {
+  CLIENTE
+  ADMIN
+  ALMACEN
+}
+
+enum EstadoPedido {
+  PENDIENTE
+  PAGADO
+  PREPARANDO
+  ENVIADO
+  ENTREGADO
+  CANCELADO
+}
+
+enum EstadoPago {
+  PENDIENTE
+  PAGADO
+  FALLIDO
+  REEMBOLSADO
+}
+
+enum TipoMovimiento {
+  ENTRADA
+  SALIDA
+  AJUSTE
+  RESERVA
+  DEVOLUCION
+}
+
+model Usuario {
+  id         String      @id @default(cuid())
+  correo     String      @unique
+  nombre     String
+  telefono   String?
+  claveHash  String?
+  rol        Rol         @default(CLIENTE)
+  creadoEn   DateTime    @default(now())
+  direcciones Direccion[]
+  carritos   Carrito[]
+  pedidos    Pedido[]
+}
+
+model Direccion {
+  id         String  @id @default(cuid())
+  usuarioId  String
+  usuario    Usuario @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  destinatario String
+  linea1     String
+  distrito   String
+  ciudad     String
+  referencia String?
+  telefono   String
+}
+
+model Categoria {
+  id        String     @id @default(cuid())
+  nombre    String
+  slug      String     @unique
+  padreId   String?
+  padre     Categoria? @relation("Arbol", fields: [padreId], references: [id])
+  hijas     Categoria[] @relation("Arbol")
+  productos Producto[]
+}
+
+model Marca {
+  id        String     @id @default(cuid())
+  nombre    String     @unique
+  slug      String     @unique
+  productos Producto[]
+}
+
+model Producto {
+  id          String    @id @default(cuid())
+  nombre      String
+  slug        String    @unique
+  descripcion String
+  /// Especificaciones técnicas flexibles: socket, TDP, DDR, etc.
+  specs       Json      @default("{}")
+  categoriaId String
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  marcaId     String
+  marca       Marca     @relation(fields: [marcaId], references: [id])
+  activo      Boolean   @default(true)
+  creadoEn    DateTime  @default(now())
+  variantes   Variante[]
+}
+
+model Variante {
+  id          String   @id @default(cuid())
+  productoId  String
+  producto    Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  sku         String   @unique
+  nombre      String
+  /// Céntimos
+  precio      Int
+  imagenes    String[]
+  activo      Boolean  @default(true)
+  movimientos MovimientoStock[]
+  itemsCarrito ItemCarrito[]
+  itemsPedido  ItemPedido[]
+}
+
+/// El stock sale de la suma de estos movimientos. Nunca se actualiza directo.
+model MovimientoStock {
+  id          String         @id @default(cuid())
+  varianteId  String
+  variante    Variante       @relation(fields: [varianteId], references: [id])
+  tipo        TipoMovimiento
+  cantidad    Int
+  motivo      String?
+  pedidoId    String?
+  creadoEn    DateTime       @default(now())
+
+  @@index([varianteId])
+}
+
+model Carrito {
+  id        String        @id @default(cuid())
+  usuarioId String?
+  usuario   Usuario?      @relation(fields: [usuarioId], references: [id])
+  creadoEn  DateTime      @default(now())
+  items     ItemCarrito[]
+}
+
+model ItemCarrito {
+  id         String   @id @default(cuid())
+  carritoId  String
+  carrito    Carrito  @relation(fields: [carritoId], references: [id], onDelete: Cascade)
+  varianteId String
+  variante   Variante @relation(fields: [varianteId], references: [id])
+  cantidad   Int
+
+  @@unique([carritoId, varianteId])
+}
+
+model Pedido {
+  id         String       @id @default(cuid())
+  numero     Int          @unique @default(autoincrement())
+  usuarioId  String?
+  usuario    Usuario?     @relation(fields: [usuarioId], references: [id])
+  correo     String
+  estado     EstadoPedido @default(PENDIENTE)
+  /// Dirección copiada al momento de la compra (congelada)
+  direccion  Json
+  subtotal   Int
+  envio      Int          @default(0)
+  total      Int
+  creadoEn   DateTime     @default(now())
+  items      ItemPedido[]
+  pagos      Pago[]
+}
+
+/// Nombre, talla/variante y precio congelados al momento de la venta.
+model ItemPedido {
+  id         String   @id @default(cuid())
+  pedidoId   String
+  pedido     Pedido   @relation(fields: [pedidoId], references: [id], onDelete: Cascade)
+  varianteId String
+  variante   Variante @relation(fields: [varianteId], references: [id])
+  nombre     String
+  sku        String
+  precio     Int
+  cantidad   Int
+}
+
+model Pago {
+  id         String     @id @default(cuid())
+  pedidoId   String
+  pedido     Pedido     @relation(fields: [pedidoId], references: [id])
+  metodo     String
+  referencia String?
+  monto      Int
+  estado     EstadoPago @default(PENDIENTE)
+  creadoEn   DateTime   @default(now())
+}
