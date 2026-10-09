@@ -1,0 +1,9 @@
+-- AlterTable
+ALTER TABLE "Categoria" ADD COLUMN     "activo" BOOLEAN NOT NULL DEFAULT true,
+ADD COLUMN     "actualizadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "creadoEn" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+ADD COLUMN     "descripcion" TEXT,
+ADD COLUMN     "destacada" BOOLEAN NOT NULL DEFAULT false,
+ADD COLUMN     "imagenUrl" TEXT,
+ADD COLUMN     "metaDescripcion" TEXT,
+ADD COLUMN     "metaTitulo" TEXT;

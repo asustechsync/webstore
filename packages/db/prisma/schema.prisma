@@ -69,6 +69,14 @@ model Categoria {
   padreId   String?
   padre     Categoria? @relation("Arbol", fields: [padreId], references: [id])
   hijas     Categoria[] @relation("Arbol")
+  descripcion     String?
+  imagenUrl       String?
+  activo          Boolean    @default(true)
+  destacada       Boolean    @default(false)
+  metaTitulo      String?
+  metaDescripcion String?
+  creadoEn        DateTime   @default(now())
+  actualizadoEn   DateTime   @default(now()) @updatedAt
   productos Producto[]
 }
 
@@ -76,6 +84,14 @@ model Marca {
   id        String     @id @default(cuid())
   nombre    String     @unique
   slug      String     @unique
+  descripcion   String?
+  logoUrl       String?
+  activo        Boolean    @default(true)
+  destacada     Boolean    @default(false)
+  metaTitulo      String?
+  metaDescripcion String?
+  creadoEn      DateTime   @default(now())
+  actualizadoEn DateTime   @default(now()) @updatedAt
   productos Producto[]
 }
 
@@ -90,8 +106,12 @@ model Producto {
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
   marcaId     String
   marca       Marca     @relation(fields: [marcaId], references: [id])
+  imagenUrl   String?
   activo      Boolean   @default(true)
+  metaTitulo      String?
+  metaDescripcion String?
   creadoEn    DateTime  @default(now())
+  actualizadoEn DateTime  @default(now()) @updatedAt
   variantes   Variante[]
 }
 
