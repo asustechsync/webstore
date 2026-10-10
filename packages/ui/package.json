@@ -5,7 +5,15 @@
   "type": "module",
   "main": "./src/index.ts",
   "types": "./src/index.ts",
-  "scripts": { "typecheck": "tsc --noEmit" },
-  "peerDependencies": { "react": "^19" },
-  "devDependencies": { "typescript": "^5", "@types/react": "^19" }
+  "scripts": {
+    "tokens": "node src/generar-tokens.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^19"
+  },
+  "devDependencies": {
+    "typescript": "^5",
+    "@types/react": "^19"
+  }
 }

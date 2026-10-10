@@ -10,6 +10,13 @@
     "migrar": "prisma migrate dev",
     "typecheck": "tsc --noEmit"
   },
-  "dependencies": { "@prisma/client": "7.10.0", "@prisma/adapter-pg": "7.10.0" },
-  "devDependencies": { "prisma": "7.10.0", "dotenv": "^17", "typescript": "^5" }
+  "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0"
+  },
+  "devDependencies": {
+    "dotenv": "^18.0.7",
+    "prisma": "7.10.0",
+    "typescript": "^5"
+  }
 }
