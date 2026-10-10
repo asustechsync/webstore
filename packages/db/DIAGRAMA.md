@@ -61,10 +61,20 @@ erDiagram
   Usuario {
     string id PK
     string correo UK
-    string nombre
+    string nombres
+    string apellidos
     string telefono
+    date fechaNacimiento
     string claveHash
     Rol rol
+    date creadoEn
+    date actualizadoEn
+    boolean activo
+    TipoDocumento tipoDocumento
+    string numeroDocumento
+    string razonSocial
+    date correoVerificadoEn
+    date ultimoAccesoEn
   }
   Direccion {
     string id PK
@@ -108,8 +118,8 @@ erDiagram
     json specs
     string categoriaId FK
     string marcaId FK
-    string imagenUrl
     boolean activo
+    boolean destacado
     string metaTitulo
     string metaDescripcion
     date creadoEn

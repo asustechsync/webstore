@@ -13,6 +13,13 @@ enum Rol {
   ALMACEN
 }
 
+enum TipoDocumento {
+  DNI
+  RUC
+  CE
+  PASAPORTE
+}
+
 enum EstadoPedido {
   PENDIENTE
   PAGADO
@@ -40,11 +47,21 @@ enum TipoMovimiento {
 model Usuario {
   id         String      @id @default(cuid())
   correo     String      @unique
-  nombre     String
+  nombres    String
+  apellidos  String      @default("")
   telefono   String?
+  fechaNacimiento DateTime? @db.Date
   claveHash  String?
   rol        Rol         @default(CLIENTE)
   creadoEn   DateTime    @default(now())
+  actualizadoEn DateTime  @default(now()) @updatedAt
+  activo     Boolean     @default(true)
+  /// Documento para la facturación SUNAT: DNI en boleta, RUC en factura
+  tipoDocumento   TipoDocumento?
+  numeroDocumento String?
+  razonSocial     String?
+  correoVerificadoEn DateTime?
+  ultimoAccesoEn     DateTime?
   direcciones Direccion[]
   carritos   Carrito[]
   pedidos    Pedido[]
@@ -78,6 +95,8 @@ model Categoria {
   creadoEn        DateTime   @default(now())
   actualizadoEn   DateTime   @default(now()) @updatedAt
   productos Producto[]
+
+  @@index([padreId])
 }
 
 model Marca {
@@ -106,13 +125,16 @@ model Producto {
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
   marcaId     String
   marca       Marca     @relation(fields: [marcaId], references: [id])
-  imagenUrl   String?
   activo      Boolean   @default(true)
+  destacado   Boolean   @default(false)
   metaTitulo      String?
   metaDescripcion String?
   creadoEn    DateTime  @default(now())
   actualizadoEn DateTime  @default(now()) @updatedAt
   variantes   Variante[]
+
+  @@index([categoriaId])
+  @@index([marcaId])
 }
 
 model Variante {
