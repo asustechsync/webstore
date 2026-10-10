@@ -1,0 +1,14 @@
+.logo {
+  display: inline-block;
+  font-family: var(--fuente-logo);
+  font-size: var(--tamano-xl);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  line-height: 1;
+  text-decoration: none;
+}
+
+.destacado {
+  color: var(--color-primario);
+}

@@ -1,0 +1,31 @@
+.seccion {
+  padding-block: var(--espacio-8);
+}
+
+.cabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+  margin-bottom: var(--espacio-4);
+}
+
+.titulo {
+  font-size: var(--tamano-xl);
+  line-height: 1.25;
+}
+
+.verTodo {
+  font-size: var(--tamano-sm);
+  color: var(--color-primario);
+}
+
+@media (min-width: 768px) {
+  .seccion {
+    padding-block: var(--espacio-12);
+  }
+
+  .titulo {
+    font-size: var(--tamano-2xl);
+  }
+}

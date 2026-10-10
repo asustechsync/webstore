@@ -1,0 +1,12 @@
+.contenedor {
+  width: 100%;
+  max-width: var(--ancho-contenedor);
+  margin-inline: auto;
+  padding-inline: var(--espacio-4);
+}
+
+@media (min-width: 1024px) {
+  .contenedor {
+    padding-inline: var(--espacio-6);
+  }
+}

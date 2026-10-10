@@ -1,0 +1,37 @@
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--espacio-2);
+  min-height: 44px;
+  padding: var(--espacio-2) var(--espacio-4);
+  border: 1px solid transparent;
+  border-radius: var(--radio-md);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.primario {
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
+}
+
+.primario:hover {
+  background: var(--color-primario-oscuro);
+}
+
+.secundario {
+  background: transparent;
+  color: var(--color-texto);
+  border-color: var(--color-borde);
+}
+
+.secundario:hover {
+  background: var(--color-superficie);
+}
+
+.boton:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

@@ -1,0 +1,78 @@
+.saltar {
+  position: absolute;
+  left: var(--espacio-2);
+  top: -100px;
+  padding: var(--espacio-2) var(--espacio-4);
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
+  border-radius: var(--radio-md);
+  z-index: 10;
+}
+
+.saltar:focus {
+  top: var(--espacio-2);
+}
+
+.encabezado {
+  border-bottom: 1px solid var(--color-borde);
+  background: var(--color-fondo);
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  grid-template-areas:
+    "logo acciones"
+    "buscador buscador"
+    "menu menu";
+  align-items: center;
+  gap: var(--espacio-3);
+  padding-block: var(--espacio-3);
+}
+
+.zonaLogo {
+  grid-area: logo;
+}
+
+.acciones {
+  grid-area: acciones;
+  display: flex;
+  align-items: center;
+  gap: var(--espacio-2);
+}
+
+.zonaBuscador {
+  grid-area: buscador;
+}
+
+.menu {
+  grid-area: menu;
+  overflow-x: auto;
+}
+
+.menu ul {
+  display: flex;
+  gap: var(--espacio-4);
+  white-space: nowrap;
+}
+
+.menu a {
+  display: inline-block;
+  padding-block: var(--espacio-1);
+  text-decoration: none;
+  color: var(--color-texto-suave);
+}
+
+.menu a:hover {
+  color: var(--color-primario);
+}
+
+@media (min-width: 1024px) {
+  .fila {
+    grid-template-columns: auto 1fr auto;
+    grid-template-areas:
+      "logo buscador acciones"
+      "menu menu menu";
+    gap: var(--espacio-4) var(--espacio-6);
+  }
+}
