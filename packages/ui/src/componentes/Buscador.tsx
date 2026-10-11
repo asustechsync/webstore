@@ -5,16 +5,16 @@ import estilos from "./Buscador.module.css";
 export function Buscador() {
   return (
     <form role="search" action="/buscar" method="get" className={estilos.buscador}>
-      <button type="submit" aria-label="Buscar" className={estilos.icono}>
-        <IconoBuscar tamano={20} />
-      </button>
       <input
         type="search"
         name="q"
-        placeholder="Buscar productos"
-        aria-label="Buscar productos"
+        placeholder="Buscar en el catálogo"
+        aria-label="Buscar en el catálogo"
         className={estilos.campo}
       />
+      <button type="submit" aria-label="Buscar" className={estilos.boton}>
+        <IconoBuscar tamano={20} />
+      </button>
     </form>
   );
 }

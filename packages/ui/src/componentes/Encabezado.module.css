@@ -18,13 +18,67 @@
   background: var(--color-fondo);
 }
 
+/* Bloque 1: aviso */
+
+.aviso {
+  padding-block: var(--espacio-2);
+  background: var(--color-superficie);
+  border-bottom: 1px solid var(--color-borde);
+  font-size: var(--tamano-sm);
+  text-align: center;
+  color: var(--color-texto-suave);
+}
+
+.aviso strong {
+  color: var(--color-texto);
+}
+
+/* Bloque 2: ayuda y preferencias. Oculto en móvil: irá dentro del menú lateral. */
+
+.barraAyuda {
+  display: none;
+}
+
+.filaAyuda {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--espacio-4);
+}
+
+.listaAyuda {
+  display: flex;
+  gap: var(--espacio-4);
+}
+
+.listaAyuda a {
+  text-decoration: none;
+  color: var(--color-texto-suave);
+}
+
+.listaAyuda a:hover {
+  color: var(--color-primario);
+}
+
+.preferencias {
+  display: flex;
+  gap: var(--espacio-2);
+}
+
+.preferencia {
+  padding: var(--espacio-1) var(--espacio-3);
+  border-radius: var(--radio-sm);
+  background: var(--color-superficie);
+}
+
+/* Bloque 3: logo, buscador y acciones */
+
 .fila {
   display: grid;
   grid-template-columns: 1fr auto;
   grid-template-areas:
     "logo acciones"
-    "buscador buscador"
-    "menu menu";
+    "buscador buscador";
   align-items: center;
   gap: var(--espacio-3);
   padding-block: var(--espacio-3);
@@ -34,6 +88,10 @@
   grid-area: logo;
 }
 
+.zonaBuscador {
+  grid-area: buscador;
+}
+
 .acciones {
   grid-area: acciones;
   display: flex;
@@ -41,38 +99,172 @@
   gap: var(--espacio-2);
 }
 
-.zonaBuscador {
-  grid-area: buscador;
+.ingresar,
+.carrito {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--espacio-2);
+  min-height: 44px;
+  padding-inline: var(--espacio-3);
+  border-radius: var(--radio-md);
+  text-decoration: none;
+  font-size: var(--tamano-sm);
+}
+
+.ingresar {
+  border: 1px solid var(--color-texto);
+}
+
+/* En móvil solo el icono; el texto aparece en escritorio. */
+.ingresar span {
+  display: none;
+}
+
+.carrito {
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
+  font-weight: 700;
+}
+
+.carrito:hover {
+  background: var(--color-primario-oscuro);
+}
+
+.iconoCarrito {
+  position: relative;
+  display: inline-flex;
+}
+
+.contador {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  min-width: 18px;
+  height: 18px;
+  padding-inline: var(--espacio-1);
+  border-radius: 999px;
+  background: var(--color-acento);
+  color: var(--color-texto);
+  font-size: 0.6875rem;
+  line-height: 18px;
+  text-align: center;
+}
+
+.total {
+  display: none;
+}
+
+/* Bloque 4: menú de categorías */
+
+.barraMenu {
+  background: var(--color-superficie);
+  border-top: 1px solid var(--color-borde);
+}
+
+.filaMenu {
+  display: flex;
+  align-items: stretch;
+  gap: var(--espacio-4);
+}
+
+.botonMenu {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+  width: 44px;
+  min-height: 44px;
+  padding: 0 var(--espacio-3);
+  border: 0;
+  background: var(--color-fondo);
+  cursor: pointer;
+}
+
+.botonMenu span {
+  display: block;
+  height: 2px;
+  background: var(--color-texto);
 }
 
 .menu {
-  grid-area: menu;
+  flex: 1;
   overflow-x: auto;
 }
 
 .menu ul {
   display: flex;
-  gap: var(--espacio-4);
+  gap: var(--espacio-6);
+  /* Reserva espacio para las etiquetas, que flotan sobre el enlace. */
+  padding-top: var(--espacio-3);
   white-space: nowrap;
+}
+
+.menu li {
+  position: relative;
 }
 
 .menu a {
   display: inline-block;
-  padding-block: var(--espacio-1);
+  padding-block: var(--espacio-2);
   text-decoration: none;
-  color: var(--color-texto-suave);
+  font-size: var(--tamano-sm);
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--color-texto);
 }
 
 .menu a:hover {
   color: var(--color-primario);
 }
 
+.etiqueta,
+.etiquetaOferta {
+  position: absolute;
+  top: calc(var(--espacio-3) * -1);
+  right: 0;
+  padding: 0 var(--espacio-1);
+  border-radius: var(--radio-sm);
+  font-size: 0.625rem;
+  line-height: 1.4;
+  color: var(--color-sobre-primario);
+}
+
+.etiqueta {
+  background: var(--color-primario);
+}
+
+.etiquetaOferta {
+  background: var(--color-acento);
+  color: var(--color-texto);
+}
+
 @media (min-width: 1024px) {
+  .barraAyuda {
+    display: block;
+    padding-block: var(--espacio-2);
+    font-size: var(--tamano-sm);
+  }
+
   .fila {
     grid-template-columns: auto 1fr auto;
-    grid-template-areas:
-      "logo buscador acciones"
-      "menu menu menu";
-    gap: var(--espacio-4) var(--espacio-6);
+    grid-template-areas: "logo buscador acciones";
+    gap: var(--espacio-6);
+    padding-block: var(--espacio-4);
+  }
+
+  .zonaBuscador {
+    max-width: 640px;
+    width: 100%;
+    justify-self: center;
+  }
+
+  .ingresar span,
+  .total {
+    display: inline;
+  }
+
+  .menu ul {
+    justify-content: center;
   }
 }

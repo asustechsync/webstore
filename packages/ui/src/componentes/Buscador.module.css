@@ -1,32 +1,32 @@
 .buscador {
-  position: relative;
+  display: flex;
 }
 
 .campo {
-  width: 100%;
+  flex: 1;
+  min-width: 0;
   min-height: 44px;
-  padding: var(--espacio-2) var(--espacio-3) var(--espacio-2) 44px;
+  padding: var(--espacio-2) var(--espacio-4);
   border: 1px solid var(--color-borde);
-  border-radius: var(--radio-md);
+  border-right: 0;
+  border-radius: var(--radio-md) 0 0 var(--radio-md);
   background: var(--color-fondo);
   font: inherit;
 }
 
-.icono {
-  position: absolute;
-  inset-block: 0;
-  left: 0;
+.boton {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 44px;
+  width: 48px;
   padding: 0;
   border: 0;
-  background: transparent;
-  color: var(--color-texto-suave);
+  border-radius: 0 var(--radio-md) var(--radio-md) 0;
+  background: var(--color-primario);
+  color: var(--color-sobre-primario);
   cursor: pointer;
 }
 
-.icono:hover {
-  color: var(--color-primario);
+.boton:hover {
+  background: var(--color-primario-oscuro);
 }
