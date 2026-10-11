@@ -90,13 +90,92 @@ model Categoria {
   imagenUrl       String?
   activo          Boolean    @default(true)
   destacada       Boolean    @default(false)
+  orden           Int        @default(0)
   metaTitulo      String?
   metaDescripcion String?
   creadoEn        DateTime   @default(now())
   actualizadoEn   DateTime   @default(now()) @updatedAt
   productos Producto[]
+  atributos Atributo[]
 
   @@index([padreId])
+}
+
+enum TipoAtributo {
+  LISTA
+  NUMERO
+  SI_NO
+}
+
+/// Donde se guarda el valor: PRODUCTO (igual para todas las variantes) o
+/// VARIANTE (cambia segun la variante, ej. capacidad).
+enum AmbitoAtributo {
+  PRODUCTO
+  VARIANTE
+}
+
+/// Define un atributo/filtro de una categoria (aplica tambien a sus subcategorias).
+/// Los valores viven en ProductoAtributoValor o VarianteAtributoValor segun `ambito`.
+model Atributo {
+  id          String       @id @default(cuid())
+  nombre      String
+  clave       String
+  tipo        TipoAtributo
+  ambito      AmbitoAtributo @default(PRODUCTO)
+  /// Unidad de medida para NUMERO: "GB", "W", "MHz"
+  unidad      String?
+  /// Valores permitidos para LISTA
+  opciones    String[]
+  categoriaId String
+  categoria   Categoria    @relation(fields: [categoriaId], references: [id])
+  orden       Int          @default(0)
+  activo      Boolean      @default(true)
+  creadoEn      DateTime   @default(now())
+  actualizadoEn DateTime   @default(now()) @updatedAt
+  valoresProducto  ProductoAtributoValor[]
+  valoresVariante  VarianteAtributoValor[]
+
+  @@unique([categoriaId, clave])
+  @@index([categoriaId])
+}
+
+/// Valor de un atributo para el producto completo. Exactamente una columna `valor*`
+/// va llena, segun Atributo.tipo (CHECK en prisma/sql/atributo-valores.sql).
+model ProductoAtributoValor {
+  id            String   @id @default(cuid())
+  productoId    String
+  producto      Producto @relation(fields: [productoId], references: [id], onDelete: Cascade)
+  atributoId    String
+  atributo      Atributo @relation(fields: [atributoId], references: [id], onDelete: Restrict)
+  /// LISTA
+  valorTexto    String?
+  /// NUMERO
+  valorNumero   Float?
+  /// SI_NO
+  valorBooleano Boolean?
+
+  @@unique([productoId, atributoId])
+  @@index([atributoId, valorTexto])
+  @@index([atributoId, valorNumero])
+}
+
+/// Valor de un atributo que cambia segun la variante (ej. capacidad 16 GB / 32 GB).
+model VarianteAtributoValor {
+  id            String   @id @default(cuid())
+  varianteId    String
+  variante      Variante @relation(fields: [varianteId], references: [id], onDelete: Cascade)
+  atributoId    String
+  atributo      Atributo @relation(fields: [atributoId], references: [id], onDelete: Restrict)
+  /// LISTA
+  valorTexto    String?
+  /// NUMERO
+  valorNumero   Float?
+  /// SI_NO
+  valorBooleano Boolean?
+
+  @@unique([varianteId, atributoId])
+  @@index([atributoId, valorTexto])
+  @@index([atributoId, valorNumero])
 }
 
 model Marca {
@@ -132,6 +211,7 @@ model Producto {
   creadoEn    DateTime  @default(now())
   actualizadoEn DateTime  @default(now()) @updatedAt
   variantes   Variante[]
+  atributos   ProductoAtributoValor[]
 
   @@index([categoriaId])
   @@index([marcaId])
@@ -147,9 +227,14 @@ model Variante {
   precio      Int
   imagenes    String[]
   activo      Boolean  @default(true)
+  creadoEn      DateTime @default(now())
+  actualizadoEn DateTime @default(now()) @updatedAt
   movimientos MovimientoStock[]
   itemsCarrito ItemCarrito[]
   itemsPedido  ItemPedido[]
+  atributos    VarianteAtributoValor[]
+
+  @@index([productoId])
 }
 
 /// El stock sale de la suma de estos movimientos. Nunca se actualiza directo.
