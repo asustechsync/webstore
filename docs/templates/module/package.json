@@ -1,0 +1,29 @@
+{
+  "name": "@webstore/MODULO",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@webstore/db": "workspace:*",
+    "zod": "^4.6.7"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@webstore/eslint-config": "workspace:*",
+    "@webstore/tsconfig": "workspace:*",
+    "eslint": "^9.39.5",
+    "react": "^19.3.1",
+    "typescript": "~6.0.3"
+  }
+}

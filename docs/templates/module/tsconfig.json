@@ -1,0 +1,4 @@
+{
+  "extends": "@webstore/tsconfig/library.json",
+  "include": ["src", "tests"]
+}

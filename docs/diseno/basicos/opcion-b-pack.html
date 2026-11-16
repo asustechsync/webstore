@@ -1,0 +1,46 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Básicos B · Pack</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;800;900&family=Archivo+Narrow:wght@600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff8e7;--ink:#111;--yel:#ffd21f;--red:#ff4a3d;--blu:#2b5cff;--grn:#19c37d;--r:18px}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:var(--ink);font:16px/1.45 Archivo,sans-serif}
+a{color:inherit;text-decoration:none}.w{max-width:1240px;margin:0 auto;padding:0 22px}
+.mq{background:var(--ink);color:var(--yel);font:800 14px Archivo;letter-spacing:.08em;text-transform:uppercase;padding:9px;text-align:center}
+header{border-bottom:3px solid var(--ink)}header .w{display:flex;align-items:center;gap:26px;height:70px}
+.logo{font:900 30px Archivo;letter-spacing:-.05em;background:var(--ink);color:var(--yel);padding:2px 12px;transform:rotate(-2deg)}
+nav{display:flex;gap:22px;flex:1;font-weight:800;text-transform:uppercase;font-size:14px;letter-spacing:.04em}nav a:hover{color:var(--red)}
+.btn{display:inline-block;padding:14px 26px;background:var(--ink);color:#fff;border-radius:999px;font-weight:800;border:3px solid var(--ink);box-shadow:4px 4px 0 var(--red);transition:.12s}
+.btn:hover{transform:translate(-2px,-2px);box-shadow:6px 6px 0 var(--red)}.btn:active{transform:translate(3px,3px);box-shadow:1px 1px 0 var(--red)}
+.btn.y{background:var(--yel);color:var(--ink);box-shadow:4px 4px 0 var(--ink)}.btn.y:hover{box-shadow:6px 6px 0 var(--ink)}
+.hero{padding:44px 0}.hero .w{display:grid;grid-template-columns:1.1fr .9fr;gap:28px}
+.big{background:var(--yel);border:3px solid var(--ink);border-radius:var(--r);padding:44px;display:flex;flex-direction:column;justify-content:center;box-shadow:8px 8px 0 var(--ink)}
+h1{font:900 clamp(46px,6.4vw,96px)/.88 Archivo;letter-spacing:-.05em;text-transform:uppercase}
+.big p{font-weight:500;font-size:19px;margin:20px 0 28px;max-width:440px}
+.col{display:grid;grid-template-rows:1fr 1fr;gap:28px}.tile{border:3px solid var(--ink);border-radius:var(--r);padding:26px;display:flex;justify-content:space-between;align-items:flex-end;box-shadow:8px 8px 0 var(--ink);transition:.15s}.tile:hover{transform:translate(-3px,-3px);box-shadow:11px 11px 0 var(--ink)}
+.tile b{font:900 34px/.95 Archivo;text-transform:uppercase;letter-spacing:-.03em}.tile small{display:block;font-weight:600;margin-top:6px}.tile svg{width:42%}
+.t1{background:var(--blu);color:#fff}.t2{background:var(--grn)}
+section{padding:56px 0}h2{font:900 clamp(34px,4vw,54px)/.95 Archivo;text-transform:uppercase;letter-spacing:-.04em;margin-bottom:26px}
+.packs{display:grid;grid-template-columns:repeat(3,1fr);gap:24px}
+.pk{border:3px solid var(--ink);border-radius:var(--r);background:#fff;padding:22px;box-shadow:6px 6px 0 var(--ink);transition:.15s}.pk:hover{transform:translate(-3px,-3px);box-shadow:9px 9px 0 var(--ink)}
+.row{display:flex;justify-content:center;gap:6px;background:var(--bg);border-radius:12px;padding:22px 10px;margin-bottom:16px}.row svg{width:28%}
+.tag{display:inline-block;background:var(--red);color:#fff;font:800 12px Archivo;padding:3px 10px;border-radius:99px;text-transform:uppercase;letter-spacing:.06em}
+.pk h3{font:800 22px Archivo;margin:8px 0 2px;letter-spacing:-.02em}.pk .pr{font:900 28px Archivo}.pk .pr s{font:500 15px Archivo;opacity:.5;margin-left:8px}
+.deal{background:var(--ink);color:#fff;border-radius:var(--r);padding:40px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.deal h2{color:var(--yel);margin:0}
+footer{border-top:3px solid var(--ink);padding:32px 0;font-weight:600;font-size:14px}
+@media(max-width:860px){nav{display:none}.hero .w,.packs{grid-template-columns:1fr}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="boxer" viewBox="0 0 100 100"><path d="M10 26H90L88 62Q74 86 54 86L50 66L46 86Q26 86 12 62Z" fill="currentColor" stroke="#111" stroke-width="3" stroke-linejoin="round"/><rect x="10" y="14" width="80" height="13" rx="4" fill="#111"/></symbol>
+<symbol id="sock" viewBox="0 0 100 100"><path d="M34 6H62V50L84 64Q95 73 88 84Q80 93 64 87L34 66Z" fill="currentColor" stroke="#111" stroke-width="3" stroke-linejoin="round"/><rect x="34" y="6" width="28" height="13" fill="#111"/></symbol></defs></svg>
+<div class="mq">Pack x3 desde S/ 69 · Envío gratis desde S/ 150 · 3x2 en medias</div>
+<header><div class="w"><a class="logo" href="#">TRIO</a><nav><a href="#">Boxers</a><a href="#">Medias</a><a href="#">Camisetas</a><a href="#">Packs</a><a href="#">Ofertas</a></nav><a class="btn y" href="#">Bolsa (0)</a></div></header>
+<main>
+<div class="hero"><div class="w"><div class="big"><h1>Compra<br>en pack.<br>Paga menos.</h1><p>Boxers y medias que duran. Elige tres, llévate el mejor precio.</p><div><a class="btn" href="#">Armar mi pack</a></div></div>
+<div class="col"><a class="tile t1" href="#"><div><b>Boxers</b><small>Desde S/ 29</small></div><svg style="color:#ffd21f"><use href="#boxer"/></svg></a><a class="tile t2" href="#"><div><b>Medias</b><small>3x2 siempre</small></div><svg style="color:#fff"><use href="#sock"/></svg></a></div></div></div>
+<section style="padding-top:20px"><div class="w"><h2>Packs que se venden solos</h2><div class="packs">
+<a class="pk" href="#"><div class="row"><svg style="color:#2b5cff"><use href="#boxer"/></svg><svg style="color:#111"><use href="#boxer"/></svg><svg style="color:#19c37d"><use href="#boxer"/></svg></div><span class="tag">Más vendido</span><h3>Boxer clásico x3</h3><div class="pr">S/ 79<s>S/ 99</s></div></a>
+<a class="pk" href="#"><div class="row"><svg style="color:#ff4a3d"><use href="#sock"/></svg><svg style="color:#ffd21f"><use href="#sock"/></svg><svg style="color:#2b5cff"><use href="#sock"/></svg></div><span class="tag">3x2</span><h3>Medias tobilleras x6</h3><div class="pr">S/ 49<s>S/ 72</s></div></a>
+<a class="pk" href="#"><div class="row"><svg style="color:#111"><use href="#boxer"/></svg><svg style="color:#fff"><use href="#sock"/></svg><svg style="color:#ff4a3d"><use href="#boxer"/></svg></div><span class="tag">Combo</span><h3>Boxers + medias</h3><div class="pr">S/ 99<s>S/ 129</s></div></a></div>
+<div style="height:48px"></div>
+<div class="deal"><h2>Elige 3, el más barato va gratis</h2><a class="btn y" href="#">Ver packs</a></div></div></section>
+</main><footer><div class="w">© TRIO · Maqueta de ejemplo: nombre, precios y productos ficticios.</div></footer></body></html>

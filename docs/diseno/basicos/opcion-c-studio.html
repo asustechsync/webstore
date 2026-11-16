@@ -1,0 +1,49 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Básicos C · Studio</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#fff;--ink:#0d0d0d;--muted:#8a8a8a;--line:#ececec;--soft:#f4f4f2}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:var(--ink);font:15px/1.6 Inter,sans-serif}
+a{color:inherit;text-decoration:none}.w{max-width:1320px;margin:0 auto;padding:0 32px}
+header{position:sticky;top:0;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);z-index:5;border-bottom:1px solid var(--line)}
+header .w{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;height:72px}
+nav{display:flex;gap:28px;font-size:14px}nav a:hover,.r a:hover{opacity:.5}
+.logo{font:400 30px 'Instrument Serif',serif;letter-spacing:.02em}
+.r{display:flex;gap:24px;justify-content:flex-end;font-size:14px}
+.hero{display:grid;grid-template-columns:1fr 1fr;min-height:calc(100vh - 72px);max-height:760px}
+.hl{background:var(--soft);display:flex;align-items:center;justify-content:center;position:relative}
+.hl svg{width:46%;color:#0d0d0d;filter:drop-shadow(0 30px 26px rgba(0,0,0,.14))}
+.hr{display:flex;flex-direction:column;justify-content:center;padding:0 8%}
+.eyebrow{font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);margin-bottom:22px}
+h1{font:400 clamp(52px,6.2vw,96px)/.98 'Instrument Serif',serif;letter-spacing:-.02em}h1 i{font-style:italic}
+.hr p{color:var(--muted);max-width:380px;margin:24px 0 36px;font-size:16px}
+.link{display:inline-block;border-bottom:1px solid var(--ink);padding-bottom:3px;font-weight:500;width:max-content;position:relative;transition:.2s}.link:hover{letter-spacing:.04em}
+.btn{display:inline-block;padding:16px 34px;background:var(--ink);color:#fff;font-size:14px;letter-spacing:.04em;transition:.2s;margin-right:22px}.btn:hover{background:#333}.btn:active{transform:scale(.98)}
+section{padding:96px 0}h2{font:400 44px 'Instrument Serif',serif;letter-spacing:-.01em;margin-bottom:40px;display:flex;justify-content:space-between;align-items:baseline}h2 a{font:400 14px Inter}
+.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:28px 20px}
+.p .im{background:var(--soft);aspect-ratio:4/5;display:grid;place-items:center;margin-bottom:14px;overflow:hidden}.p .im svg{width:50%;transition:transform .35s}.p:hover .im svg{transform:scale(1.04)}
+.p .m{display:flex;justify-content:space-between;font-size:14px}.p small{color:var(--muted);display:block}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.col{padding:56px 36px;background:var(--soft);transition:.2s}.col:hover{background:#ebebe8}.col h3{font:400 30px 'Instrument Serif',serif;margin-bottom:8px}.col p{color:var(--muted);font-size:14px}
+.num{font:400 14px 'Instrument Serif';color:var(--muted);margin-bottom:60px;display:block}
+.quote{text-align:center;padding:120px 0}.quote p{font:400 clamp(30px,4vw,54px)/1.12 'Instrument Serif',serif;max-width:900px;margin:0 auto}
+footer{border-top:1px solid var(--line);padding:36px 0;color:var(--muted);font-size:13px}
+@media(max-width:900px){header .w{grid-template-columns:1fr auto}nav,.r a:not(:last-child){display:none}.hero,.cols{grid-template-columns:1fr}.hl{min-height:380px}.hr{padding:48px 24px}.grid{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="boxer" viewBox="0 0 100 100"><path d="M10 26H90L88 62Q74 86 54 86L50 66L46 86Q26 86 12 62Z" fill="currentColor"/><rect x="10" y="14" width="80" height="13" rx="4" fill="currentColor" opacity=".8"/></symbol>
+<symbol id="sock" viewBox="0 0 100 100"><path d="M34 6H62V50L84 64Q95 73 88 84Q80 93 64 87L34 66Z" fill="currentColor"/><rect x="34" y="6" width="28" height="12" fill="currentColor" opacity=".8"/></symbol>
+<symbol id="tee" viewBox="0 0 100 100"><path d="M34 10Q50 22 66 10L92 24L82 42L72 38V90H28V38L18 42L8 24Z" fill="currentColor"/></symbol></defs></svg>
+<header><div class="w"><nav><a href="#">Hombre</a><a href="#">Mujer</a><a href="#">Packs</a></nav><a class="logo" href="#">Esencial</a><div class="r"><a href="#">Buscar</a><a href="#">Cuenta</a><a href="#">Bolsa (0)</a></div></div></header>
+<main>
+<div class="hero"><div class="hl"><svg><use href="#boxer"/></svg></div><div class="hr"><div class="eyebrow">Colección permanente</div><h1>Lo que usas<br>todos los <i>días.</i></h1><p>Boxers, medias y camisetas en algodón pima. Pocos colores, mucha calidad, sin logotipos.</p><div><a class="btn" href="#">Comprar ahora</a><a class="link" href="#">Ver packs</a></div></div></div>
+<section><div class="w"><h2>Esenciales <a href="#">Ver todo →</a></h2><div class="grid">
+<a class="p" href="#"><div class="im"><svg style="color:#0d0d0d"><use href="#boxer"/></svg></div><div class="m"><span>Boxer corto</span><span>S/ 39</span></div><small>Negro</small></a>
+<a class="p" href="#"><div class="im"><svg style="color:#b9b9b4"><use href="#boxer"/></svg></div><div class="m"><span>Boxer largo</span><span>S/ 42</span></div><small>Gris piedra</small></a>
+<a class="p" href="#"><div class="im"><svg style="color:#1d2b44"><use href="#sock"/></svg></div><div class="m"><span>Media clásica</span><span>S/ 15</span></div><small>Azul noche</small></a>
+<a class="p" href="#"><div class="im"><svg style="color:#e9e6dc"><use href="#tee"/></svg></div><div class="m"><span>Camiseta básica</span><span>S/ 55</span></div><small>Hueso</small></a></div></div></section>
+<section style="padding-top:0"><div class="w"><div class="cols">
+<div class="col"><span class="num">01</span><h3>Algodón pima</h3><p>Fibra larga, tacto suave y mayor duración lavado tras lavado.</p></div>
+<div class="col"><span class="num">02</span><h3>Corte sin costuras laterales</h3><p>Menos fricción, ajuste constante durante todo el día.</p></div>
+<div class="col"><span class="num">03</span><h3>Cambios sin costo</h3><p>Si no te queda, lo cambias en 30 días sin preguntas.</p></div></div></div></section>
+<div class="quote"><div class="w"><p>“Compré uno para probar. A la semana ya había pedido tres packs.”</p><p style="font:400 14px Inter;color:var(--muted);margin-top:22px">Reseña de ejemplo — reemplazar por reseñas reales</p></div></div>
+</main><footer><div class="w">© Esencial · Maqueta de ejemplo: nombre, precios y productos ficticios.</div></footer></body></html>

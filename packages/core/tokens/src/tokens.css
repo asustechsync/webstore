@@ -1,0 +1,36 @@
+/*
+ * Design tokens: la única fuente de verdad de colores, tipografía y forma.
+ * Las apps importan este archivo; ningún componente debe usar colores sueltos.
+ * Más adelante, clients/<cliente>/client.config.ts sobrescribirá --brand-*.
+ *
+ * Estilo "marketplace" (ADR 0003): fondo gris claro, tarjetas blancas redondeadas,
+ * acento naranja, banner promocional durazno y zonas oscuras (barra superior y footer).
+ */
+@theme {
+  --color-brand: oklch(0.68 0.21 38);
+  --color-brand-hover: oklch(0.6 0.2 38);
+  --color-brand-foreground: oklch(1 0 0);
+
+  --color-promo: oklch(0.77 0.08 60);
+  --color-promo-foreground: oklch(1 0 0);
+
+  --color-surface: oklch(1 0 0);
+  --color-surface-muted: oklch(0.96 0 0);
+  --color-surface-inverse: oklch(0.15 0 0);
+  --color-surface-inverse-muted: oklch(0.22 0 0);
+  --color-foreground: oklch(0.15 0 0);
+  --color-foreground-muted: oklch(0.5 0 0);
+  --color-foreground-inverse: oklch(1 0 0);
+  --color-foreground-inverse-muted: oklch(0.75 0 0);
+  --color-border: oklch(0.93 0 0);
+
+  --color-danger: oklch(0.58 0.2 27);
+  --color-success: oklch(0.6 0.15 150);
+  --color-star: oklch(0.78 0.16 75);
+
+  --radius-control: 999px;
+  --radius-card: 1rem;
+  --radius-tile: 0.75rem;
+
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}

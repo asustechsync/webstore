@@ -1,0 +1,43 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Opción A · Taller</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f6f2ea;--ink:#16140f;--muted:#6b665b;--line:#ddd6c7;--card:#fffdf8;--acc:#e8531d;--r:4px}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:var(--ink);font:16px/1.5 Inter,sans-serif}
+a{color:inherit;text-decoration:none}.w{max-width:1200px;margin:0 auto;padding:0 24px}
+header{border-bottom:1px solid var(--line)}header .w{display:flex;align-items:center;gap:32px;height:68px}
+.logo{font:800 24px 'Bricolage Grotesque';letter-spacing:-.03em}.logo b{color:var(--acc)}
+nav{display:flex;gap:22px;font-weight:500;font-size:15px;flex:1}nav a:hover{color:var(--acc)}
+.btn{display:inline-block;padding:12px 22px;background:var(--ink);color:#fff;border-radius:var(--r);font-weight:600;transition:.15s}.btn:hover{background:var(--acc);transform:translateY(-1px)}
+.btn.o{background:none;color:var(--ink);border:1.5px solid var(--ink)}.btn.o:hover{background:var(--ink);color:#fff}
+.hero{padding:72px 0 64px}.hero .w{display:grid;grid-template-columns:1.15fr .85fr;gap:48px;align-items:center}
+h1{font:800 clamp(44px,6vw,84px)/.95 'Bricolage Grotesque';letter-spacing:-.04em}h1 em{font-style:normal;color:var(--acc)}
+.hero p{margin:24px 0 32px;max-width:460px;color:var(--muted);font-size:18px}.hero .btn+.btn{margin-left:10px}
+.art{aspect-ratio:1;background:var(--acc);border-radius:var(--r);position:relative;overflow:hidden;display:grid;place-items:center}
+.art .gpu{width:78%;height:34%;background:var(--ink);border-radius:8px;position:relative;box-shadow:0 30px 0 -8px rgba(0,0,0,.15)}
+.art .gpu:before,.art .gpu:after{content:"";position:absolute;top:50%;width:30%;aspect-ratio:1;border-radius:50%;border:6px solid var(--bg);transform:translateY(-50%)}
+.art .gpu:before{left:12%}.art .gpu:after{right:12%}
+.art span{position:absolute;left:20px;bottom:18px;font:700 14px Inter;color:#fff}
+section{padding:64px 0;border-top:1px solid var(--line)}h2{font:800 36px 'Bricolage Grotesque';letter-spacing:-.03em;margin-bottom:28px}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.cat{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:28px;display:flex;justify-content:space-between;align-items:end;min-height:150px;transition:.15s}
+.cat:hover{transform:translateY(-2px);border-color:var(--ink)}.cat b{font:700 22px 'Bricolage Grotesque'}.cat small{display:block;color:var(--muted)}.cat i{font-style:normal;font-size:22px;color:var(--acc)}
+.prods{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.p{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;transition:.15s}.p:hover{transform:translateY(-2px)}
+.p .im{aspect-ratio:1;background:#ebe4d3;border-radius:2px;margin-bottom:14px;display:grid;place-items:center;font:700 40px 'Bricolage Grotesque';color:#c9bfa8}
+.p small{color:var(--muted)}.p h3{font-size:16px;font-weight:600;margin:2px 0 10px}.p .pr{font:800 20px 'Bricolage Grotesque'}.p .pr s{font:400 14px Inter;color:var(--muted);margin-left:6px}
+.band{background:var(--ink);color:#fff}.band .w{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}.band b{font:800 22px 'Bricolage Grotesque';color:var(--acc);display:block}
+footer{padding:40px 0;color:var(--muted);font-size:14px}
+@media(max-width:800px){nav{display:none}.hero .w,.cats,.band .w{grid-template-columns:1fr}.prods{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<header><div class="w"><a class="logo" href="#">web<b>store</b></a><nav><a href="#">Componentes</a><a href="#">Computadoras</a><a href="#">Laptops</a><a href="#">Monitores</a><a href="#">Periféricos</a><a href="#">Accesorios</a></nav><a class="btn o" href="#">Carrito (0)</a></div></header>
+<main>
+<div class="hero"><div class="w"><div><h1>Arma tu PC <em>pieza por pieza.</em></h1><p>Procesadores, tarjetas de video, memoria y todo lo que necesitas, con stock real y envío a todo el país.</p><a class="btn" href="#">Ver componentes</a><a class="btn o" href="#">Ofertas de la semana</a></div><div class="art"><div class="gpu"></div><span>Tarjetas de video · desde S/ 899</span></div></div></div>
+<section><div class="w"><h2>Compra por departamento</h2><div class="cats">
+<a class="cat" href="#"><div><b>Componentes</b><small>Procesadores, RAM, discos</small></div><i>→</i></a><a class="cat" href="#"><div><b>Computadoras</b><small>Armadas y todo-en-uno</small></div><i>→</i></a><a class="cat" href="#"><div><b>Laptops</b><small>Trabajo, estudio y gaming</small></div><i>→</i></a><a class="cat" href="#"><div><b>Monitores</b><small>60 a 240 Hz</small></div><i>→</i></a><a class="cat" href="#"><div><b>Periféricos</b><small>Teclados, mouse, audio</small></div><i>→</i></a><a class="cat" href="#"><div><b>Accesorios</b><small>Cables, bases, limpieza</small></div><i>→</i></a></div></div></section>
+<section><div class="w"><h2>Lo más pedido</h2><div class="prods">
+<a class="p" href="#"><div class="im">CPU</div><small>Componentes</small><h3>Procesador 8 núcleos</h3><div class="pr">S/ 749<s>S/ 829</s></div></a>
+<a class="p" href="#"><div class="im">SSD</div><small>Componentes</small><h3>SSD NVMe 1 TB</h3><div class="pr">S/ 289</div></a>
+<a class="p" href="#"><div class="im">27"</div><small>Monitores</small><h3>Monitor 27" 165 Hz</h3><div class="pr">S/ 799<s>S/ 899</s></div></a>
+<a class="p" href="#"><div class="im">KB</div><small>Periféricos</small><h3>Teclado mecánico</h3><div class="pr">S/ 219</div></a></div></div></section>
+<div class="band"><section style="border:0"><div class="w"><div><b>Stock real</b>Lo que ves, lo tenemos.</div><div><b>Garantía por escrito</b>Cada equipo con su comprobante.</div><div><b>Asesoría para armar</b>Te decimos qué es compatible.</div></div></section></div>
+</main><footer><div class="w">© webstore · Maqueta de ejemplo: precios y productos ficticios.</div></footer></body></html>

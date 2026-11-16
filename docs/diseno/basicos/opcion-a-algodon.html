@@ -1,0 +1,51 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Básicos A · Algodón</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5efe6;--ink:#2a211b;--muted:#7a6d62;--line:#e0d5c6;--card:#fbf7f1;--acc:#b5532f;--sage:#8a9a7b;--sand:#d9c3a3;--clay:#b5532f;--navy:#2f3d55}
+*{box-sizing:border-box;margin:0}body{background:var(--bg);color:var(--ink);font:16px/1.55 'DM Sans',sans-serif}
+a{color:inherit;text-decoration:none}.w{max-width:1180px;margin:0 auto;padding:0 24px}
+.top{background:var(--ink);color:var(--bg);text-align:center;font-size:13px;padding:8px}
+header .w{display:flex;align-items:center;justify-content:space-between;height:76px}
+.logo{font:600 28px Fraunces,serif;letter-spacing:-.02em}.logo i{color:var(--acc)}
+nav{display:flex;gap:28px;font-weight:500;font-size:15px}nav a{position:relative}nav a:after{content:"";position:absolute;left:0;bottom:-4px;height:1.5px;width:0;background:var(--acc);transition:.2s}nav a:hover:after{width:100%}
+.btn{display:inline-block;padding:14px 28px;background:var(--ink);color:var(--bg);border-radius:999px;font-weight:600;transition:.15s}.btn:hover{background:var(--acc);transform:translateY(-1px)}
+.btn.o{background:none;color:var(--ink);border:1.5px solid var(--ink)}.btn.o:hover{background:var(--ink);color:var(--bg)}
+.hero{padding:56px 0 72px}.hero .w{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+h1{font:400 clamp(46px,6vw,86px)/1 Fraunces,serif;letter-spacing:-.03em}h1 em{color:var(--acc)}
+.hero p{margin:24px 0 32px;max-width:440px;color:var(--muted);font-size:18px}.hero .btn+.btn{margin-left:10px}
+.stage{background:var(--sand);border-radius:240px 240px 12px 12px;aspect-ratio:4/5;display:flex;align-items:center;justify-content:center;gap:4%;padding:0 8%}
+.stage svg{width:34%;filter:drop-shadow(0 18px 14px rgba(42,33,27,.15))}.stage svg:nth-child(2){width:40%;transform:translateY(-8%)}
+section{padding:72px 0}h2{font:400 40px Fraunces,serif;letter-spacing:-.02em;margin-bottom:8px}.sub{color:var(--muted);margin-bottom:32px}
+.cats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.cat{border-radius:14px;padding:22px;aspect-ratio:3/4;display:flex;flex-direction:column;justify-content:space-between;transition:.2s}.cat:hover{transform:translateY(-3px)}
+.cat svg{width:62%;align-self:center}.cat b{font:600 22px Fraunces,serif}.cat small{display:block;opacity:.7}
+.c1{background:#e7d9c2}.c2{background:#cdd6c2}.c3{background:#d5dae3}.c4{background:#ecc9b6}
+.prods{display:grid;grid-template-columns:repeat(4,1fr);gap:20px}
+.p .im{background:var(--card);border:1px solid var(--line);border-radius:14px;aspect-ratio:1;display:grid;place-items:center;margin-bottom:12px;transition:.2s}.p:hover .im{transform:translateY(-3px)}
+.p .im svg{width:52%}.sw{display:flex;gap:6px;margin:8px 0}.sw i{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.15)}
+.p h3{font-weight:600;font-size:16px}.p small{color:var(--muted)}.p b{display:block;margin-top:4px}
+.feat{background:var(--ink);color:var(--bg)}.feat .w{display:grid;grid-template-columns:repeat(3,1fr);gap:40px}.feat h3{font:400 26px Fraunces,serif;margin-bottom:6px;color:var(--sand)}.feat p{opacity:.75}
+footer{padding:40px 0;color:var(--muted);font-size:14px}
+@media(max-width:860px){nav{display:none}.hero .w,.feat .w{grid-template-columns:1fr}.cats,.prods{grid-template-columns:1fr 1fr}}
+</style></head><body>
+<svg width="0" height="0" style="position:absolute"><defs>
+<symbol id="boxer" viewBox="0 0 100 100"><path d="M10 26H90L88 62Q74 86 54 86L50 66L46 86Q26 86 12 62Z" fill="currentColor"/><rect x="10" y="14" width="80" height="13" rx="4" fill="currentColor" opacity=".78"/><rect x="10" y="14" width="80" height="13" rx="4" fill="none" stroke="rgba(0,0,0,.12)"/></symbol>
+<symbol id="sock" viewBox="0 0 100 100"><path d="M34 6H62V50L84 64Q95 73 88 84Q80 93 64 87L34 66Z" fill="currentColor"/><rect x="34" y="6" width="28" height="12" fill="currentColor" opacity=".75"/><path d="M34 22H62" stroke="rgba(255,255,255,.55)" stroke-width="3"/></symbol>
+<symbol id="tee" viewBox="0 0 100 100"><path d="M34 10Q50 22 66 10L92 24L82 42L72 38V90H28V38L18 42L8 24Z" fill="currentColor"/></symbol></defs></svg>
+<div class="top">Envío gratis desde S/ 150 · Cambios sin costo en 30 días</div>
+<header><div class="w"><a class="logo" href="#">nuda<i>.</i></a><nav><a href="#">Boxers</a><a href="#">Medias</a><a href="#">Camisetas</a><a href="#">Packs</a><a href="#">Mujer</a></nav><a class="btn o" href="#">Bolsa (0)</a></div></header>
+<main>
+<div class="hero"><div class="w"><div><h1>Lo básico, <em>bien hecho.</em></h1><p>Algodón peinado, costuras planas y colores que combinan con todo. Prendas que no sientes, pero notas.</p><a class="btn" href="#">Comprar básicos</a><a class="btn o" href="#">Ver packs</a></div>
+<div class="stage"><svg style="color:#2f3d55"><use href="#boxer"/></svg><svg style="color:#b5532f"><use href="#tee"/></svg><svg style="color:#8a9a7b"><use href="#sock"/></svg></div></div></div>
+<section style="padding-top:0"><div class="w"><h2>Compra por prenda</h2><p class="sub">Cuatro categorías, todo el año.</p><div class="cats">
+<a class="cat c1" href="#"><svg style="color:#2f3d55"><use href="#boxer"/></svg><div><b>Boxers</b><small>Desde S/ 29</small></div></a>
+<a class="cat c2" href="#"><svg style="color:#566248"><use href="#sock"/></svg><div><b>Medias</b><small>Desde S/ 12</small></div></a>
+<a class="cat c3" href="#"><svg style="color:#fbf7f1"><use href="#tee"/></svg><div><b>Camisetas</b><small>Desde S/ 39</small></div></a>
+<a class="cat c4" href="#"><svg style="color:#b5532f"><use href="#boxer"/></svg><div><b>Packs</b><small>Ahorra hasta 20%</small></div></a></div></div></section>
+<section style="padding-top:0"><div class="w"><h2>Los que más se repiten</h2><p class="sub">Clientes que vuelven por el mismo par.</p><div class="prods">
+<a class="p" href="#"><div class="im"><svg style="color:#2f3d55"><use href="#boxer"/></svg></div><div class="sw"><i style="background:#2f3d55"></i><i style="background:#2a211b"></i><i style="background:#8a9a7b"></i></div><h3>Boxer clásico de algodón</h3><small>Pack x3</small><b>S/ 79</b></a>
+<a class="p" href="#"><div class="im"><svg style="color:#d9c3a3"><use href="#sock"/></svg></div><div class="sw"><i style="background:#d9c3a3"></i><i style="background:#fff"></i><i style="background:#2a211b"></i></div><h3>Media tobillera</h3><small>Pack x5</small><b>S/ 49</b></a>
+<a class="p" href="#"><div class="im"><svg style="color:#fbf7f1"><use href="#tee"/></svg></div><div class="sw"><i style="background:#fff"></i><i style="background:#2a211b"></i><i style="background:#b5532f"></i></div><h3>Camiseta cuello redondo</h3><small>Algodón peinado</small><b>S/ 45</b></a>
+<a class="p" href="#"><div class="im"><svg style="color:#8a9a7b"><use href="#boxer"/></svg></div><div class="sw"><i style="background:#8a9a7b"></i><i style="background:#b5532f"></i></div><h3>Boxer largo</h3><small>Sin etiqueta</small><b>S/ 35</b></a></div></div></section>
+<div class="feat"><section><div class="w"><div><h3>Algodón peinado</h3><p>Más suave y resistente que el algodón común.</p></div><div><h3>Costuras planas</h3><p>Sin roces ni marcas en la piel.</p></div><div><h3>Sin etiqueta</h3><p>Impresa en la tela, nada que moleste.</p></div></div></section></div>
+</main><footer><div class="w">© nuda · Maqueta de ejemplo: nombre, precios y productos ficticios.</div></footer></body></html>
