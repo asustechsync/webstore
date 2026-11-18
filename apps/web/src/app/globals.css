@@ -9,6 +9,21 @@ html {
   color-scheme: light;
 }
 
+/*
+ * Variante "suave" (propuesta de ejemplo en /ejemplo): gris cálido, tarjetas muy
+ * redondeadas y acento naranja. Solo redefine tokens dentro de su ámbito.
+ */
+.theme-soft {
+  --color-surface-muted: oklch(0.945 0.004 80);
+  --color-surface-tile: oklch(0.915 0.004 80);
+  --color-brand: oklch(0.68 0.21 38);
+  --color-border: oklch(0.9 0.004 80);
+}
+
+.hatch {
+  background-image: repeating-linear-gradient(135deg, transparent 0 5px, oklch(0 0 0 / 0.07) 5px 6px);
+}
+
 body {
   background: var(--color-surface-muted);
   color: var(--color-foreground);
