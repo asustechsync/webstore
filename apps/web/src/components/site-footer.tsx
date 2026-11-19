@@ -10,7 +10,7 @@ const columns = [
 export function SiteFooter() {
   return (
     <footer className="bg-surface-inverse text-xs text-foreground-inverse-muted">
-      <div className="mx-auto grid max-w-6xl gap-8 px-4 pt-11 pb-7 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-[88rem] gap-8 px-4 pt-11 pb-7 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <p className="mb-3 flex items-center gap-2 text-xl font-extrabold text-foreground-inverse">
             <span aria-hidden="true" className="inline-block h-4 w-7 rounded-full border-[3px] border-foreground-inverse" />
@@ -35,7 +35,7 @@ export function SiteFooter() {
           </div>
         ))}
       </div>
-      <div className="mx-auto max-w-6xl px-4 pb-6">
+      <div className="mx-auto max-w-[88rem] px-4 pb-6">
         © {new Date().getFullYear()} {env.NEXT_PUBLIC_STORE_NAME}
       </div>
     </footer>

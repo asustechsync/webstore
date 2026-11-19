@@ -52,7 +52,7 @@ export function ProductCard({ product }: { product: SampleProduct }) {
             aria-checked={c === color}
             aria-label={`Color ${c}`}
             onClick={() => setColor(c)}
-            className={`size-5 rounded-full border border-black/10 ${
+            className={`size-5 rounded-md border border-black/10 ${
               c === color ? "ring-1 ring-foreground ring-offset-2" : ""
             }`}
             style={{ background: c }}

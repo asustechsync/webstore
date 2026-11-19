@@ -37,6 +37,8 @@ export const gridProducts: SampleProduct[] = [
   { id: "g6", name: "Media clásica azul noche", kind: "sock", color: "#1d2b44", price: 15, oldPrice: 20, rating: 4.9, sold: 17, badge: "Nuevo", favorite: true },
   { id: "g7", name: "Boxer rosa edición limitada", kind: "boxer", color: "#f1b6c4", price: 45, rating: 4.9, sold: 120, badge: "Agotado" },
   { id: "g8", name: "Camiseta verde salvia", kind: "tee", color: "#8a9a7b", price: 55, oldPrice: 65, rating: 4.8, sold: 64, favorite: true },
+  { id: "g9", name: "Media clásica gris piedra", kind: "sock", color: "#b9b9b4", price: 15, oldPrice: 20, rating: 4.8, sold: 42 },
+  { id: "g10", name: "Boxer largo negro", kind: "boxer", color: "#111111", price: 42, oldPrice: 49, rating: 4.9, sold: 87 },
 ];
 
 export interface SampleCollection {
