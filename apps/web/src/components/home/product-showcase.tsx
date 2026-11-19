@@ -21,7 +21,7 @@ export function ProductShowcase() {
               key={label}
               type="button"
               disabled
-              className="flex min-w-28 cursor-not-allowed items-center justify-between gap-2 rounded-control border border-border bg-surface px-4 py-2 text-xs font-semibold"
+              className="flex min-w-28 cursor-not-allowed items-center justify-between gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-xs font-semibold"
             >
               {label} <span aria-hidden="true">⌄</span>
             </button>
@@ -29,7 +29,7 @@ export function ProductShowcase() {
           <button
             type="button"
             disabled
-            className="ml-2 flex cursor-not-allowed items-center gap-2 rounded-control border border-border bg-surface px-4 py-2 text-xs font-semibold"
+            className="ml-2 flex cursor-not-allowed items-center gap-2 rounded-xl border border-border bg-surface px-4 py-2 text-xs font-semibold"
           >
             Más filtros <span aria-hidden="true">☰</span>
           </button>

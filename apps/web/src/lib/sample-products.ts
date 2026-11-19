@@ -7,6 +7,7 @@ export type GarmentKind = "boxer" | "sock" | "tee";
 export interface SampleProduct {
   id: string;
   name: string;
+  brand: string;
   kind: GarmentKind;
   /** Color de la prenda (dato del producto, no del tema). */
   color: string;
@@ -21,29 +22,30 @@ export interface SampleProduct {
 }
 
 export const dealProducts: SampleProduct[] = [
-  { id: "d1", name: "Boxer clásico pima", kind: "boxer", color: "#2f3d55", price: 29, oldPrice: 39, rating: 4.9, sold: 652, stock: 900 },
-  { id: "d2", name: "Media tobillera x5", kind: "sock", color: "#d9c3a3", price: 39, oldPrice: 55, rating: 4.9, sold: 412 },
-  { id: "d3", name: "Boxer largo sin etiqueta", kind: "boxer", color: "#8a9a7b", price: 35, oldPrice: 45, rating: 4.8, sold: 901, favorite: true },
-  { id: "d4", name: "Camiseta cuello redondo", kind: "tee", color: "#ffffff", price: 45, oldPrice: 60, rating: 4.9, sold: 516 },
-  { id: "d5", name: "Media clásica negra", kind: "sock", color: "#111111", price: 15, oldPrice: 20, rating: 4.9, sold: 129 },
+  { id: "d1", brand: "Pesail", name: "Boxer clásico pima", kind: "boxer", color: "#2f3d55", price: 18, oldPrice: 22, rating: 4.9, sold: 652, stock: 900 },
+  { id: "d2", brand: "Amanecer", name: "Media tobillera x5", kind: "sock", color: "#d9c3a3", price: 22, oldPrice: 25, rating: 4.9, sold: 412 },
+  { id: "d3", brand: "Ciervo Dorado", name: "Boxer largo sin etiqueta", kind: "boxer", color: "#8a9a7b", price: 20, oldPrice: 24, rating: 4.8, sold: 901, favorite: true },
+  { id: "d4", brand: "Fila", name: "Camiseta cuello redondo", kind: "tee", color: "#ffffff", price: 23, oldPrice: 25, rating: 4.9, sold: 516 },
+  { id: "d5", brand: "Boston", name: "Media clásica negra", kind: "sock", color: "#111111", price: 12, oldPrice: 15, rating: 4.9, sold: 129 },
 ];
 
 export const gridProducts: SampleProduct[] = [
-  { id: "g1", name: "Boxer corto azul noche", kind: "boxer", color: "#2f3d55", price: 39, oldPrice: 45, rating: 4.9, sold: 12, badge: "Nuevo" },
-  { id: "g2", name: "Boxer largo gris piedra", kind: "boxer", color: "#b9b9b4", price: 42, oldPrice: 49, rating: 4.9, sold: 8, badge: "Nuevo" },
-  { id: "g3", name: "Camiseta básica hueso", kind: "tee", color: "#e9e1cf", price: 55, oldPrice: 65, rating: 4.7, sold: 321 },
-  { id: "g4", name: "Boxer corto negro", kind: "boxer", color: "#111111", price: 39, oldPrice: 45, rating: 4.9, sold: 281 },
-  { id: "g5", name: "Camiseta terracota", kind: "tee", color: "#b5532f", price: 55, oldPrice: 65, rating: 4.8, sold: 98 },
-  { id: "g6", name: "Media clásica azul noche", kind: "sock", color: "#1d2b44", price: 15, oldPrice: 20, rating: 4.9, sold: 17, badge: "Nuevo", favorite: true },
-  { id: "g7", name: "Boxer rosa edición limitada", kind: "boxer", color: "#f1b6c4", price: 45, rating: 4.9, sold: 120, badge: "Agotado" },
-  { id: "g8", name: "Camiseta verde salvia", kind: "tee", color: "#8a9a7b", price: 55, oldPrice: 65, rating: 4.8, sold: 64, favorite: true },
-  { id: "g9", name: "Media clásica gris piedra", kind: "sock", color: "#b9b9b4", price: 15, oldPrice: 20, rating: 4.8, sold: 42 },
-  { id: "g10", name: "Boxer largo negro", kind: "boxer", color: "#111111", price: 42, oldPrice: 49, rating: 4.9, sold: 87 },
+  { id: "g1", brand: "Pesail", name: "Boxer corto azul noche", kind: "boxer", color: "#2f3d55", price: 20, oldPrice: 24, rating: 4.9, sold: 12, badge: "Nuevo" },
+  { id: "g2", brand: "Boston", name: "Boxer largo gris piedra", kind: "boxer", color: "#b9b9b4", price: 21, oldPrice: 25, rating: 4.9, sold: 8, badge: "Nuevo" },
+  { id: "g3", brand: "Fila", name: "Camiseta básica hueso", kind: "tee", color: "#e9e1cf", price: 24, oldPrice: 25, rating: 4.7, sold: 321 },
+  { id: "g4", brand: "Ciervo Dorado", name: "Boxer corto negro", kind: "boxer", color: "#111111", price: 20, oldPrice: 24, rating: 4.9, sold: 281 },
+  { id: "g5", brand: "Amanecer", name: "Camiseta terracota", kind: "tee", color: "#b5532f", price: 23, oldPrice: 25, rating: 4.8, sold: 98 },
+  { id: "g6", brand: "Boston", name: "Media clásica azul noche", kind: "sock", color: "#1d2b44", price: 12, oldPrice: 15, rating: 4.9, sold: 17, badge: "Nuevo", favorite: true },
+  { id: "g7", brand: "Pesail", name: "Boxer rosa edición limitada", kind: "boxer", color: "#f1b6c4", price: 22, rating: 4.9, sold: 120, badge: "Agotado" },
+  { id: "g8", brand: "Ciervo Dorado", name: "Camiseta verde salvia", kind: "tee", color: "#8a9a7b", price: 24, oldPrice: 25, rating: 4.8, sold: 64, favorite: true },
+  { id: "g9", brand: "Amanecer", name: "Media clásica gris piedra", kind: "sock", color: "#b9b9b4", price: 12, oldPrice: 15, rating: 4.8, sold: 42 },
+  { id: "g10", brand: "Fila", name: "Boxer largo negro", kind: "boxer", color: "#111111", price: 21, oldPrice: 25, rating: 4.9, sold: 87 },
 ];
 
 export interface SampleCollection {
   id: string;
   name: string;
+  brand: string;
   reviews: string;
   items: { kind: GarmentKind; color: string }[];
 }
