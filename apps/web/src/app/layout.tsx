@@ -1,10 +1,20 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import type { ReactNode } from "react";
 import { env } from "@/env";
 import "./globals.css";
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", display: "swap" });
+const comfort = localFont({
+  src: [
+    { path: "./fonts/confortotrial-thin.woff2", weight: "100", style: "normal" },
+    { path: "./fonts/confortotrial-light.woff2", weight: "300", style: "normal" },
+    { path: "./fonts/confortotrial-regular.woff2", weight: "400", style: "normal" },
+    { path: "./fonts/confortotrial-medium.woff2", weight: "500", style: "normal" },
+    { path: "./fonts/confortotrial-bold.woff2", weight: "700", style: "normal" },
+  ],
+  variable: "--font-comfort",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(env.NEXT_PUBLIC_SITE_URL),
@@ -17,7 +27,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
   return (
-    <html lang="es" className={jakarta.variable}>
+    <html lang="es" className={comfort.variable}>
       <body className="flex min-h-dvh flex-col bg-surface-muted antialiased">
         {children}
       </body>

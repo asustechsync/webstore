@@ -6,7 +6,7 @@ export function SiteHeader() {
   return (
     <header>
       <div className="bg-black text-[11px] text-foreground-inverse-muted">
-        <div className="mx-auto flex h-8 max-w-[88rem] items-center justify-between px-4">
+        <div className="mx-auto max-w-[96rem] flex h-8 items-center justify-between px-4 sm:px-8 lg:px-14">
           <p className="flex gap-5">
             <span>Vender con nosotros</span>
             <span>Ayuda</span>
@@ -16,7 +16,7 @@ export function SiteHeader() {
         </div>
       </div>
       <div className="bg-surface">
-        <div className="mx-auto flex h-17 max-w-[88rem] items-center gap-6 px-4">
+        <div className="mx-auto max-w-[96rem] flex h-17 items-center gap-6 px-4 sm:px-8 lg:px-14">
           <Link href="/" className="flex items-center gap-2 text-xl font-extrabold">
             <span aria-hidden="true" className="inline-block h-4 w-7 rounded-full border-[3px] border-foreground" />
             {env.NEXT_PUBLIC_STORE_NAME}

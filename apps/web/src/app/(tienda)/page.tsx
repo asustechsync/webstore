@@ -6,7 +6,7 @@ import { ProductShowcase } from "@/components/home/product-showcase";
 
 export default function HomePage() {
   return (
-    <div className="mx-auto flex max-w-[88rem] flex-col gap-4 px-4 py-4">
+    <div className="mx-auto max-w-[96rem] flex flex-col gap-4 px-4 sm:px-8 lg:px-14 py-4">
       <HeroBanners />
       <DealsRail />
       <ProductShowcase />
